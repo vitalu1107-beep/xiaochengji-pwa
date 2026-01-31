@@ -1,0 +1,212 @@
+{\rtf1\ansi\ansicpg936\cocoartf2638
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset134 PingFangSC-Regular;\f2\fnil\fcharset0 AppleColorEmoji;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww28600\viewh18000\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="zh-CN">\
+<head>\
+  <meta charset="UTF-8">\
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+  <title>
+\f1 \'d0\'a1\'b3\'c9\'be\'cd
+\f0 </title>\
+  <link rel="manifest" href="manifest.json">\
+  <link rel="stylesheet" href="style.css">\
+</head>\
+<body>\
+  <!-- 
+\f1 \'c6\'f4\'b6\'af\'d2\'b3
+\f0  -->\
+  <div id="launchPage" class="page">\
+    <h1>
+\f2 \uc0\u55356 \u57263 
+\f0  
+\f1 \'d0\'a1\'b3\'c9\'be\'cd
+\f0 </h1>\
+    <button onclick="showPage('home')">
+\f1 \'bd\'f8\'c8\'eb
+\f0  App</button>\
+  </div>\
+\
+  <!-- 
+\f1 \'ca\'d7\'d2\'b3
+\f0  -->\
+  <div id="home" class="page hidden">\
+    <h2>
+\f1 \'ca\'d7\'d2\'b3
+\f0 </h2>\
+    <button onclick="showPage('today')">
+\f1 \'bd\'f1\'c8\'d5\'d0\'a1\'b3\'c9\'be\'cd
+\f0 </button>\
+    <button onclick="showPage('wall')">
+\f1 \'b3\'c9\'be\'cd\'c7\'bd
+\f0 </button>\
+    <button onclick="showRandomReview()">
+\f1 \'cb\'e6\'bb\'fa\'bb\'d8\'b9\'cb
+\f0 </button>\
+    <button onclick="showPage('celebrity')">
+\f1 \'c3\'fb\'c8\'cb\'d0\'a1\'b3\'c9\'be\'cd
+\f0 </button>\
+    <button onclick="showPage('settings')">
+\f1 \'c9\'e8\'d6\'c3
+\f0 </button>\
+  </div>\
+\
+  <!-- 
+\f1 \'bd\'f1\'c8\'d5\'d0\'a1\'b3\'c9\'be\'cd\'bc\'c7\'c2\'bc\'d2\'b3
+\f0  -->\
+  <div id="today" class="page hidden">\
+    <h2>
+\f1 \'bd\'f1\'c8\'d5\'d0\'a1\'b3\'c9\'be\'cd\'bc\'c7\'c2\'bc
+\f0 </h2>\
+    <ul>\
+      <li>
+\f1 \'cd\'ea\'b3\'c9\'d4\'e7\'b3\'bf\'bc\'c6\'bb\'ae
+\f0  
+\f2 \uc0\u55356 \u57118 
+\f0 </li>\
+      <li>
+\f1 \'b6\'c1\'ca\'e9
+\f0  30 
+\f1 \'b7\'d6\'d6\'d3
+\f0  
+\f2 \uc0\u55357 \u56534 
+\f0 </li>\
+    </ul>\
+    <button onclick="showPage('home')">
+\f1 \'b7\'b5\'bb\'d8\'ca\'d7\'d2\'b3
+\f0 </button>\
+  </div>\
+\
+  <!-- 
+\f1 \'b3\'c9\'be\'cd\'c7\'bd
+\f0  -->\
+  <div id="wall" class="page hidden">\
+    <h2>
+\f1 \'b3\'c9\'be\'cd\'c7\'bd
+\f0 </h2>\
+    <ul>\
+      <li onclick="showAchievementDetail('
+\f1 \'cd\'ea\'b3\'c9\'cf\'ee\'c4\'bf
+\f0 A')">
+\f1 \'cd\'ea\'b3\'c9\'cf\'ee\'c4\'bf
+\f0 A</li>\
+      <li onclick="showAchievementDetail('
+\f1 \'d1\'a7\'cf\'b0\'d0\'c2\'bc\'bc\'c4\'dc
+\f0 ')">
+\f1 \'d1\'a7\'cf\'b0\'d0\'c2\'bc\'bc\'c4\'dc
+\f0 </li>\
+    </ul>\
+    <button onclick="showPage('home')">
+\f1 \'b7\'b5\'bb\'d8\'ca\'d7\'d2\'b3
+\f0 </button>\
+  </div>\
+\
+  <!-- 
+\f1 \'b3\'c9\'be\'cd\'cf\'ea\'c7\'e9\'b5\'af\'b2\'e3
+\f0  -->\
+  <div id="achievementDetail" class="overlay hidden">\
+    <div class="overlay-content">\
+      <h3 id="achievementTitle"></h3>\
+      <p>
+\f1 \'d5\'e2\'c0\'ef\'cf\'d4\'ca\'be\'b3\'c9\'be\'cd\'cf\'ea\'c7\'e9\'c4\'da\'c8\'dd
+\f0 \'85\'85</p>\
+      <button onclick="closeOverlay('achievementDetail')">
+\f1 \'b9\'d8\'b1\'d5
+\f0 </button>\
+    </div>\
+  </div>\
+\
+  <!-- 
+\f1 \'cb\'e6\'bb\'fa\'bb\'d8\'b9\'cb\'b5\'af\'b2\'e3
+\f0  -->\
+  <div id="randomReview" class="overlay hidden">\
+    <div class="overlay-content">\
+      <h3>
+\f1 \'cb\'e6\'bb\'fa\'bb\'d8\'b9\'cb
+\f0 </h3>\
+      <p>
+\f1 \'d5\'e2\'ca\'c7\'c4\'e3\'b9\'fd\'c8\'a5\'b5\'c4\'d2\'bb\'b8\'f6\'d0\'a1\'b3\'c9\'be\'cd
+\f0  
+\f2 \uc0\u55356 \u57225 
+\f0 </p>\
+      <button onclick="closeOverlay('randomReview')">
+\f1 \'b9\'d8\'b1\'d5
+\f0 </button>\
+    </div>\
+  </div>\
+\
+  <!-- 
+\f1 \'c3\'fb\'c8\'cb\'d0\'a1\'b3\'c9\'be\'cd\'c1\'d0\'b1\'ed
+\f0  -->\
+  <div id="celebrity" class="page hidden">\
+    <h2>
+\f1 \'c3\'fb\'c8\'cb\'d0\'a1\'b3\'c9\'be\'cd
+\f0 </h2>\
+    <ul>\
+      <li onclick="showCelebrityDetail('
+\f1 \'c3\'fb\'c8\'cb
+\f0 A')">
+\f1 \'c3\'fb\'c8\'cb
+\f0 A</li>\
+      <li onclick="showCelebrityDetail('
+\f1 \'c3\'fb\'c8\'cb
+\f0 B')">
+\f1 \'c3\'fb\'c8\'cb
+\f0 B</li>\
+    </ul>\
+    <button onclick="showPage('home')">
+\f1 \'b7\'b5\'bb\'d8\'ca\'d7\'d2\'b3
+\f0 </button>\
+  </div>\
+\
+  <!-- 
+\f1 \'c3\'fb\'c8\'cb\'cf\'ea\'c7\'e9\'b5\'af\'b2\'e3
+\f0  -->\
+  <div id="celebrityDetail" class="overlay hidden">\
+    <div class="overlay-content">\
+      <h3 id="celebrityTitle"></h3>\
+      <p>
+\f1 \'d5\'e2\'c0\'ef\'cf\'d4\'ca\'be\'c3\'fb\'c8\'cb\'d0\'a1\'b3\'c9\'be\'cd\'cf\'ea\'c7\'e9
+\f0 \'85\'85</p>\
+      <button onclick="closeOverlay('celebrityDetail')">
+\f1 \'b9\'d8\'b1\'d5
+\f0 </button>\
+    </div>\
+  </div>\
+\
+  <!-- 
+\f1 \'c9\'e8\'d6\'c3\'d2\'b3
+\f0  -->\
+  <div id="settings" class="page hidden">\
+    <h2>
+\f1 \'c9\'e8\'d6\'c3
+\f0 </h2>\
+    <p>
+\f1 \'d5\'e2\'c0\'ef\'bf\'c9\'d2\'d4\'b5\'f7\'d5\'fb\'c4\'e3\'b5\'c4\'c6\'ab\'ba\'c3\'c9\'e8\'d6\'c3
+\f0 </p>\
+    <button onclick="showPage('home')">
+\f1 \'b7\'b5\'bb\'d8\'ca\'d7\'d2\'b3
+\f0 </button>\
+  </div>\
+\
+  <script src="main.js"></script>\
+  <script>\
+    // 
+\f1 \'d7\'a2\'b2\'e1
+\f0  Service Worker\
+    if ('serviceWorker' in navigator) \{\
+      window.addEventListener('load', () => \{\
+        navigator.serviceWorker.register('sw.js')\
+          .then(reg => console.log('SW registered:', reg))\
+          .catch(err => console.log('SW registration failed:', err));\
+      \});\
+    \}\
+  </script>\
+</body>\
+</html>\
+}
