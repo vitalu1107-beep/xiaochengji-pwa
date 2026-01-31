@@ -1,10 +1,46 @@
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
-    "Helvetica Neue", Helvetica, Arial, sans-serif;
-  text-align: center;
-  padding: 40px;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Helvetica Neue", Arial, sans-serif;
   background: #f4f9f4;
   color: #333;
+}
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+h1 span {
+  font-size: 16px;
+  color: #777;
+  margin-left: 6px;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.input-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
 button {
@@ -19,4 +55,24 @@ button {
 
 button:hover {
   background: #43a047;
+}
+
+h2 {
+  text-align: left;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+li {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
