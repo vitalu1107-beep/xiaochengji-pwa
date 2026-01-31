@@ -1,24 +1,35 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>小成就 · Small Wins</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <h1>🎯 小成就 Small Wins</h1>
-  <p>记录每天的小小进步。</p>
 
-  <button onclick="alert('今天你完成了什么小成就？')">
-    记录一个小成就
-  </button>
+<body>
+  <div class="container">
+    <h1>🎯 小成就 <span>Small Wins</span></h1>
+    <p class="subtitle">记录每天的小小进步。</p>
+
+    <div class="input-box">
+      <input
+        id="achievementInput"
+        type="text"
+        placeholder="今天完成了什么？哪怕很小…"
+      />
+      <button onclick="addAchievement()">+ 记录</button>
+    </div>
+
+    <h2>📅 今日小成就</h2>
+    <ul id="achievementList"></ul>
+  </div>
 
   <script src="main.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
     }
   </script>
 </body>
