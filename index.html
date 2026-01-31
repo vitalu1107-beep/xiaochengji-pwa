@@ -10,43 +10,138 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="app">
     <header class="header">
-      <div class="title">
-        <h1>🎯 小成就</h1>
-        <span class="en">Small Wins</span>
+      <div class="brand">
+        <div class="logo">🎯</div>
+        <div>
+          <div class="title">小成就 <span class="en">Small Wins</span></div>
+          <div class="subtitle">记录每天的小小进步。</div>
+        </div>
       </div>
-      <p class="subtitle">记录每天的小小进步，给自己一点确认感。</p>
+
+      <nav class="tabs">
+        <button class="tab active" data-page="home">首页</button>
+        <button class="tab" data-page="today">今天</button>
+        <button class="tab" data-page="wall">成就墙</button>
+        <button class="tab" id="randomBtn" type="button">随机回顾</button>
+        <button class="tab" data-page="settings">设置</button>
+      </nav>
     </header>
 
-    <section class="card">
-      <div class="input-box">
-        <input
-          id="achievementInput"
-          type="text"
-          placeholder="今天完成了什么？哪怕很小…"
-          autocomplete="off"
-        />
-        <button id="addBtn" type="button">记录</button>
-      </div>
+    <!-- HOME -->
+    <main class="container">
+      <section id="page-home" class="page">
+        <div class="card">
+          <div class="input-box">
+            <input
+              id="achievementInput"
+              type="text"
+              placeholder="今天完成了什么？哪怕很小…"
+              autocomplete="off"
+            />
+            <button id="addBtn" type="button">记录</button>
+          </div>
+          <div class="hint">提示：按 <kbd>Enter</kbd> 也可以记录。</div>
+        </div>
 
-      <div class="hint">
-        小技巧：按 <kbd>Enter</kbd> 也可以快速记录。
-      </div>
-    </section>
+        <div class="grid">
+          <div class="card">
+            <div class="card-title">📅 今日</div>
+            <div class="big" id="statToday">0</div>
+            <div class="muted">条小成就</div>
+            <button class="ghost" id="goTodayBtn" type="button">去看看</button>
+          </div>
 
-    <section class="card">
-      <div class="section-title">
-        <h2>📅 今日小成就</h2>
-        <button id="clearBtn" class="ghost" type="button">清空</button>
-      </div>
+          <div class="card">
+            <div class="card-title">🧱 总历史</div>
+            <div class="big" id="statAll">0</div>
+            <div class="muted">条小成就</div>
+            <button class="ghost" id="goWallBtn" type="button">去成就墙</button>
+          </div>
+        </div>
 
-      <ul id="achievementList" class="list"></ul>
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">🕒 最近记录</div>
+          </div>
+          <ul id="recentList" class="list"></ul>
+          <div id="recentEmpty" class="empty hidden">还没有记录～先写下一个小小进步吧 ✨</div>
+        </div>
+      </section>
 
-      <div id="emptyState" class="empty hidden">
-        还没有记录～先写下一个小小进步吧 ✨
+      <!-- TODAY (Today/Yesterday/History grouped) -->
+      <section id="page-today" class="page hidden">
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">📅 今天</div>
+            <button class="danger ghost" id="clearTodayBtn" type="button">清空今天</button>
+          </div>
+          <ul id="todayList" class="list"></ul>
+          <div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">🌙 昨天</div>
+          </div>
+          <ul id="yesterdayList" class="list"></ul>
+          <div id="yesterdayEmpty" class="empty hidden">昨天没有记录。</div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">🗂 历史</div>
+          </div>
+          <div id="historyWrap"></div>
+          <div id="historyEmpty" class="empty hidden">还没有历史记录。</div>
+        </div>
+      </section>
+
+      <!-- WALL -->
+      <section id="page-wall" class="page hidden">
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">🧱 成就墙（全览 + 搜索）</div>
+          </div>
+
+          <div class="input-box">
+            <input id="searchInput" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
+            <button id="searchClearBtn" class="ghost" type="button">清空</button>
+          </div>
+
+          <div class="muted small" id="searchMeta"></div>
+          <ul id="wallList" class="list"></ul>
+          <div id="wallEmpty" class="empty hidden">没有匹配结果。</div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="page-settings" class="page hidden">
+        <div class="card">
+          <div class="card-title">⚙️ 设置</div>
+          <p class="muted small">
+            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
+          </p>
+
+          <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
+          <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Random Review -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-mask" id="modalMask"></div>
+      <div class="modal-card">
+        <div class="modal-title">🎲 随机回顾</div>
+        <div id="modalContent" class="modal-content"></div>
+        <div class="modal-actions">
+          <button id="modalAgainBtn" class="ghost" type="button">再来一条</button>
+          <button id="modalCloseBtn" type="button">关闭</button>
+        </div>
       </div>
-    </section>
+    </div>
 
     <div id="toast" class="toast hidden">已记录 ✅</div>
   </div>
