@@ -4,26 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>小成就 · Small Wins</title>
+
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <div class="container">
-    <h1>🎯 小成就 <span>Small Wins</span></h1>
-    <p class="subtitle">记录每天的小小进步。</p>
+    <header class="header">
+      <div class="title">
+        <h1>🎯 小成就</h1>
+        <span class="en">Small Wins</span>
+      </div>
+      <p class="subtitle">记录每天的小小进步，给自己一点确认感。</p>
+    </header>
 
-    <div class="input-box">
-      <input
-        id="achievementInput"
-        type="text"
-        placeholder="今天完成了什么？哪怕很小…"
-      />
-      <button onclick="addAchievement()">+ 记录</button>
-    </div>
+    <section class="card">
+      <div class="input-box">
+        <input
+          id="achievementInput"
+          type="text"
+          placeholder="今天完成了什么？哪怕很小…"
+          autocomplete="off"
+        />
+        <button id="addBtn" type="button">记录</button>
+      </div>
 
-    <h2>📅 今日小成就</h2>
-    <ul id="achievementList"></ul>
+      <div class="hint">
+        小技巧：按 <kbd>Enter</kbd> 也可以快速记录。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>📅 今日小成就</h2>
+        <button id="clearBtn" class="ghost" type="button">清空</button>
+      </div>
+
+      <ul id="achievementList" class="list"></ul>
+
+      <div id="emptyState" class="empty hidden">
+        还没有记录～先写下一个小小进步吧 ✨
+      </div>
+    </section>
+
+    <div id="toast" class="toast hidden">已记录 ✅</div>
   </div>
 
   <script src="main.js"></script>
