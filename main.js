@@ -375,9 +375,7 @@ searchClearBtn.addEventListener("click", () => {
 });
 
 // ====== Chips filter state (multi-select) ======
-const chipButtons = Array.from(document.querySelectorAll(".chip"));
-const selectedChips = new Set(); // e.g. "阅读", "复盘"
-
+let chipButtons = Array.from(document.querySelectorAll(".chip"));
 function syncChipUI() {
   chipButtons.forEach((btn) => {
     const key = btn.dataset.chip || "";
