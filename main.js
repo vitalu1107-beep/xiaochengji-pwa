@@ -33,6 +33,10 @@ const searchMetaEl = document.getElementById("searchMeta");
 const wallListEl = document.getElementById("wallList");
 const wallEmptyEl = document.getElementById("wallEmpty");
 
+// ====== Chips filter state (multi-select) ======
+const chipButtons = Array.from(document.querySelectorAll(".chip"));
+const selectedChips = new Set(); // e.g. "阅读", "复盘"
+
 const randomBtn = document.getElementById("randomBtn");
 
 const modalEl = document.getElementById("modal");
