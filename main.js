@@ -114,6 +114,13 @@ function showToast(text) {
   setTimeout(() => toastEl.classList.add("hidden"), 1200);
 }
 
+function syncChipUI() {
+  document.querySelectorAll(".chip").forEach((btn) => {
+    const key = btn.dataset.chip || "";
+    btn.classList.toggle("active", key && selectedChips.has(key));
+  });
+}
+
 function setActiveTab(pageKey) {
   tabs.forEach((b) => {
     const p = b.dataset.page;
