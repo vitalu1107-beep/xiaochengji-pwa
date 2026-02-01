@@ -267,11 +267,29 @@ function renderToday() {
 
 function renderWall() {
   const q = (searchInputEl.value || "").trim().toLowerCase();
-  const data = q ? items.filter((it) => it.text.toLowerCase().includes(q)) : items.slice();
+  const chips = Array.from(selectedChips); // 已选标签列表
 
-  searchMetaEl.textContent = q
-    ? `搜索「${q}」：${data.length} 条结果 / 总共 ${items.length} 条`
-    : `总共 ${items.length} 条历史记录`;
+  const data = items.filter((it) => {
+    const text = (it.text || "").toLowerCase();
+
+    // 1) 搜索框过滤（包含匹配）
+    const matchQuery = q ? text.includes(q) : true;
+
+    // 2) 标签过滤（默认 AND：必须同时包含所有已选标签）
+    const matchChips = chips.length === 0
+      ? true
+      : chips.every((c) => text.includes(String(c).toLowerCase()));
+
+    // 如果你想要 OR（任意命中），把上面一行替换为：
+    // : chips.some((c) => text.includes(String(c).toLowerCase()));
+
+    return matchQuery && matchChips;
+  });
+
+  const chipText = chips.length ? `标签：${chips.join(" + ")}` : "标签：无";
+  const queryText = q ? `搜索：「${q}」` : "搜索：无";
+
+  searchMetaEl.textContent = `${chipText} ｜ ${queryText} ｜ 结果 ${data.length} / 总共 ${items.length}`;
 
   wallListEl.innerHTML = "";
   if (data.length === 0) {
@@ -350,6 +368,8 @@ clearTodayBtn.addEventListener("click", () => {
 searchInputEl.addEventListener("input", () => renderWall());
 searchClearBtn.addEventListener("click", () => {
   searchInputEl.value = "";
+  selectedChips.clear();
+  syncChipUI();
   renderWall();
   searchInputEl.focus();
 });
@@ -415,6 +435,7 @@ resetAllBtn.addEventListener("click", () => {
 });
 
 // ====== Init ======
+syncChipUI();
 showPage("home");
 inputEl.focus();
 renderAll();
