@@ -1,3 +1,18 @@
+// ===============================
+// Small Wins - main.js (clean full version)
+// Features:
+// - Record wins (localStorage)
+// - Tabs/pages navigation
+// - Today/Yesterday/History grouped view
+// - History groups: default expand latest 3 dates (excluding today/yesterday already shown separately)
+// - Wall: search + multi-tag (chips) filter (AND logic)
+// - Chips: toggle highlight + filter
+// - Delete: confirm to avoid mis-touch
+// - Clear today / reset all confirm
+// - Random review modal
+// - Export to clipboard
+// ===============================
+
 // ====== DOM ======
 const tabs = document.querySelectorAll(".tab");
 const pages = {
@@ -33,8 +48,13 @@ const searchMetaEl = document.getElementById("searchMeta");
 const wallListEl = document.getElementById("wallList");
 const wallEmptyEl = document.getElementById("wallEmpty");
 
-// ====== Chips filter state (multi-select) ======
-const selectedChips = new Set(); // e.g. "阅读", "复盘"
+// Chips (tag buttons) - may exist only on wall page
+// IMPORTANT: chips might not be ready at script parse time if you render them dynamically.
+// Here they are in HTML, so it's safe.
+const chipButtons = Array.from(document.querySelectorAll(".chip"));
+
+// Only ONE selectedChips in entire file
+const selectedChips = new Set(); // multi-select tags
 
 const randomBtn = document.getElementById("randomBtn");
 
@@ -50,8 +70,8 @@ const resetAllBtn = document.getElementById("resetAllBtn");
 const toastEl = document.getElementById("toast");
 
 // ====== Storage ======
-const STORAGE_KEY = "smallWins_v2";
-let items = loadItems(); // {id, text, date, createdAt}
+const STORAGE_KEY = "smallWins_v2"; // array of items: {id, text, date, createdAt}
+let items = loadItems();
 
 // ====== Date helpers ======
 function toDateStr(d) {
@@ -109,16 +129,10 @@ function clearToday() {
 
 // ====== UI helpers ======
 function showToast(text) {
+  if (!toastEl) return;
   toastEl.textContent = text;
   toastEl.classList.remove("hidden");
   setTimeout(() => toastEl.classList.add("hidden"), 1200);
-}
-
-function syncChipUI() {
-  document.querySelectorAll(".chip").forEach((btn) => {
-    const key = btn.dataset.chip || "";
-    btn.classList.toggle("active", key && selectedChips.has(key));
-  });
 }
 
 function setActiveTab(pageKey) {
@@ -131,7 +145,9 @@ function setActiveTab(pageKey) {
 
 function showPage(pageKey) {
   Object.keys(pages).forEach((k) => {
-    pages[k].classList.toggle("hidden", k !== pageKey);
+    const el = pages[k];
+    if (!el) return;
+    el.classList.toggle("hidden", k !== pageKey);
   });
   setActiveTab(pageKey);
 
@@ -160,11 +176,10 @@ function elItemRow(item, withDate = false) {
   del.type = "button";
   del.textContent = "删除";
 
-  // ✅ 防误触：单条删除二次确认
+  // 防误触：二次确认
   del.addEventListener("click", () => {
     const ok = confirm("确定删除这一条小成就吗？");
     if (!ok) return;
-
     deleteItem(item.id);
     renderAll();
     showToast("已删除");
@@ -176,19 +191,19 @@ function elItemRow(item, withDate = false) {
 }
 
 function renderList(listEl, data, emptyEl) {
+  if (!listEl) return;
   listEl.innerHTML = "";
-  if (data.length === 0) {
-    emptyEl.classList.remove("hidden");
+  if (!data || data.length === 0) {
+    if (emptyEl) emptyEl.classList.remove("hidden");
     return;
   }
-  emptyEl.classList.add("hidden");
+  if (emptyEl) emptyEl.classList.add("hidden");
   data.forEach((it) => listEl.appendChild(elItemRow(it)));
 }
 
-// ✅ 你缺的就是这个：同步 Chip 高亮
 function syncChipUI() {
-  const chips = document.querySelectorAll(".chip");
-  chips.forEach((btn) => {
+  // 重新扫一遍 .chip，避免未来你把 chips 动态渲染导致引用失效
+  document.querySelectorAll(".chip").forEach((btn) => {
     const key = btn.dataset.chip || "";
     btn.classList.toggle("active", key && selectedChips.has(key));
   });
@@ -199,15 +214,17 @@ function renderHome() {
   const t = todayStr();
   const todayItems = items.filter((x) => x.date === t);
 
-  statTodayEl.textContent = String(todayItems.length);
-  statAllEl.textContent = String(items.length);
+  if (statTodayEl) statTodayEl.textContent = String(todayItems.length);
+  if (statAllEl) statAllEl.textContent = String(items.length);
 
+  // 最近 6 条
   const recent = items.slice(0, 6);
-  recentListEl.innerHTML = "";
-  if (recent.length === 0) {
-    recentEmptyEl.classList.remove("hidden");
+  if (recentListEl) recentListEl.innerHTML = "";
+
+  if (!recent || recent.length === 0) {
+    if (recentEmptyEl) recentEmptyEl.classList.remove("hidden");
   } else {
-    recentEmptyEl.classList.add("hidden");
+    if (recentEmptyEl) recentEmptyEl.classList.add("hidden");
     recent.forEach((it) => recentListEl.appendChild(elItemRow(it, true)));
   }
 }
@@ -224,16 +241,23 @@ function renderToday() {
 
   // 历史：排除今天/昨天，按 date 分组（倒序）
   const historyItems = items.filter((x) => x.date !== t && x.date !== y);
+
   const byDate = {};
-  historyItems.forEach((it) => ((byDate[it.date] ||= []).push(it)));
+  historyItems.forEach((it) => {
+    (byDate[it.date] ||= []).push(it);
+  });
+
   const dates = Object.keys(byDate).sort().reverse();
 
-  historyWrapEl.innerHTML = "";
-  if (dates.length === 0) {
-    historyEmptyEl.classList.remove("hidden");
+  if (historyWrapEl) historyWrapEl.innerHTML = "";
+  if (!dates || dates.length === 0) {
+    if (historyEmptyEl) historyEmptyEl.classList.remove("hidden");
     return;
   }
-  historyEmptyEl.classList.add("hidden");
+  if (historyEmptyEl) historyEmptyEl.classList.add("hidden");
+
+  // 默认展开最近 3 个历史日期组（注意：这里的历史不含今天/昨天）
+  const DEFAULT_OPEN = 3;
 
   dates.forEach((dateStr, idx) => {
     const group = document.createElement("div");
@@ -248,18 +272,21 @@ function renderToday() {
 
     const caret = document.createElement("div");
     caret.className = "muted small";
-    caret.textContent = idx < 3 ? "收起" : "展开";
-
-    head.appendChild(title);
-    head.appendChild(caret);
 
     const body = document.createElement("div");
-    body.className = "group-body" + (idx < 3 ? "" : " hidden");
+    body.className = "group-body";
+
+    const shouldOpen = idx < DEFAULT_OPEN;
+    if (!shouldOpen) body.classList.add("hidden");
+    caret.textContent = shouldOpen ? "收起" : "展开";
 
     const ul = document.createElement("ul");
     ul.className = "list";
     byDate[dateStr].forEach((it) => ul.appendChild(elItemRow(it)));
     body.appendChild(ul);
+
+    head.appendChild(title);
+    head.appendChild(caret);
 
     head.addEventListener("click", () => {
       const hidden = body.classList.toggle("hidden");
@@ -273,52 +300,50 @@ function renderToday() {
 }
 
 function renderWall() {
-  const q = (searchInputEl.value || "").trim().toLowerCase();
-  const chips = Array.from(selectedChips);
+  const q = (searchInputEl?.value || "").trim().toLowerCase();
+  const chips = Array.from(selectedChips).map((x) => String(x).toLowerCase());
 
+  // AND 逻辑：必须同时包含全部标签（你想改 OR：把 every 改 some）
   const data = items.filter((it) => {
-    const text = (it.text || "").toLowerCase();
-
+    const text = String(it.text || "").toLowerCase();
     const matchQuery = q ? text.includes(q) : true;
-
-    // AND：同时包含全部标签
-    const matchChips =
-      chips.length === 0
-        ? true
-        : chips.every((c) => text.includes(String(c).toLowerCase()));
-
+    const matchChips = chips.length === 0 ? true : chips.every((c) => text.includes(c));
     return matchQuery && matchChips;
   });
 
-  const chipText = chips.length ? `标签：${chips.join(" + ")}` : "标签：无";
-  const queryText = q ? `搜索：「${q}」` : "搜索：无";
-  searchMetaEl.textContent = `${chipText} ｜ ${queryText} ｜ 结果 ${data.length} / 总共 ${items.length}`;
+  if (searchMetaEl) {
+    const chipText = chips.length ? `标签：${Array.from(selectedChips).join(" + ")}` : "标签：无";
+    const queryText = q ? `搜索：「${q}」` : "搜索：无";
+    searchMetaEl.textContent = `${chipText} ｜ ${queryText} ｜ 结果 ${data.length} / 总共 ${items.length}`;
+  }
 
-  wallListEl.innerHTML = "";
-  if (data.length === 0) {
-    wallEmptyEl.classList.remove("hidden");
+  if (wallListEl) wallListEl.innerHTML = "";
+  if (!data || data.length === 0) {
+    if (wallEmptyEl) wallEmptyEl.classList.remove("hidden");
     return;
   }
-  wallEmptyEl.classList.add("hidden");
+  if (wallEmptyEl) wallEmptyEl.classList.add("hidden");
   data.forEach((it) => wallListEl.appendChild(elItemRow(it, true)));
 }
 
 function renderAll() {
-  if (!pages.home.classList.contains("hidden")) renderHome();
-  if (!pages.today.classList.contains("hidden")) renderToday();
-  if (!pages.wall.classList.contains("hidden")) renderWall();
+  if (pages.home && !pages.home.classList.contains("hidden")) renderHome();
+  if (pages.today && !pages.today.classList.contains("hidden")) renderToday();
+  if (pages.wall && !pages.wall.classList.contains("hidden")) renderWall();
 }
 
 // ====== Random Review ======
 function openModal(text) {
+  if (!modalContentEl || !modalEl) return;
   modalContentEl.textContent = text;
   modalEl.classList.remove("hidden");
 }
 function closeModal() {
+  if (!modalEl) return;
   modalEl.classList.add("hidden");
 }
 function pickRandom() {
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     showToast("还没有历史可以回顾～");
     return;
   }
@@ -327,108 +352,129 @@ function pickRandom() {
 }
 
 // ====== Events ======
+// Tabs
 tabs.forEach((btn) => {
   const page = btn.dataset.page;
   if (!page) return;
   btn.addEventListener("click", () => showPage(page));
 });
 
-goTodayBtn.addEventListener("click", () => showPage("today"));
-goWallBtn.addEventListener("click", () => showPage("wall"));
+if (goTodayBtn) goTodayBtn.addEventListener("click", () => showPage("today"));
+if (goWallBtn) goWallBtn.addEventListener("click", () => showPage("wall"));
 
-addBtn.addEventListener("click", () => {
-  const v = inputEl.value.trim();
-  if (!v) {
-    showToast("先写点内容～");
-    inputEl.focus();
-    return;
-  }
-  addItem(v);
-  inputEl.value = "";
-  renderAll();
-  inputEl.focus();
-  showToast("已记录 ✅");
-});
+// Add
+if (addBtn) {
+  addBtn.addEventListener("click", () => {
+    const v = (inputEl?.value || "").trim();
+    if (!v) {
+      showToast("先写点内容～");
+      inputEl?.focus?.();
+      return;
+    }
+    addItem(v);
+    if (inputEl) inputEl.value = "";
+    renderAll();
+    inputEl?.focus?.();
+    showToast("已记录 ✅");
+  });
+}
 
-// Enter 提交（未来换 textarea 也兼容 Shift+Enter 换行）
-inputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    addBtn.click();
-  }
-});
+// Enter submit (Shift+Enter for newline if you later use textarea)
+if (inputEl) {
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      addBtn?.click?.();
+    }
+  });
+}
 
-clearTodayBtn.addEventListener("click", () => {
-  const tCount = items.filter((x) => x.date === todayStr()).length;
-  if (tCount === 0) return;
-  const ok = confirm("确定清空今天的所有小成就吗？");
-  if (!ok) return;
-  clearToday();
-  renderAll();
-  showToast("已清空今天");
-});
+// Clear today
+if (clearTodayBtn) {
+  clearTodayBtn.addEventListener("click", () => {
+    const tCount = items.filter((x) => x.date === todayStr()).length;
+    if (tCount === 0) return;
+    const ok = confirm("确定清空今天的所有小成就吗？");
+    if (!ok) return;
+    clearToday();
+    renderAll();
+    showToast("已清空今天");
+  });
+}
 
-searchInputEl.addEventListener("input", () => renderWall());
-searchClearBtn.addEventListener("click", () => {
-  searchInputEl.value = "";
-  selectedChips.clear();
-  syncChipUI();
-  renderWall();
-  searchInputEl.focus();
-});
+// Wall search
+if (searchInputEl) {
+  searchInputEl.addEventListener("input", () => renderWall());
+}
+if (searchClearBtn) {
+  searchClearBtn.addEventListener("click", () => {
+    if (searchInputEl) searchInputEl.value = "";
+    selectedChips.clear();
+    syncChipUI();
+    renderWall();
+    searchInputEl?.focus?.();
+  });
+}
 
-// ✅ 标签点击：事件委托（不需要 chipButtons 变量，也不会重复绑定）
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".chip");
-  if (!btn) return;
+// Chips click (multi-select)
+if (chipButtons && chipButtons.length) {
+  chipButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.chip || "";
+      if (!key) return;
 
-  const key = btn.dataset.chip || "";
-  if (!key) return;
+      if (selectedChips.has(key)) selectedChips.delete(key);
+      else selectedChips.add(key);
 
-  if (selectedChips.has(key)) selectedChips.delete(key);
-  else selectedChips.add(key);
+      syncChipUI();
+      showPage("wall"); // ensure user sees results
+      renderWall();
+    });
+  });
+}
 
-  syncChipUI();
-  showPage("wall");
-  renderWall();
-});
+// Random review
+if (randomBtn) randomBtn.addEventListener("click", () => pickRandom());
+if (modalMaskEl) modalMaskEl.addEventListener("click", closeModal);
+if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
+if (modalAgainBtn) modalAgainBtn.addEventListener("click", () => pickRandom());
 
-randomBtn.addEventListener("click", () => pickRandom());
-modalMaskEl.addEventListener("click", closeModal);
-modalCloseBtn.addEventListener("click", closeModal);
-modalAgainBtn.addEventListener("click", () => pickRandom());
+// Export
+if (exportBtn) {
+  exportBtn.addEventListener("click", async () => {
+    if (!items || items.length === 0) {
+      showToast("没有数据可导出");
+      return;
+    }
+    const lines = items
+      .slice()
+      .reverse()
+      .map((it) => `${it.date} - ${it.text}`)
+      .join("\n");
+    try {
+      await navigator.clipboard.writeText(lines);
+      showToast("已复制到剪贴板");
+    } catch {
+      alert(lines);
+    }
+  });
+}
 
-exportBtn.addEventListener("click", async () => {
-  if (items.length === 0) {
-    showToast("没有数据可导出");
-    return;
-  }
-  const lines = items
-    .slice()
-    .reverse()
-    .map((it) => `${it.date} - ${it.text}`)
-    .join("\n");
-
-  try {
-    await navigator.clipboard.writeText(lines);
-    showToast("已复制到剪贴板");
-  } catch {
-    alert(lines);
-  }
-});
-
-resetAllBtn.addEventListener("click", () => {
-  if (items.length === 0) return;
-  const ok = confirm("确定清空全部历史数据吗？此操作不可恢复。");
-  if (!ok) return;
-  items = [];
-  saveItems();
-  renderAll();
-  showToast("已清空全部");
-});
+// Reset all
+if (resetAllBtn) {
+  resetAllBtn.addEventListener("click", () => {
+    if (!items || items.length === 0) return;
+    const ok = confirm("确定清空全部历史数据吗？此操作不可恢复。");
+    if (!ok) return;
+    items = [];
+    saveItems();
+    renderAll();
+    showToast("已清空全部");
+  });
+}
 
 // ====== Init ======
 syncChipUI();
 showPage("home");
-inputEl.focus();
+inputEl?.focus?.();
 renderAll();
