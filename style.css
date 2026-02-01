@@ -341,3 +341,34 @@ textarea:focus{
 .chip:hover{
   background:#f7f7f7;
 }
+
+/* ===== chips (multi-select) ===== */
+.chips{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:10px 0 12px;
+}
+
+.chip{
+  border:1px solid var(--border);
+  background:#fff;
+  color:#333;
+  padding:6px 10px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:13px;
+  user-select:none;
+}
+
+.chip:hover{
+  background:#f7f7f7;
+}
+
+/* ✅ 选中态：高亮 */
+.chip.active{
+  background: var(--green);
+  border-color: var(--green);
+  color:#fff;
+}
+
