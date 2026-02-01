@@ -209,6 +209,13 @@ function syncChipUI() {
   });
 }
 
+// 从文本中解析 #标签，例如 "#生活 今天很开心" => ["生活"]
+function extractTags(text) {
+  if (!text) return [];
+  const matches = String(text).match(/#([\u4e00-\u9fa5\w-]+)/g) || [];
+  return matches.map(t => t.slice(1).toLowerCase()); // 统一转小写
+}
+
 // ====== Render ======
 function renderHome() {
   const t = todayStr();
@@ -303,11 +310,11 @@ function renderWall() {
   const q = (searchInputEl?.value || "").trim().toLowerCase();
   const chips = Array.from(selectedChips).map((x) => String(x).toLowerCase());
 
-  // AND 逻辑：必须同时包含全部标签（你想改 OR：把 every 改 some）
   const data = items.filter((it) => {
     const text = String(it.text || "").toLowerCase();
+    const tags = extractTags(it.text); // ✅ 新增：从文本解析 #标签（已经是小写）
     const matchQuery = q ? text.includes(q) : true;
-    const matchChips = chips.length === 0 ? true : chips.every((c) => text.includes(c));
+    const matchChips = chips.length === 0 ? true : chips.every((c) => tags.includes(c));
     return matchQuery && matchChips;
   });
 
