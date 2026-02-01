@@ -350,6 +350,33 @@ searchClearBtn.addEventListener("click", () => {
   searchInputEl.focus();
 });
 
+// ====== Chips filter state (multi-select) ======
+const chipButtons = Array.from(document.querySelectorAll(".chip"));
+const selectedChips = new Set(); // e.g. "阅读", "复盘"
+
+function syncChipUI() {
+  chipButtons.forEach((btn) => {
+    const key = btn.dataset.chip || "";
+    btn.classList.toggle("active", selectedChips.has(key));
+  });
+}
+
+// ====== Chips events (toggle + highlight + multi-filter) ======
+chipButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.chip || "";
+    if (!key) return;
+
+    // 再点一次取消
+    if (selectedChips.has(key)) selectedChips.delete(key);
+    else selectedChips.add(key);
+
+    syncChipUI();
+    showPage("wall");
+    renderWall();
+  });
+});
+
 randomBtn.addEventListener("click", () => pickRandom());
 modalMaskEl.addEventListener("click", closeModal);
 modalCloseBtn.addEventListener("click", closeModal);
