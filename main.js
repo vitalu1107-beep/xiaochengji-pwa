@@ -374,15 +374,6 @@ searchClearBtn.addEventListener("click", () => {
   searchInputEl.focus();
 });
 
-// ====== Chips filter state (multi-select) ======
-let chipButtons = Array.from(document.querySelectorAll(".chip"));
-function syncChipUI() {
-  chipButtons.forEach((btn) => {
-    const key = btn.dataset.chip || "";
-    btn.classList.toggle("active", selectedChips.has(key));
-  });
-}
-
 // ====== Chips events (toggle + highlight + multi-filter) ======
 chipButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
