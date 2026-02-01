@@ -124,8 +124,11 @@ function setActiveTab(pageKey) {
 }
 
 function showPage(pageKey) {
-  Object.keys(pages).forEach((k) => pages[k].classList.toggle("hidden", k !== pageKey));
+  Object.keys(pages).forEach((k) =>
+    pages[k].classList.toggle("hidden", k !== pageKey)
+  );
   setActiveTab(pageKey);
+
   // 渲染该页
   if (pageKey === "home") renderHome();
   if (pageKey === "today") renderToday();
@@ -151,7 +154,12 @@ function elItemRow(item, withDate = false) {
   del.className = "del";
   del.type = "button";
   del.textContent = "删除";
+
+  // ✅ 防误触：单条删除二次确认
   del.addEventListener("click", () => {
+    const ok = confirm("确定删除这一条小成就吗？");
+    if (!ok) return;
+
     deleteItem(item.id);
     renderAll();
     showToast("已删除");
@@ -255,9 +263,7 @@ function renderToday() {
 
 function renderWall() {
   const q = (searchInputEl.value || "").trim().toLowerCase();
-  const data = q
-    ? items.filter((it) => it.text.toLowerCase().includes(q))
-    : items.slice();
+  const data = q ? items.filter((it) => it.text.toLowerCase().includes(q)) : items.slice();
 
   searchMetaEl.textContent = q
     ? `搜索「${q}」：${data.length} 条结果 / 总共 ${items.length} 条`
@@ -273,11 +279,9 @@ function renderWall() {
 }
 
 function renderAll() {
-  // 当前在哪个页面就刷新哪个
   if (!pages.home.classList.contains("hidden")) renderHome();
   if (!pages.today.classList.contains("hidden")) renderToday();
   if (!pages.wall.classList.contains("hidden")) renderWall();
-  // settings 没什么要实时渲染的
 }
 
 // ====== Random Review ======
@@ -321,8 +325,12 @@ addBtn.addEventListener("click", () => {
   showToast("已记录 ✅");
 });
 
+// ✅ 如果你未来把 input 改成 textarea：支持 Shift+Enter 换行，Enter 直接提交
 inputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") addBtn.click();
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    addBtn.click();
+  }
 });
 
 clearTodayBtn.addEventListener("click", () => {
@@ -361,7 +369,6 @@ exportBtn.addEventListener("click", async () => {
     await navigator.clipboard.writeText(lines);
     showToast("已复制到剪贴板");
   } catch {
-    // 兜底：弹窗显示
     alert(lines);
   }
 });
