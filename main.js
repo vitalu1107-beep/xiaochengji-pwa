@@ -224,7 +224,7 @@ function renderToday() {
   }
   historyEmptyEl.classList.add("hidden");
 
-  dates.forEach((dateStr) => {
+  dates.forEach((dateStr, idx) => {
     const group = document.createElement("div");
     group.className = "group";
 
@@ -237,13 +237,13 @@ function renderToday() {
 
     const caret = document.createElement("div");
     caret.className = "muted small";
-    caret.textContent = "展开";
+    caret.textContent = idx < 3 ? "收起" : "展开";
 
     head.appendChild(title);
     head.appendChild(caret);
 
     const body = document.createElement("div");
-    body.className = "group-body hidden";
+    body.className = "group-body" + (idx < 3 ? "" : " hidden");
 
     const ul = document.createElement("ul");
     ul.className = "list";
