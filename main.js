@@ -34,7 +34,6 @@ const wallListEl = document.getElementById("wallList");
 const wallEmptyEl = document.getElementById("wallEmpty");
 
 // ====== Chips filter state (multi-select) ======
-const chipButtons = Array.from(document.querySelectorAll(".chip"));
 const selectedChips = new Set(); // e.g. "阅读", "复盘"
 
 const randomBtn = document.getElementById("randomBtn");
@@ -51,7 +50,7 @@ const resetAllBtn = document.getElementById("resetAllBtn");
 const toastEl = document.getElementById("toast");
 
 // ====== Storage ======
-const STORAGE_KEY = "smallWins_v2"; // 升级版结构
+const STORAGE_KEY = "smallWins_v2";
 let items = loadItems(); // {id, text, date, createdAt}
 
 // ====== Date helpers ======
@@ -70,8 +69,7 @@ function yesterdayStr() {
   return toDateStr(d);
 }
 function formatCN(dateStr) {
-  // YYYY-MM-DD -> M月D日
-  const [y, m, d] = dateStr.split("-").map(Number);
+  const [, m, d] = dateStr.split("-").map(Number);
   return `${m}月${d}日`;
 }
 
@@ -88,7 +86,6 @@ function loadItems() {
 function saveItems() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
-
 function addItem(text) {
   const now = Date.now();
   const item = {
@@ -100,12 +97,10 @@ function addItem(text) {
   items.unshift(item);
   saveItems();
 }
-
 function deleteItem(id) {
   items = items.filter((x) => x.id !== id);
   saveItems();
 }
-
 function clearToday() {
   const t = todayStr();
   items = items.filter((x) => x.date !== t);
@@ -128,12 +123,11 @@ function setActiveTab(pageKey) {
 }
 
 function showPage(pageKey) {
-  Object.keys(pages).forEach((k) =>
-    pages[k].classList.toggle("hidden", k !== pageKey)
-  );
+  Object.keys(pages).forEach((k) => {
+    pages[k].classList.toggle("hidden", k !== pageKey);
+  });
   setActiveTab(pageKey);
 
-  // 渲染该页
   if (pageKey === "home") renderHome();
   if (pageKey === "today") renderToday();
   if (pageKey === "wall") renderWall();
@@ -184,6 +178,15 @@ function renderList(listEl, data, emptyEl) {
   data.forEach((it) => listEl.appendChild(elItemRow(it)));
 }
 
+// ✅ 你缺的就是这个：同步 Chip 高亮
+function syncChipUI() {
+  const chips = document.querySelectorAll(".chip");
+  chips.forEach((btn) => {
+    const key = btn.dataset.chip || "";
+    btn.classList.toggle("active", key && selectedChips.has(key));
+  });
+}
+
 // ====== Render ======
 function renderHome() {
   const t = todayStr();
@@ -192,7 +195,6 @@ function renderHome() {
   statTodayEl.textContent = String(todayItems.length);
   statAllEl.textContent = String(items.length);
 
-  // 最近 6 条
   const recent = items.slice(0, 6);
   recentListEl.innerHTML = "";
   if (recent.length === 0) {
@@ -216,9 +218,7 @@ function renderToday() {
   // 历史：排除今天/昨天，按 date 分组（倒序）
   const historyItems = items.filter((x) => x.date !== t && x.date !== y);
   const byDate = {};
-  historyItems.forEach((it) => {
-    (byDate[it.date] ||= []).push(it);
-  });
+  historyItems.forEach((it) => ((byDate[it.date] ||= []).push(it)));
   const dates = Object.keys(byDate).sort().reverse();
 
   historyWrapEl.innerHTML = "";
@@ -267,28 +267,24 @@ function renderToday() {
 
 function renderWall() {
   const q = (searchInputEl.value || "").trim().toLowerCase();
-  const chips = Array.from(selectedChips); // 已选标签列表
+  const chips = Array.from(selectedChips);
 
   const data = items.filter((it) => {
     const text = (it.text || "").toLowerCase();
 
-    // 1) 搜索框过滤（包含匹配）
     const matchQuery = q ? text.includes(q) : true;
 
-    // 2) 标签过滤（默认 AND：必须同时包含所有已选标签）
-    const matchChips = chips.length === 0
-      ? true
-      : chips.every((c) => text.includes(String(c).toLowerCase()));
-
-    // 如果你想要 OR（任意命中），把上面一行替换为：
-    // : chips.some((c) => text.includes(String(c).toLowerCase()));
+    // AND：同时包含全部标签
+    const matchChips =
+      chips.length === 0
+        ? true
+        : chips.every((c) => text.includes(String(c).toLowerCase()));
 
     return matchQuery && matchChips;
   });
 
   const chipText = chips.length ? `标签：${chips.join(" + ")}` : "标签：无";
   const queryText = q ? `搜索：「${q}」` : "搜索：无";
-
   searchMetaEl.textContent = `${chipText} ｜ ${queryText} ｜ 结果 ${data.length} / 总共 ${items.length}`;
 
   wallListEl.innerHTML = "";
@@ -347,7 +343,7 @@ addBtn.addEventListener("click", () => {
   showToast("已记录 ✅");
 });
 
-// ✅ 如果你未来把 input 改成 textarea：支持 Shift+Enter 换行，Enter 直接提交
+// Enter 提交（未来换 textarea 也兼容 Shift+Enter 换行）
 inputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -374,20 +370,20 @@ searchClearBtn.addEventListener("click", () => {
   searchInputEl.focus();
 });
 
-// ====== Chips events (toggle + highlight + multi-filter) ======
-chipButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const key = btn.dataset.chip || "";
-    if (!key) return;
+// ✅ 标签点击：事件委托（不需要 chipButtons 变量，也不会重复绑定）
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".chip");
+  if (!btn) return;
 
-    // 再点一次取消
-    if (selectedChips.has(key)) selectedChips.delete(key);
-    else selectedChips.add(key);
+  const key = btn.dataset.chip || "";
+  if (!key) return;
 
-    syncChipUI();
-    showPage("wall");
-    renderWall();
-  });
+  if (selectedChips.has(key)) selectedChips.delete(key);
+  else selectedChips.add(key);
+
+  syncChipUI();
+  showPage("wall");
+  renderWall();
 });
 
 randomBtn.addEventListener("click", () => pickRandom());
@@ -405,6 +401,7 @@ exportBtn.addEventListener("click", async () => {
     .reverse()
     .map((it) => `${it.date} - ${it.text}`)
     .join("\n");
+
   try {
     await navigator.clipboard.writeText(lines);
     showToast("已复制到剪贴板");
