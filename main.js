@@ -129,18 +129,24 @@ function clearToday() {
 }
 
 // ====== UI helpers ======
-function extractTagsFromText(text) {
+
+// 从文本中提取 #标签：支持中文/英文/数字/下划线/短横线
+// 例："#生活 今天很开心 #work #复盘_01 #life-style" => ["生活","work","复盘_01","life-style"]
+function extractTags(text) {
   const s = String(text || "");
-  // 支持：#生活 #work #复盘_01
-  const matches = s.match(/#([\u4e00-\u9fa5A-Za-z0-9_]+)/g) || [];
-  return matches.map((t) => t.slice(1)); // 去掉 #
+  const matches = s.match(/#([^\s#]+)/g) || [];
+  return matches.map((t) => t.slice(1));
 }
 
+// 统计 Top 标签（按出现次数降序）
 function getTopTags(limit = 8) {
   const count = new Map();
-  items.forEach((it) => {
-    extractTagsFromText(it.text).forEach((tag) => {
-      count.set(tag, (count.get(tag) || 0) + 1);
+
+  (items || []).forEach((it) => {
+    extractTags(it.text).forEach((tag) => {
+      const key = String(tag || "").trim();
+      if (!key) return;
+      count.set(key, (count.get(key) || 0) + 1);
     });
   });
 
@@ -150,13 +156,14 @@ function getTopTags(limit = 8) {
     .map(([tag]) => tag);
 }
 
+// 将标签插入到首页输入框（末尾追加，并保持光标在末尾）
 function insertTagToInput(tag) {
   if (!inputEl) return;
 
   const raw = String(inputEl.value || "");
   const token = `#${tag}`;
 
-  // 已经包含这个标签就不重复插入（你想允许重复也可以删掉这段）
+  // 已经包含则不重复插入
   if (raw.includes(token)) {
     inputEl.focus();
     return;
@@ -170,18 +177,19 @@ function insertTagToInput(tag) {
   inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
 }
 
+// 渲染首页快捷标签（#xxx 一键插入）
 function renderQuickTags() {
   if (!quickTagsEl) return;
 
   const tags = getTopTags(8);
   quickTagsEl.innerHTML = "";
 
-  if (tags.length === 0) return;
+  if (!tags || tags.length === 0) return;
 
   tags.forEach((tag) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "chip"; // 复用你成就墙的 chip 样式
+    btn.className = "chip"; // 复用 chip 样式（但不带 data-chip，避免被成就墙 sync 影响）
     btn.textContent = `#${tag}`;
     btn.addEventListener("click", () => insertTagToInput(tag));
     quickTagsEl.appendChild(btn);
@@ -222,7 +230,7 @@ function elItemRow(item, withDate = false) {
 
   const left = document.createElement("div");
   left.className = "item-text";
-  left.textContent = "✓ " + item.text;
+  left.textContent = "✓ " + (item.text || "");
 
   if (withDate) {
     const meta = document.createElement("div");
@@ -240,8 +248,10 @@ function elItemRow(item, withDate = false) {
   del.addEventListener("click", () => {
     const ok = confirm("确定删除这一条小成就吗？");
     if (!ok) return;
+
     deleteItem(item.id);
     renderAll();
+    renderQuickTags(); // ✅ 删除后刷新快捷标签
     showToast("已删除");
   });
 
@@ -252,6 +262,7 @@ function elItemRow(item, withDate = false) {
 
 function renderList(listEl, data, emptyEl) {
   if (!listEl) return;
+
   listEl.innerHTML = "";
   if (!data || data.length === 0) {
     if (emptyEl) emptyEl.classList.remove("hidden");
@@ -261,19 +272,12 @@ function renderList(listEl, data, emptyEl) {
   data.forEach((it) => listEl.appendChild(elItemRow(it)));
 }
 
+// ✅ 只同步“成就墙过滤标签”的激活态（必须带 data-chip）
 function syncChipUI() {
-  // 重新扫一遍 .chip，避免未来你把 chips 动态渲染导致引用失效
-  document.querySelectorAll(".chip").forEach((btn) => {
+  document.querySelectorAll(".chip[data-chip]").forEach((btn) => {
     const key = btn.dataset.chip || "";
     btn.classList.toggle("active", key && selectedChips.has(key));
   });
-}
-
-// 从文本中解析 #标签，例如 "#生活 今天很开心" => ["生活"]
-function extractTags(text) {
-  if (!text) return [];
-  const matches = String(text).match(/#([\u4e00-\u9fa5\w-]+)/g) || [];
-  return matches.map(t => t.slice(1).toLowerCase()); // 统一转小写
 }
 
 // ====== Render ======
@@ -538,6 +542,7 @@ if (resetAllBtn) {
     saveItems();
     renderAll();
     showToast("已清空全部");
+    renderQuickTags();
   });
 }
 
