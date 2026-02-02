@@ -24,6 +24,7 @@ const pages = {
 
 const inputEl = document.getElementById("achievementInput");
 const addBtn = document.getElementById("addBtn");
+const quickTagsEl = document.getElementById("quickTags");
 
 const statTodayEl = document.getElementById("statToday");
 const statAllEl = document.getElementById("statAll");
@@ -128,6 +129,65 @@ function clearToday() {
 }
 
 // ====== UI helpers ======
+function extractTagsFromText(text) {
+  const s = String(text || "");
+  // 支持：#生活 #work #复盘_01
+  const matches = s.match(/#([\u4e00-\u9fa5A-Za-z0-9_]+)/g) || [];
+  return matches.map((t) => t.slice(1)); // 去掉 #
+}
+
+function getTopTags(limit = 8) {
+  const count = new Map();
+  items.forEach((it) => {
+    extractTagsFromText(it.text).forEach((tag) => {
+      count.set(tag, (count.get(tag) || 0) + 1);
+    });
+  });
+
+  return [...count.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([tag]) => tag);
+}
+
+function insertTagToInput(tag) {
+  if (!inputEl) return;
+
+  const raw = String(inputEl.value || "");
+  const token = `#${tag}`;
+
+  // 已经包含这个标签就不重复插入（你想允许重复也可以删掉这段）
+  if (raw.includes(token)) {
+    inputEl.focus();
+    return;
+  }
+
+  const needSpace = raw.length > 0 && !/\s$/.test(raw);
+  const next = raw + (needSpace ? " " : "") + token + " ";
+
+  inputEl.value = next;
+  inputEl.focus();
+  inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+}
+
+function renderQuickTags() {
+  if (!quickTagsEl) return;
+
+  const tags = getTopTags(8);
+  quickTagsEl.innerHTML = "";
+
+  if (tags.length === 0) return;
+
+  tags.forEach((tag) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip"; // 复用你成就墙的 chip 样式
+    btn.textContent = `#${tag}`;
+    btn.addEventListener("click", () => insertTagToInput(tag));
+    quickTagsEl.appendChild(btn);
+  });
+}
+
 function showToast(text) {
   if (!toastEl) return;
   toastEl.textContent = text;
@@ -381,6 +441,7 @@ if (addBtn) {
     addItem(v);
     if (inputEl) inputEl.value = "";
     renderAll();
+    renderQuickTags();
     inputEl?.focus?.();
     showToast("已记录 ✅");
   });
@@ -485,3 +546,4 @@ syncChipUI();
 showPage("home");
 inputEl?.focus?.();
 renderAll();
+renderQuickTags();
