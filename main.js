@@ -23,6 +23,8 @@ const pages = {
 };
 
 const inputEl = document.getElementById("achievementInput");
+const tagBtn = document.getElementById("tagBtn");
+const tagMenuEl = document.getElementById("tagMenu");
 const addBtn = document.getElementById("addBtn");
 const quickTagsEl = document.getElementById("quickTags");
 
@@ -130,51 +132,70 @@ function clearToday() {
 
 // ====== UI helpers ======
 
-// 从文本中提取 #标签：支持中文/英文/数字/下划线/短横线
-// 例："#生活 今天很开心 #work #复盘_01 #life-style" => ["生活","work","复盘_01","life-style"]
-function extractTags(text) {
+function extractTagsFromText(text) {
   const s = String(text || "");
-  const matches = s.match(/#([^\s#]+)/g) || [];
-  return matches.map((t) => t.slice(1));
+  const matches = s.match(/#([\u4e00-\u9fa5A-Za-z0-9_]+)/g) || [];
+  return matches.map(t => t.slice(1)); // 去掉 #
 }
 
-// 统计 Top 标签（按出现次数降序）
-function getTopTags(limit = 8) {
+function getTopTags(limit = 50) {
   const count = new Map();
-
-  (items || []).forEach((it) => {
-    extractTags(it.text).forEach((tag) => {
-      const key = String(tag || "").trim();
-      if (!key) return;
-      count.set(key, (count.get(key) || 0) + 1);
+  items.forEach(it => {
+    extractTagsFromText(it.text).forEach(tag => {
+      count.set(tag, (count.get(tag) || 0) + 1);
     });
   });
-
   return [...count.entries()]
-    .sort((a, b) => b[1] - a[1])
+    .sort((a,b) => b[1] - a[1])
     .slice(0, limit)
     .map(([tag]) => tag);
 }
 
-// 将标签插入到首页输入框（末尾追加，并保持光标在末尾）
 function insertTagToInput(tag) {
   if (!inputEl) return;
-
   const raw = String(inputEl.value || "");
   const token = `#${tag}`;
 
-  // 已经包含则不重复插入
+  // 已包含就不重复插入
   if (raw.includes(token)) {
     inputEl.focus();
     return;
   }
 
   const needSpace = raw.length > 0 && !/\s$/.test(raw);
-  const next = raw + (needSpace ? " " : "") + token + " ";
-
-  inputEl.value = next;
+  inputEl.value = raw + (needSpace ? " " : "") + token + " ";
   inputEl.focus();
   inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+}
+
+function openTagMenu() {
+  if (!tagMenuEl) return;
+
+  const tags = getTopTags(50);
+  tagMenuEl.innerHTML = "";
+
+  if (tags.length === 0) {
+    tagMenuEl.classList.add("hidden");
+    return;
+  }
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tag-item";
+    btn.textContent = tag;
+    btn.addEventListener("click", () => {
+      insertTagToInput(tag);
+      closeTagMenu();
+    });
+    tagMenuEl.appendChild(btn);
+  });
+
+  tagMenuEl.classList.remove("hidden");
+}
+
+function closeTagMenu() {
+  tagMenuEl?.classList.add("hidden");
 }
 
 // 渲染首页快捷标签（#xxx 一键插入）
@@ -546,9 +567,28 @@ if (resetAllBtn) {
   });
 }
 
+// # 标签按钮：打开/关闭
+tagBtn?.addEventListener("click", () => {
+  if (!tagMenuEl) return;
+  if (tagMenuEl.classList.contains("hidden")) openTagMenu();
+  else closeTagMenu();
+});
+
+// 点击空白处关闭菜单
+document.addEventListener("click", (e) => {
+  if (!tagMenuEl) return;
+  const inMenu = tagMenuEl.contains(e.target);
+  const inBtn = tagBtn && tagBtn.contains(e.target);
+  if (!inMenu && !inBtn) closeTagMenu();
+});
+
+
 // ====== Init ======
 syncChipUI();
 showPage("home");
 inputEl?.focus?.();
 renderAll();
 renderQuickTags();
+openTagMenu(); 
+closeTagMenu(); // 让标签统计刷新（先这样最省事）
+
