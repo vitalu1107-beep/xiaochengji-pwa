@@ -212,9 +212,10 @@ function renderQuickTags() {
     btn.type = "button";
     btn.className = "chip"; // 复用 chip 样式（但不带 data-chip，避免被成就墙 sync 影响）
     btn.textContent = `#${tag}`;
-    btn.addEventListener("click", () => insertTagToInput(tag));
-    quickTagsEl.appendChild(btn);
-  });
+    btn.addEventListener("click", () => {
+  insertTagToInput(tag);
+  quickTagsEl?.classList.add("hidden");
+});
 }
 
 function showToast(text) {
@@ -567,19 +568,28 @@ if (resetAllBtn) {
   });
 }
 
-// # 标签按钮：打开/关闭
-tagBtn?.addEventListener("click", () => {
-  if (!tagMenuEl) return;
-  if (tagMenuEl.classList.contains("hidden")) openTagMenu();
-  else closeTagMenu();
+function toggleQuickTags() {
+  if (!quickTagsEl) return;
+  renderQuickTags();                 // 每次打开都刷新
+  quickTagsEl.classList.toggle("hidden");
+}
+
+// 点 # 开/关
+tagBtn?.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  toggleQuickTags();
 });
 
-// 点击空白处关闭菜单
-document.addEventListener("click", (e) => {
-  if (!tagMenuEl) return;
-  const inMenu = tagMenuEl.contains(e.target);
-  const inBtn = tagBtn && tagBtn.contains(e.target);
-  if (!inMenu && !inBtn) closeTagMenu();
+// 点空白处关闭
+document.addEventListener("click", () => {
+  if (!quickTagsEl) return;
+  quickTagsEl.classList.add("hidden");
+});
+
+// 点菜单内部不触发关闭
+quickTagsEl?.addEventListener("click", (e) => {
+  e.stopPropagation();
 });
 
 
