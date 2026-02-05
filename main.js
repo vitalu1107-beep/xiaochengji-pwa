@@ -218,6 +218,114 @@ function renderQuickTags() {
 });
 }
 
+// ====== Tag menu helpers (# 弹出选择) ======
+function extractTagsFromText(text) {
+  const s = String(text || "");
+  // 支持：#生活 #work #复盘_01
+  const matches = s.match(/#([\u4e00-\u9fa5A-Za-z0-9_]+)/g) || [];
+  return matches.map((t) => t.slice(1)); // 去掉 #
+}
+
+function getTopTags(limit = 20) {
+  const count = new Map();
+  items.forEach((it) => {
+    extractTagsFromText(it.text).forEach((tag) => {
+      const key = String(tag).trim();
+      if (!key) return;
+      count.set(key, (count.get(key) || 0) + 1);
+    });
+  });
+
+  return [...count.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([tag]) => tag);
+}
+
+function insertTagToInput(tag) {
+  if (!inputEl) return;
+
+  const raw = String(inputEl.value || "");
+  const token = `#${tag}`;
+
+  // 如果光标在中间，也能插入
+  const start = inputEl.selectionStart ?? raw.length;
+  const end = inputEl.selectionEnd ?? raw.length;
+
+  // 避免重复插入同一个标签（你想允许重复就删掉这一段）
+  if (raw.includes(token)) {
+    inputEl.focus();
+    return;
+  }
+
+  const before = raw.slice(0, start);
+  const after = raw.slice(end);
+
+  const needSpaceBefore = before.length > 0 && !/\s$/.test(before);
+  const needSpaceAfter = after.length > 0 && !/^\s/.test(after);
+
+  const next =
+    before +
+    (needSpaceBefore ? " " : "") +
+    token +
+    " " +
+    (needSpaceAfter ? " " : "") +
+    after;
+
+  inputEl.value = next;
+  inputEl.focus();
+  inputEl.setSelectionRange(
+    (before + (needSpaceBefore ? " " : "") + token + " ").length,
+    (before + (needSpaceBefore ? " " : "") + token + " ").length
+  );
+}
+
+function renderTagMenu() {
+  if (!tagMenuEl) return;
+
+  const tags = getTopTags(20);
+  tagMenuEl.innerHTML = "";
+
+  if (tags.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "muted small";
+    empty.style.padding = "10px 12px";
+    empty.textContent = "还没有标签，先在记录里写 #生活 这种～";
+    tagMenuEl.appendChild(empty);
+    return;
+  }
+
+  tags.forEach((tag) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tag-item";
+    btn.textContent = tag; // 显示“生活”，不带#
+    btn.addEventListener("click", () => {
+      insertTagToInput(tag);
+      closeTagMenu();
+    });
+    tagMenuEl.appendChild(btn);
+  });
+}
+
+function openTagMenu() {
+  if (!tagMenuEl) return;
+  renderTagMenu();
+  tagMenuEl.classList.remove("hidden");
+}
+
+function closeTagMenu() {
+  if (!tagMenuEl) return;
+  tagMenuEl.classList.add("hidden");
+}
+
+function toggleTagMenu() {
+  if (!tagMenuEl) return;
+  const isHidden = tagMenuEl.classList.contains("hidden");
+  if (isHidden) openTagMenu();
+  else closeTagMenu();
+}               
+               
 function showToast(text) {
   if (!toastEl) return;
   toastEl.textContent = text;
@@ -465,11 +573,16 @@ if (addBtn) {
       return;
     }
     addItem(v);
-    if (inputEl) inputEl.value = "";
-    renderAll();
-    renderQuickTags();
-    inputEl?.focus?.();
-    showToast("已记录 ✅");
+    
+if (tagMenuEl && !tagMenuEl.classList.contains("hidden")) {
+  renderTagMenu();
+}
+
+if (inputEl) inputEl.value = "";
+renderAll();
+inputEl?.focus?.();
+showToast("已记录 ✅");
+
   });
 }
 
@@ -482,6 +595,27 @@ if (inputEl) {
     }
   });
 }
+
+// # 标签按钮：打开/关闭
+if (tagBtn) {
+  tagBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // ✅ 防止立刻被 document click 关掉
+    toggleTagMenu();
+  });
+}
+
+// 点击空白处关闭菜单
+document.addEventListener("click", (e) => {
+  if (!tagMenuEl) return;
+  const inMenu = tagMenuEl.contains(e.target);
+  const inBtn = tagBtn && tagBtn.contains(e.target);
+  if (!inMenu && !inBtn) closeTagMenu();
+});
+
+// ESC 关闭
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeTagMenu();
+});
 
 // Clear today
 if (clearTodayBtn) {
