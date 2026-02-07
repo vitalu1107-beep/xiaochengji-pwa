@@ -738,5 +738,4 @@ inputEl?.focus?.();
 renderAll();
 renderQuickTags();
 openTagMenu(); 
-closeTagMenu(); // 让标签统计刷新（先这样最省事）
-
+closeTagMenu(); // 让标签统计刷新
