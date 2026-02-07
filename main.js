@@ -1,3 +1,4 @@
+console.log("✅ main.js running");
 // ===============================
 // Small Wins - main.js (clean full version)
 // Features:
