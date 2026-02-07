@@ -213,10 +213,11 @@ function renderQuickTags() {
     btn.className = "chip"; // 复用 chip 样式（但不带 data-chip，避免被成就墙 sync 影响）
     btn.textContent = `#${tag}`;
     btn.addEventListener("click", () => {
-  insertTagToInput(tag);
-  quickTagsEl?.classList.add("hidden");
-});
-
+      insertTagToInput(tag);
+      quickTagsEl?.classList.add("hidden");
+     });
+   });
+  
 // ====== Tag menu helpers (# 弹出选择) ======
 function extractTagsFromText(text) {
   const s = String(text || "");
