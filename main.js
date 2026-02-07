@@ -216,7 +216,6 @@ function renderQuickTags() {
   insertTagToInput(tag);
   quickTagsEl?.classList.add("hidden");
 });
-}
 
 // ====== Tag menu helpers (# 弹出选择) ======
 function extractTagsFromText(text) {
