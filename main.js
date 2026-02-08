@@ -8,6 +8,28 @@
 
 (() => {
   "use strict";
+// ===== Tag helpers (auto parse from #xxx) =====
+const TAG_RE = /#([\u4e00-\u9fa5A-Za-z0-9_]+)/g;
+
+function extractTagsFromText(text) {
+  const s = String(text || "");
+  const tags = [];
+  let m;
+  while ((m = TAG_RE.exec(s)) !== null) {
+    const t = (m[1] || "").trim();
+    if (t && !tags.includes(t)) tags.push(t);
+  }
+  return tags;
+}
+
+// ensure item.tags exists (backward compatible)
+function ensureTags(item) {
+  if (!item) return item;
+  if (!Array.isArray(item.tags) || item.tags.length === 0) {
+    item.tags = extractTagsFromText(item.text);
+  }
+  return item;
+}
 
   // ---------- Storage ----------
   const STORAGE_KEY = "smallwins_items_v1";
@@ -27,7 +49,9 @@
           text: String(x.text || "").trim(),
           ts: Number(x.ts || Date.now()),
           done: !!x.done,
+          tags: Array.isArray(x.tags) ? x.tags : [],
         }))
+        .map(ensureTags)
         .filter((x) => x.text.length > 0);
     } catch (e) {
       console.warn("loadItems failed:", e);
