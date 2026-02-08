@@ -470,17 +470,6 @@
       });
     }
 
-    // optional tagBtn toggles quickTags
-    if (tagBtn) {
-      tagBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!quickTagsEl) return;
-        renderQuickTags();
-        quickTagsEl.classList.toggle("hidden");
-      });
-    }
-
     // click outside closes quickTags
     document.addEventListener("click", () => {
       if (!quickTagsEl) return;
