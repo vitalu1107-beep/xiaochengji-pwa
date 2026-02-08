@@ -43,16 +43,16 @@ function ensureTags(item) {
       const arr = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(arr)) return [];
       return arr
-        .filter((x) => x && typeof x === "object")
-        .map((x) => ({
-          id: String(x.id || cryptoRandomId()),
-          text: String(x.text || "").trim(),
-          ts: Number(x.ts || Date.now()),
-          done: !!x.done,
-          tags: Array.isArray(x.tags) ? x.tags : [],
-        }))
-        .map(ensureTags)
-        .filter((x) => x.text.length > 0);
+  .filter((x) => x && typeof x === "object")
+  .map((x) => ({
+    id: String(x.id || cryptoRandomId()),
+    text: String(x.text || "").trim(),
+    ts: Number(x.ts || Date.now()),
+    done: !!x.done,
+    tags: Array.isArray(x.tags) && x.tags.length ? x.tags : extractTagsFromText(String(x.text || "")),
+  }))
+  .filter((x) => x.text.length > 0);
+
     } catch (e) {
       console.warn("loadItems failed:", e);
       return [];
@@ -373,6 +373,66 @@ function ensureTags(item) {
       renderList(list, null, groups.get(key));
     }
   }
+
+  // ===== Wall bindings (search + chips) =====
+function getWallNodes() {
+  const wallListEl = document.getElementById("wallList");
+  const wallEmptyEl = document.getElementById("wallEmpty");
+
+  // 你的页面里 input 的 id 是 wallSearch（你控制台已经验证）
+  const wallSearchEl =
+    document.getElementById("wallSearch") ||
+    document.querySelector("#page-wall input");
+
+  // 你的 chips 容器 id 是 wallChips（你控制台已验证）
+  const wallChipsEl =
+    document.getElementById("wallChips") ||
+    document.querySelector("#page-wall .chips");
+
+  // 清空按钮你页面里是 searchClearBtn（index.html 里就是）
+  const wallClearBtnEl =
+    document.getElementById("searchClearBtn") ||
+    document.querySelector("#page-wall button.ghost");
+
+  return { wallListEl, wallEmptyEl, wallSearchEl, wallChipsEl, wallClearBtnEl };
+}
+
+function bindWallOnce() {
+  const { wallSearchEl, wallChipsEl, wallClearBtnEl } = getWallNodes();
+  if (!wallSearchEl) return;
+
+  // 避免重复绑定
+  if (wallSearchEl.dataset.bound === "1") return;
+  wallSearchEl.dataset.bound = "1";
+
+  // 输入搜索：实时刷新
+  wallSearchEl.addEventListener("input", () => {
+    if (typeof renderWall === "function") renderWall();
+  });
+
+  // 清空按钮
+  if (wallClearBtnEl) {
+    wallClearBtnEl.addEventListener("click", () => {
+      wallSearchEl.value = "";
+      if (typeof renderWall === "function") renderWall();
+    });
+  }
+
+  // 点击 chips：把关键词写入搜索框并刷新
+  if (wallChipsEl) {
+    wallChipsEl.addEventListener("click", (e) => {
+      const btn = e.target.closest("button.chip");
+      if (!btn) return;
+      const tag = (btn.dataset.chip || btn.textContent || "").trim();
+      if (!tag) return;
+
+      // 点击同一个：取消；点击别的：切换
+      wallSearchEl.value = (wallSearchEl.value.trim() === tag) ? "" : tag;
+
+      if (typeof renderWall === "function") renderWall();
+    });
+  }
+}
 
   function renderSettingsPage() {
     // Optional export button if exists
