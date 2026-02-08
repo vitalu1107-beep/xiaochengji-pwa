@@ -1,4 +1,3 @@
-console.log("✅ main.js running");
 // ===============================
 // Small Wins - main.js (clean full version)
 // Features:
@@ -209,19 +208,16 @@ function renderQuickTags() {
   if (!tags || tags.length === 0) return;
 
   tags.forEach((tag) => {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "chip"; // 复用 chip 样式（不带 data-chip）
-  btn.textContent = `#${tag}`;
-
-  btn.addEventListener("click", () => {
-    insertTagToInput(tag);
-    quickTagsEl?.classList.add("hidden"); // 选完就收起
-  });
-
-  quickTagsEl.appendChild(btn);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip"; // 复用 chip 样式（但不带 data-chip，避免被成就墙 sync 影响）
+    btn.textContent = `#${tag}`;
+    btn.addEventListener("click", () => {
+  insertTagToInput(tag);
+  quickTagsEl?.classList.add("hidden");
 });
-  
+}
+
 // ====== Tag menu helpers (# 弹出选择) ======
 function extractTagsFromText(text) {
   const s = String(text || "");
@@ -738,4 +734,4 @@ inputEl?.focus?.();
 renderAll();
 renderQuickTags();
 openTagMenu(); 
-closeTagMenu(); // 让标签统计刷新
+closeTagMenu(); // 让标签统计刷新（先这样最省事）
