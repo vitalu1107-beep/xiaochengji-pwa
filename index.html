@@ -104,7 +104,7 @@
             <div class="card-title">🧱 成就墙（全览 + 搜索）</div>
           </div>
           
-          <div class="chips">
+          <div class="chips" id="wallChips">
   <button class="chip" type="button" data-chip="运动">运动</button>
   <button class="chip" type="button" data-chip="阅读">阅读</button>
   <button class="chip" type="button" data-chip="复盘">复盘</button>
@@ -114,8 +114,8 @@
 </div>
        
           <div class="input-box">
-            <input id="searchInput" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
-            <button id="searchClearBtn" class="ghost" type="button">清空</button>
+            <input id="wallSearch" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
+            <button id="clearWall" class="ghost" type="button">清空</button>
           </div>
 
           <div class="muted small" id="searchMeta"></div>
