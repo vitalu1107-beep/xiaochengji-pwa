@@ -483,21 +483,18 @@ function bindWallOnce() {
   }
 
   function showPage(pageKey) {
+  // hide all
   Object.values(pages).forEach(hide);
+  // show target
   show(pages[pageKey]);
   setActiveTab(pageKey);
 
-  // ✅ 兼容 data-page="wall" 或 "page-wall"
-  if (pageKey === "wall" || pageKey === "page-wall") {
-    try {
-      // 确保切页渲染完成后再绑定/渲染
-      requestAnimationFrame(() => {
-        bindWallOnce();
-        renderWall();
-      });
-    } catch (e) {
-      console.warn("wall init failed:", e);
-    }
+  // ✅ 成就墙：进入时绑定事件 + 渲染
+  if (pageKey === "wall") {
+    requestAnimationFrame(() => {
+      try { bindWallOnce(); } catch (e) { console.warn("bindWallOnce failed", e); }
+      try { renderWall(); } catch (e) { console.warn("renderWall failed", e); }
+    });
   }
 }
 
