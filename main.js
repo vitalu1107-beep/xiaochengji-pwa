@@ -483,17 +483,18 @@ function bindWallOnce() {
   }
 
   function showPage(pageKey) {
-  // hide all
   Object.values(pages).forEach(hide);
-  // show target
   show(pages[pageKey]);
   setActiveTab(pageKey);
 
-  // ✅ 进入“成就墙”时：绑定一次 + 立即渲染
-  if (pageKey === "page-wall") {
+  // ✅ 兼容 data-page="wall" 或 "page-wall"
+  if (pageKey === "wall" || pageKey === "page-wall") {
     try {
-      bindWallOnce();
-      renderWall();
+      // 确保切页渲染完成后再绑定/渲染
+      requestAnimationFrame(() => {
+        bindWallOnce();
+        renderWall();
+      });
     } catch (e) {
       console.warn("wall init failed:", e);
     }
