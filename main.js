@@ -375,6 +375,43 @@ function ensureTags(item) {
   }
 
   // ===== Wall bindings (search + chips) =====
+function renderWall() {
+  const { wallListEl, wallEmptyEl, wallSearchEl } = getWallNodes();
+  if (!wallListEl) return;
+
+  let items = loadItems().map(ensureTags);
+
+  const qRaw = (wallSearchEl?.value || "").trim();
+  const q = qRaw.replace(/^#/, "");
+
+  if (q) {
+    items = items.filter((it) => {
+      const text = String(it?.text || "");
+      const tags = Array.isArray(it?.tags) ? it.tags : [];
+      return (
+        text.includes(qRaw) ||
+        text.includes("#" + q) ||
+        tags.includes(q) ||
+        tags.some((t) => String(t).includes(q))
+      );
+    });
+  }
+
+  items.sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+
+  if (typeof renderList === "function") {
+    renderList(wallListEl, wallEmptyEl, items);
+  } else {
+    wallListEl.innerHTML = "";
+    items.forEach((it) => {
+      const li = document.createElement("li");
+      li.textContent = String(it.text || "");
+      wallListEl.appendChild(li);
+    });
+    if (wallEmptyEl) wallEmptyEl.style.display = items.length ? "none" : "";
+  }
+}
+  
 function getWallNodes() {
   const wallListEl = document.getElementById("wallList");
   const wallEmptyEl = document.getElementById("wallEmpty");
@@ -485,16 +522,19 @@ function bindWallOnce() {
   function showPage(pageKey) {
   // hide all
   Object.values(pages).forEach(hide);
+
   // show target
   show(pages[pageKey]);
   setActiveTab(pageKey);
 
-  // ✅ 成就墙：进入时绑定事件 + 渲染
+  // ✅ 切到成就墙时：绑定一次 + 立刻渲染
   if (pageKey === "wall") {
-    requestAnimationFrame(() => {
-      try { bindWallOnce(); } catch (e) { console.warn("bindWallOnce failed", e); }
-      try { renderWall(); } catch (e) { console.warn("renderWall failed", e); }
-    });
+    try {
+      if (typeof bindWallOnce === "function") bindWallOnce();
+      if (typeof renderWall === "function") renderWall();
+    } catch (e) {
+      console.warn("showPage(wall) failed:", e);
+    }
   }
 }
 
