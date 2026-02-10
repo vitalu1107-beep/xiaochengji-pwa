@@ -134,7 +134,8 @@ function ensureTags(item) {
   const tagBtn = $("tagBtn");
   const tagMenuEl = $("tagMenu");     // optional
   const quickTagsEl = $("quickTags"); // optional
-
+  const randomBtn = $("randomBtn");
+  
   const statTodayEl = $("statToday");
   const statAllEl = $("statAll");
 
@@ -543,6 +544,7 @@ function bindWallOnce() {
     for (const t of tabs) {
       t.addEventListener("click", (e) => {
         e.preventDefault();
+        if (t.id === "randomBtn") return;
         const pageKey = t.getAttribute("data-page") || t.dataset.page;
         if (!pageKey) return;
         showPage(pageKey);
@@ -594,6 +596,11 @@ function bindWallOnce() {
     if (goTodayBtn) goTodayBtn.addEventListener("click", () => showPage("today"));
     if (goWallBtn) goWallBtn.addEventListener("click", () => showPage("wall"));
 
+    if (randomBtn) {
+  randomBtn.addEventListener("click", () => {
+    openRandomModal();
+  });
+}
     // clear today
     if (clearTodayBtn) {
       clearTodayBtn.addEventListener("click", () => {
