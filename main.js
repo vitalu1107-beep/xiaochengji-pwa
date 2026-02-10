@@ -134,7 +134,6 @@ function ensureTags(item) {
   const tagBtn = $("tagBtn");
   const tagMenuEl = $("tagMenu");     // optional
   const quickTagsEl = $("quickTags"); // optional
-  const randomBtn = $("randomBtn");
   
   const statTodayEl = $("statToday");
   const statAllEl = $("statAll");
@@ -144,6 +143,14 @@ function ensureTags(item) {
 
   const goTodayBtn = $("goTodayBtn");
   const goWallBtn = $("goWallBtn");
+  const randomBtn = $("randomBtn");
+  
+  // Random Review Modal
+  const modalEl = $("modal");
+  const modalMask = $("modalMask");
+  const modalContent = $("modalContent");
+  const modalAgainBtn = $("modalAgainBtn");
+  const modalCloseBtn = $("modalCloseBtn");
 
   const todayListEl = $("todayList");
   const todayEmptyEl = $("todayEmpty");
@@ -512,6 +519,45 @@ function bindWallOnce() {
     renderQuickTags();
   }
 
+  function openModal() {
+  if (!modalEl) return;
+  modalEl.classList.remove("hidden");
+}
+
+function closeModal() {
+  if (!modalEl) return;
+  modalEl.classList.add("hidden");
+}
+
+function showRandomOne() {
+  if (!modalContent) return;
+
+  // items 是你全局存储的记录数组（你代码里肯定有）
+  if (!items || items.length === 0) {
+    modalContent.textContent = "还没有记录，先去首页记一条吧～";
+    openModal();
+    return;
+  }
+
+  const it = items[Math.floor(Math.random() * items.length)];
+
+  // escapeHtml / formatTime 你代码里已有（你列表渲染也在用）
+  modalContent.innerHTML = `
+    <div style="font-size:18px; line-height:1.5; margin-bottom:8px;">
+      ${escapeHtml(it.text)}
+    </div>
+    <div style="opacity:.7; font-size:12px;">
+      ${formatTime(it.ts)}
+    </div>
+  `;
+
+  openModal();
+}
+
+function openRandomModal() {
+  showRandomOne();
+}
+
   // ---------- Navigation ----------
   function setActiveTab(pageKey) {
     for (const t of tabs) {
@@ -596,11 +642,20 @@ function bindWallOnce() {
     if (goTodayBtn) goTodayBtn.addEventListener("click", () => showPage("today"));
     if (goWallBtn) goWallBtn.addEventListener("click", () => showPage("wall"));
 
-    if (randomBtn) {
-  randomBtn.addEventListener("click", () => {
+    // random review
+if (randomBtn) {
+  randomBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     openRandomModal();
   });
 }
+
+// modal events
+if (modalMask) modalMask.addEventListener("click", closeModal);
+if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
+if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
+
     // clear today
     if (clearTodayBtn) {
       clearTodayBtn.addEventListener("click", () => {
