@@ -125,6 +125,7 @@ function ensureTags(item) {
     home: $("page-home"),
     today: $("page-today"),
     wall: $("page-wall"),
+    random: $("page-random"),
     settings: $("page-settings"),
   };
 
