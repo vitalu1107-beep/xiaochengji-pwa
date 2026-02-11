@@ -273,19 +273,23 @@ function ensureTags(item) {
       const left = document.createElement("div");
       left.className = "item-left";
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = !!it.done;
-      checkbox.addEventListener("change", () => {
-        toggleDone(it.id);
-        renderAll();
-      });
+      let checkbox = null;
 
+if (!options.hideCheckbox) {
+  checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = !!it.done;
+  checkbox.addEventListener("change", () => {
+    toggleDone(it.id);
+    renderAll();
+  });
+}
+      
       const text = document.createElement("div");
       text.className = "item-text" + (it.done ? " done" : "");
       text.innerHTML = escapeHtml(it.text);
 
-      left.appendChild(checkbox);
+      if (checkbox) left.appendChild(checkbox);
       left.appendChild(text);
 
       const right = document.createElement("div");
