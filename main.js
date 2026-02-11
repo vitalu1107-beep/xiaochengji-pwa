@@ -331,7 +331,7 @@ if (!options.hideCheckbox) {
   function renderHomeRecent() {
     if (!recentListEl) return;
     const recent = items.slice(0, 5);
-    renderList(recentListEl, recentEmptyEl, recent, { hideDelete: true });
+    renderList(recentListEl, recentEmptyEl, recent, { hideDelete: true, hideCheckbox: true });
   }
 
   function renderTodayPage() {
