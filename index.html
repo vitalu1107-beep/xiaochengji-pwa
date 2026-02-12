@@ -31,43 +31,68 @@
 
     <!-- HOME -->
     <main class="container">
-      <section id="page-home" class="page">
-        <div class="card">
-          <div class="input-box">
-            <textarea id="achievementInput" rows="2" placeholder="今天完成了什么？哪怕很小…" autocomplete="off"></textarea>
-            <button id="addBtn" type="button">记录</button>
-          </div>
-          
-<div id="tagMenu" class="tag-menu hidden"></div>
+      
+<section id="page-home" class="page">
 
-          <div id="quickTags" class="chips hidden"></div>
-          <div class="hint">提示：按 <kbd>Enter</kbd> 也可以记录。</div>
-        </div>
+  <!-- 顶部：问候 + 日期 -->
+  <div class="card">
+    <div class="section-head">
+      <div>
+        <div class="muted small" id="homeDate">2026年2月11日</div>
+        <div class="card-title" id="homeGreeting">你好，晨星</div>
+      </div>
+    </div>
+  </div>
 
-        <div class="grid">
-          <div class="card">
-            <div class="card-title">📅 今日</div>
-            <div class="big" id="statToday">0</div>
-            <div class="muted">条小成就</div>
-            <button class="ghost" id="goTodayBtn" type="button">去看看</button>
-          </div>
+  <!-- 今日能量：一句话 -->
+  <div class="card">
+    <div class="muted small">今日能量</div>
+    <div class="quote" id="homeQuote">
+      “哪怕只是把碗洗了，也是对生活的一次温柔重塑。”
+    </div>
+  </div>
 
-          <div class="card">
-            <div class="card-title">🧱 总历史</div>
-            <div class="big" id="statAll">0</div>
-            <div class="muted">条小成就</div>
-            <button class="ghost" id="goWallBtn" type="button">去成就墙</button>
-          </div>
-        </div>
+  <!-- 两张入口卡：统计/入口 -->
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">🏆 成就记录</div>
+      <div class="big" id="statStreak">0</div>
+      <div class="muted">已坚持 天</div>
+      <button class="ghost" id="goTodayBtn" type="button">去记录</button>
+    </div>
 
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">🕒 最近记录</div>
-          </div>
-          <ul id="recentList" class="list"></ul>
-          <div id="recentEmpty" class="empty hidden">还没有记录～先写下一个小小进步吧 ✨</div>
-        </div>
-      </section>
+    <div class="card">
+      <div class="card-title">💗 小确幸墙</div>
+      <div class="big" id="statAll">0</div>
+      <div class="muted">个瞬间</div>
+      <button class="ghost" id="goWallBtn" type="button">去看看</button>
+    </div>
+  </div>
+
+  <!-- 记录入口：先不做新页面，就复用你原来的输入框（最省事） -->
+  <div class="card">
+    <div class="card-title">记录微光</div>
+    <div class="input-box">
+      <textarea id="achievementInput" rows="2" placeholder="今天你做了哪件微小的事？" autocomplete="off"></textarea>
+      <button id="addBtn" type="button">封存这一刻</button>
+    </div>
+
+    <div id="tagMenu" class="tag-menu hidden"></div>
+    <div id="quickTags" class="chips hidden"></div>
+    <div class="hint">提示：按 <kbd>Enter</kbd> 也可以记录。</div>
+  </div>
+
+  <!-- 最近的小快乐（复用原来的 recentList / recentEmpty） -->
+  <div class="card">
+    <div class="section-head">
+      <div class="card-title">最近的小快乐</div>
+    </div>
+
+    <ul id="recentList" class="list"></ul>
+    <div id="recentEmpty" class="empty hidden">还没有记录～先写下第一个小小进步吧 ✨</div>
+  </div>
+
+</section>
 
       <!-- TODAY (Today/Yesterday/History grouped) -->
       <section id="page-today" class="page hidden">
