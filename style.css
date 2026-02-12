@@ -415,3 +415,10 @@ textarea:focus{
 .tag-item:hover{ background:#f3f8f3; }
 .hidden{ display:none; }
 
+
+.quote{
+  margin-top: 8px;
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 600;
+}
