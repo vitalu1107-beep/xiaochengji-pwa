@@ -328,6 +328,52 @@ if (!options.hideCheckbox) {
     setText(statAllEl, String(items.length));
   }
 
+  function renderHomeHeader() {
+  const dateEl = document.getElementById("homeDate");
+  const greetingEl = document.getElementById("homeGreeting");
+  const quoteEl = document.getElementById("homeQuote");
+  const streakEl = document.getElementById("statStreak");
+
+  const now = new Date();
+
+  if (dateEl) {
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+    dateEl.textContent = `${y}年${m}月${d}日`;
+  }
+
+  if (greetingEl) {
+    const h = now.getHours();
+    const hi = h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : "晚上好";
+    // 你想固定“你好，晨星”也行：greetingEl.textContent = "你好，晨星";
+    greetingEl.textContent = `${hi}，晨星`;
+  }
+
+  if (quoteEl) {
+    const quotes = [
+      "“哪怕只是把碗洗了，也是对生活的一次温柔重塑。”",
+      "“把注意力放回当下这一小步，你就赢了。”",
+      "“你不需要很厉害才开始，你需要开始才会变厉害。”",
+      "“今天能完成一点点，就值得被认真对待。”",
+    ];
+    const idx = Math.floor(now.getTime() / (1000 * 60 * 60 * 24)) % quotes.length; // 按天轮换
+    quoteEl.textContent = quotes[idx];
+  }
+
+  if (streakEl) {
+    // 最简 streak：按“有记录的日期集合”，从今天往前连续数
+    const days = new Set(items.map(it => new Date(it.ts).toDateString()));
+    let streak = 0;
+    for (let i = 0; ; i++) {
+      const d = new Date(now.getTime() - i * 24 * 3600 * 1000).toDateString();
+      if (days.has(d)) streak++;
+      else break;
+    }
+    streakEl.textContent = String(streak);
+  }
+}
+
   function renderHomeRecent() {
     if (!recentListEl) return;
     const recent = items.slice(0, 5);
@@ -516,6 +562,7 @@ function bindWallOnce() {
 
   function renderAll() {
     renderStats();
+    renderHomeHeader();
     renderHomeRecent();
     renderTodayPage();
     renderWallPage();
