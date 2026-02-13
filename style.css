@@ -422,3 +422,24 @@ textarea:focus{
   line-height: 1.6;
   font-weight: 600;
 }
+
+
+.mood-row{
+  display:flex;
+  gap:10px;
+  padding-top:12px;
+  flex-wrap:wrap;
+}
+
+.mood{
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+  padding:10px 12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.mood.active{
+  border-color: rgba(0,0,0,.18);
+  font-weight:600;
+}
