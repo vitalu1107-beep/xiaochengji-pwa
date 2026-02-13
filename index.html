@@ -22,7 +22,7 @@
 
       <nav class="tabs">
         <button class="tab active" data-page="home">首页</button>
-        <button class="tab" data-page="today">今天</button>
+        <button class="tab" data-page="today">记录微光</button>
         <button class="tab" data-page="wall">成就墙</button>
         <button class="tab" id="randomBtn" type="button">随机回顾</button>
         <button class="tab" data-page="settings">设置</button>
@@ -96,31 +96,42 @@
 
       <!-- TODAY (Today/Yesterday/History grouped) -->
       <section id="page-today" class="page hidden">
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">📅 今天</div>
-            <button class="danger ghost" id="clearTodayBtn" type="button">清空今天</button>
-          </div>
-          <ul id="todayList" class="list"></ul>
-          <div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
-        </div>
 
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">🌙 昨天</div>
-          </div>
-          <ul id="yesterdayList" class="list"></ul>
-          <div id="yesterdayEmpty" class="empty hidden">昨天没有记录。</div>
-        </div>
+  <!-- 记录微光 -->
+  <div class="card">
+    <div class="card-title">✨ 记录微光</div>
 
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">🗂 历史</div>
-          </div>
-          <div id="historyWrap"></div>
-          <div id="historyEmpty" class="empty hidden">还没有历史记录。</div>
-        </div>
-      </section>
+    <div class="input-box">
+      <textarea id="achievementInput"
+        rows="2"
+        placeholder="今天你做了哪件微小的事？"
+        autocomplete="off"></textarea>
+      <button id="addBtn" type="button">封存这一刻</button>
+    </div>
+
+    <div class="mood-row">
+      <button class="mood" data-mood="平静">🌙 平静</button>
+      <button class="mood" data-mood="愉悦">✨ 愉悦</button>
+      <button class="mood" data-mood="释然">🌱 释然</button>
+      <button class="mood" data-mood="慵懒">☁️ 慵懒</button>
+    </div>
+  </div>
+
+  <!-- 今日列表 -->
+  <div class="card">
+    <div class="section-head">
+      <div class="card-title">📅 今天</div>
+      <button id="clearTodayBtn"
+        class="danger ghost"
+        type="button">清空今天</button>
+    </div>
+
+    <ul id="todayList" class="list"></ul>
+    <div id="todayEmpty"
+      class="empty hidden">今天还没有记录～</div>
+  </div>
+
+</section>
 
       <!-- WALL -->
       <section id="page-wall" class="page hidden">
