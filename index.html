@@ -117,7 +117,19 @@
     <div id="todayEmpty"
       class="empty hidden">今天还没有记录～</div>
   </div>
+<!-- 下面这些是 main.js 旧逻辑依赖的，占位即可 -->
+<button class="danger ghost hidden" id="clearTodayBtn" type="button">清空今天</button>
 
+<ul id="todayList" class="list"></ul>
+<div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
+
+<!-- 如果 main.js 仍引用 yesterday/history，你也先补占位（不显示） -->
+<ul id="yesterdayList" class="list hidden"></ul>
+<div id="yesterdayEmpty" class="empty hidden"></div>
+
+<div id="historyWrap" class="hidden"></div>
+<div id="historyEmpty" class="empty hidden"></div>
+        
 </section>
 
       <!-- WALL -->
