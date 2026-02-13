@@ -693,7 +693,6 @@ function openRandomModal() {
   // ===== 3️⃣ 输入框逻辑 =====
   if (inputEl) {
     inputEl.addEventListener("keydown", (e) => {
-      ...
     });
   }
 
