@@ -440,6 +440,12 @@ textarea:focus{
 }
 
 .mood.active{
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.mood.active{
   border-color: rgba(0,0,0,.18);
   font-weight:600;
 }
