@@ -669,6 +669,35 @@ function openRandomModal() {
       });
     }
 
+    let selectedMood = "";
+
+  const moodBtns = Array.from(
+    document.querySelectorAll(".mood-row .mood")
+  );
+
+  function setMood(m) {
+    selectedMood = m || "";
+    moodBtns.forEach(b => {
+      b.classList.toggle("active", b.dataset.mood === selectedMood);
+    });
+  }
+
+  moodBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const m = btn.dataset.mood || "";
+      setMood(selectedMood === m ? "" : m);
+    });
+  });
+
+
+  // ===== 3️⃣ 输入框逻辑 =====
+  if (inputEl) {
+    inputEl.addEventListener("keydown", (e) => {
+      ...
+    });
+  }
+
+}
     if (inputEl) {
       inputEl.addEventListener("keydown", (e) => {
         // Enter submit (Shift+Enter -> newline is not supported here unless textarea)
