@@ -793,4 +793,3 @@ if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
   } else {
     boot();
   }
-})();
