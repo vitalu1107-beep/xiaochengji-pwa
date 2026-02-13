@@ -144,7 +144,10 @@ function ensureTags(item) {
   const goTodayBtn = $("goTodayBtn");
   const goWallBtn = $("goWallBtn");
   const randomBtn = $("randomBtn");
-  
+  const goRecordBtn = document.getElementById("goRecordBtn");
+if (goRecordBtn) {
+  goRecordBtn.addEventListener("click", () => showPage("record")); // 复用 page-today
+}
   // Random Review Modal
   const modalEl = $("modal");
   const modalMask = $("modalMask");
