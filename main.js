@@ -1,9 +1,10 @@
-/* Small Wins - main.js (clean stable)
+/* Small Wins - main.js (final stable)
  * - Tabs navigation
  * - Add wins to localStorage
  * - Home/Today/Wall/Settings
  * - Random review modal
  * - Quick tags (#xxx) + wall search + chips
+ * - Mood selectable + saved as #心情tag (e.g. #平静)
  */
 (() => {
   "use strict";
@@ -13,6 +14,7 @@
 
   // ---------- Tag helpers ----------
   const TAG_RE = /#([\u4e00-\u9fa5A-Za-z0-9_]+)/g;
+
   function extractTagsFromText(text) {
     const s = String(text || "");
     const tags = [];
@@ -34,9 +36,8 @@
   }
 
   // ---------- Utils ----------
-  function $(id) {
-    return document.getElementById(id);
-  }
+  const $ = (id) => document.getElementById(id);
+
   function show(el) {
     if (el) el.classList.remove("hidden");
   }
@@ -78,7 +79,6 @@
   }
 
   // ---------- Load / Save ----------
-  /** @returns {{id:string,text:string,ts:number,done?:boolean,tags?:string[]}[]} */
   function loadItems() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -101,7 +101,6 @@
     }
   }
 
-  /** @param {any[]} items */
   function saveItems(items) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -114,27 +113,27 @@
 
   // ---------- DOM ----------
   const tabs = Array.from(document.querySelectorAll(".tab"));
+
   const pages = {
     home: $("page-home"),
     today: $("page-today"),
     wall: $("page-wall"),
     settings: $("page-settings"),
-    // 兼容：如果你还有 random/settings 之外页面，不存在也不崩
-    random: $("page-random"),
+    random: $("page-random"), // 不存在也没事
   };
 
   const inputEl = $("achievementInput");
   const addBtn = $("addBtn");
   const quickTagsEl = $("quickTags");
 
-  const statTodayEl = $("statToday");
-  const statAllEl = $("statAll");
+  const statAllEl = $("statAll");   // Home 卡片用
+  const statTodayEl = $("statToday"); // 你现在 HTML 没这个也没事
   const recentListEl = $("recentList");
   const recentEmptyEl = $("recentEmpty");
 
   const goTodayBtn = $("goTodayBtn");
   const goWallBtn = $("goWallBtn");
-  const goRecordBtn = $("goRecordBtn"); // 你说“复用 today”，这里直接跳 today
+  const goRecordBtn = $("goRecordBtn"); // 可选
 
   const randomBtn = $("randomBtn");
 
@@ -152,16 +151,17 @@
   const yesterdayEmptyEl = $("yesterdayEmpty");
   const clearTodayBtn = $("clearTodayBtn");
 
-  // wall (history grouped)
+  // wall grouped (兼容)
   const historyWrapEl = $("historyWrap");
   const historyEmptyEl = $("historyEmpty");
 
-  // wall (search + chips)
+  // wall search + chips
   const wallSearchEl = $("wallSearch") || document.querySelector("#page-wall input");
   const wallListEl = $("wallList");
   const wallEmptyEl = $("wallEmpty");
   const wallChipsEl = $("wallChips") || document.querySelector("#page-wall .chips");
-  const wallClearBtnEl = $("searchClearBtn") || document.querySelector("#page-wall button.ghost");
+  // ✅ 你的 HTML 是 clearWall
+  const wallClearBtnEl = $("clearWall");
 
   // mood
   const moodBtns = Array.from(document.querySelectorAll(".mood-row .mood"));
@@ -172,13 +172,16 @@
     const t = String(text || "").trim();
     if (!t) return false;
 
+    const tags = extractTagsFromText(t);
+
     items.unshift({
       id: cryptoRandomId(),
       text: t,
       ts: Date.now(),
       done: false,
-      tags: extractTagsFromText(t),
+      tags,
     });
+
     saveItems(items);
     return true;
   }
@@ -220,9 +223,8 @@
       const left = document.createElement("div");
       left.className = "item-left";
 
-      let checkbox = null;
       if (!options.hideCheckbox) {
-        checkbox = document.createElement("input");
+        const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = !!it.done;
         checkbox.addEventListener("change", () => {
@@ -235,7 +237,6 @@
       const text = document.createElement("div");
       text.className = "item-text" + (it.done ? " done" : "");
       text.innerHTML = escapeHtml(it.text);
-
       left.appendChild(text);
 
       const right = document.createElement("div");
@@ -244,7 +245,6 @@
       const time = document.createElement("div");
       time.className = "item-time";
       time.textContent = formatTime(it.ts);
-
       right.appendChild(time);
 
       if (!options.hideDelete) {
@@ -326,8 +326,10 @@
   function renderTodayPage() {
     const now = new Date();
     const yest = new Date(now.getTime() - 24 * 3600 * 1000);
+
     const todayItems = items.filter((x) => isSameDay(new Date(x.ts), now));
     const yestItems = items.filter((x) => isSameDay(new Date(x.ts), yest));
+
     renderList(todayListEl, todayEmptyEl, todayItems);
     renderList(yesterdayListEl, yesterdayEmptyEl, yestItems);
   }
@@ -346,10 +348,7 @@
     const groups = new Map();
     for (const it of items) {
       const d = new Date(it.ts);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(
-        2,
-        "0"
-      )}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(it);
     }
@@ -374,6 +373,7 @@
     }
   }
 
+  // ---------- Quick Tags ----------
   function getTopTags(limit = 8) {
     const counter = new Map();
     for (const it of items) {
@@ -427,6 +427,7 @@
     }
   }
 
+  // ---------- Wall Search + Chips ----------
   function renderWallSearch() {
     if (!wallListEl) return;
 
@@ -453,8 +454,10 @@
 
   function renderWallChips() {
     if (!wallChipsEl) return;
+
     wallChipsEl.innerHTML = "";
     const tags = getTopTags(10);
+
     tags.forEach((tag) => {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -465,9 +468,11 @@
     });
   }
 
+  // ---------- Settings ----------
   function renderSettingsPage() {
     const exportBtn = $("exportBtn");
     const exportText = $("exportText");
+
     if (exportBtn) {
       exportBtn.onclick = () => {
         const data = JSON.stringify(items, null, 2);
@@ -503,6 +508,9 @@
     renderWallChips();
     renderSettingsPage();
     renderQuickTags();
+
+    // ✅ 每次渲染后确保 mood 的 active 状态跟 selectedMood 一致
+    syncMoodUI();
   }
 
   // ---------- Modal ----------
@@ -549,23 +557,26 @@
     show(pages[pageKey]);
     setActiveTab(pageKey);
 
-    // 切到 wall 时：刷新一次搜索/ chips（避免旧数据）
     if (pageKey === "wall") {
-      try {
-        renderWallSearch();
-        renderWallChips();
-      } catch (e) {
-        console.warn("showPage(wall) failed:", e);
-      }
+      renderWallSearch();
+      renderWallChips();
+    }
+    if (pageKey === "today") {
+      // 切到 today 时也同步一次 mood UI，防止“看起来没选中”
+      syncMoodUI();
     }
   }
 
   function bindTabs() {
     tabs.forEach((t) => {
+      if (t.dataset.bound === "1") return;
+      t.dataset.bound = "1";
+
       t.addEventListener("click", (e) => {
         e.preventDefault();
-        // randomBtn 是单独弹窗，不走页面
-        if (t.id === "randomBtn" || t.getAttribute("data-page") === "random") return;
+
+        // randomBtn 单独弹窗
+        if (t.id === "randomBtn") return;
 
         const pageKey = t.getAttribute("data-page") || t.dataset.page;
         if (!pageKey) return;
@@ -574,42 +585,73 @@
     });
   }
 
-  // ---------- Input / Mood / Buttons ----------
-  function setMood(m) {
-    selectedMood = String(m || "");
+  // ---------- Mood (关键修复) ----------
+  function getMoodKey(btn) {
+    // 优先 data-mood；没有就退化到按钮文字
+    return String(btn?.dataset?.mood || btn?.getAttribute?.("data-mood") || btn?.textContent || "").trim();
+  }
+
+  function syncMoodUI() {
+    if (!moodBtns.length) return;
+
     moodBtns.forEach((b) => {
-      b.classList.toggle("active", b.dataset.mood === selectedMood);
+      const key = getMoodKey(b);
+      b.classList.toggle("active", !!selectedMood && key === selectedMood);
     });
   }
 
+  function setMood(m) {
+    selectedMood = String(m || "").trim();
+    syncMoodUI();
+  }
+
+  // ---------- Bindings ----------
   function bindInputAndButtons() {
     // add
-    if (addBtn) {
+    if (addBtn && addBtn.dataset.bound !== "1") {
+      addBtn.dataset.bound = "1";
       addBtn.addEventListener("click", () => {
-        const v = String(inputEl?.value || "").trim();
-        if (!v) {
+        const raw = String(inputEl?.value || "").trim();
+        if (!raw) {
           alert("先写点内容～");
           inputEl?.focus?.();
           return;
         }
 
-        const ok = addItem(v);
-        if (ok && inputEl) inputEl.value = "";
+        // ✅ 把心情写入文本末尾作为 tag，方便搜索：#平静 #愉悦...
+        const textWithMood = selectedMood ? `${raw} #${selectedMood}` : raw;
+
+        const ok = addItem(textWithMood);
+        if (ok) {
+          if (inputEl) inputEl.value = "";
+          // ✅ 记录完清空心情（更自然）
+          setMood("");
+        }
         renderAll();
         inputEl?.focus?.();
       });
     }
 
-    // mood
+    // mood (✅ 强制防默认行为 + 防冒泡，保证能点中)
     moodBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const m = btn.dataset.mood || "";
+      if (btn.dataset.bound === "1") return;
+      btn.dataset.bound = "1";
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const m = getMoodKey(btn);
+        if (!m) return;
+
         setMood(selectedMood === m ? "" : m);
       });
     });
 
     // enter submit
-    if (inputEl) {
+    if (inputEl && inputEl.dataset.bound !== "1") {
+      inputEl.dataset.bound = "1";
+
       inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
@@ -617,11 +659,11 @@
         }
       });
 
-      // quick tags hint
       inputEl.addEventListener("focus", () => {
         renderQuickTags();
         if (quickTagsEl) show(quickTagsEl);
       });
+
       inputEl.addEventListener("input", () => {
         if ((inputEl.value || "").includes("#")) {
           renderQuickTags();
@@ -631,12 +673,22 @@
     }
 
     // quick jump
-    if (goTodayBtn) goTodayBtn.addEventListener("click", () => showPage("today"));
-    if (goWallBtn) goWallBtn.addEventListener("click", () => showPage("wall"));
-    if (goRecordBtn) goRecordBtn.addEventListener("click", () => showPage("today"));
+    if (goTodayBtn && goTodayBtn.dataset.bound !== "1") {
+      goTodayBtn.dataset.bound = "1";
+      goTodayBtn.addEventListener("click", () => showPage("today"));
+    }
+    if (goWallBtn && goWallBtn.dataset.bound !== "1") {
+      goWallBtn.dataset.bound = "1";
+      goWallBtn.addEventListener("click", () => showPage("wall"));
+    }
+    if (goRecordBtn && goRecordBtn.dataset.bound !== "1") {
+      goRecordBtn.dataset.bound = "1";
+      goRecordBtn.addEventListener("click", () => showPage("today"));
+    }
 
     // random modal
-    if (randomBtn) {
+    if (randomBtn && randomBtn.dataset.bound !== "1") {
+      randomBtn.dataset.bound = "1";
       randomBtn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -645,12 +697,22 @@
     }
 
     // modal events
-    if (modalMask) modalMask.addEventListener("click", closeModal);
-    if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
-    if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
+    if (modalMask && modalMask.dataset.bound !== "1") {
+      modalMask.dataset.bound = "1";
+      modalMask.addEventListener("click", closeModal);
+    }
+    if (modalCloseBtn && modalCloseBtn.dataset.bound !== "1") {
+      modalCloseBtn.dataset.bound = "1";
+      modalCloseBtn.addEventListener("click", closeModal);
+    }
+    if (modalAgainBtn && modalAgainBtn.dataset.bound !== "1") {
+      modalAgainBtn.dataset.bound = "1";
+      modalAgainBtn.addEventListener("click", showRandomOne);
+    }
 
     // clear today
-    if (clearTodayBtn) {
+    if (clearTodayBtn && clearTodayBtn.dataset.bound !== "1") {
+      clearTodayBtn.dataset.bound = "1";
       clearTodayBtn.addEventListener("click", () => {
         if (!confirm("确定清空今天的记录吗？")) return;
         clearToday();
@@ -659,19 +721,24 @@
     }
 
     // click outside closes quickTags
-    document.addEventListener("click", () => {
-      if (!quickTagsEl) return;
-      hide(quickTagsEl);
-    });
-    if (quickTagsEl) {
-      quickTagsEl.addEventListener("click", (e) => e.stopPropagation());
+    if (document.body.dataset.quicktagsBound !== "1") {
+      document.body.dataset.quicktagsBound = "1";
+      document.addEventListener("click", () => {
+        if (!quickTagsEl) return;
+        hide(quickTagsEl);
+      });
+      if (quickTagsEl) {
+        quickTagsEl.addEventListener("click", (e) => e.stopPropagation());
+      }
     }
 
-    // wall search bindings (once)
+    // wall search bindings
     if (wallSearchEl && wallSearchEl.dataset.bound !== "1") {
       wallSearchEl.dataset.bound = "1";
       wallSearchEl.addEventListener("input", () => renderWallSearch());
     }
+
+    // ✅ wall clear button id: clearWall
     if (wallClearBtnEl && wallClearBtnEl.dataset.bound !== "1") {
       wallClearBtnEl.dataset.bound = "1";
       wallClearBtnEl.addEventListener("click", () => {
@@ -679,13 +746,16 @@
         renderWallSearch();
       });
     }
+
     if (wallChipsEl && wallChipsEl.dataset.bound !== "1") {
       wallChipsEl.dataset.bound = "1";
       wallChipsEl.addEventListener("click", (e) => {
         const btn = e.target.closest("button.chip");
         if (!btn) return;
+
         const tag = String(btn.dataset.chip || btn.textContent || "").trim();
         if (!wallSearchEl) return;
+
         wallSearchEl.value = wallSearchEl.value.trim() === tag ? "" : tag;
         renderWallSearch();
       });
@@ -715,6 +785,10 @@
       renderAll,
       showPage,
       addItem,
+      setMood,
+      get selectedMood() {
+        return selectedMood;
+      },
     };
   }
 
