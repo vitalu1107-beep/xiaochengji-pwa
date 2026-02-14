@@ -4,7 +4,7 @@
  * - Update strategy: skipWaiting + clientsClaim
  */
 
-const VERSION = "v2026-02-15-02";
+const VERSION = "v2026-02-15-03";
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const RUNTIME_CACHE = `smallwins-runtime-${VERSION}`;
 
