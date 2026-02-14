@@ -223,7 +223,7 @@ button:hover{ background:var(--green2); }
 .item-left{
   display:flex;
   gap:10px;
-  align-items:flex-start;
+  align-items:center;
   flex:1;
 }
 
