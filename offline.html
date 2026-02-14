@@ -1,72 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>离线模式 - 小成就</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#4CAF50" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>小成就 · Small Wins</title>
 
-  <style>
-    :root {
-      --bg: #f0f8ff;
-      --card: #ffffff;
-      --text: #333;
-      --primary: #4CAF50;
-      --border: #e6e6e6;
-    }
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .card {
-      background: var(--card);
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.05);
-      text-align: center;
-      max-width: 320px;
-    }
-
-    h1 {
-      margin: 0 0 12px;
-      font-size: 20px;
-      color: var(--text);
-    }
-
-    p {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-  </style>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
-  <div class="card">
-    <h1>📴 当前离线</h1>
-    <p>网络不可用，但你仍然可以使用已缓存的功能。</p>
-    <button onclick="location.reload()">重新尝试连接</button>
+  <div class="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">🎯</div>
+        <div class="brand-text">
+          <div class="brand-title">小成就 <span class="brand-sub">Small Wins</span></div>
+          <div class="brand-desc">记录每天的小小进步。</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <nav class="tabs" aria-label="主导航">
+        <button class="tab active" type="button" data-page="home">首页</button>
+        <button class="tab" type="button" data-page="today">记录微光</button>
+        <button class="tab" type="button" data-page="wall">成就墙</button>
+        <button class="tab" id="randomBtn" type="button">随机回顾</button>
+        <button class="tab" type="button" data-page="settings">设置</button>
+      </nav>
+    </header>
+
+    <!-- Pages -->
+    <main class="pages">
+      <!-- Home -->
+      <section id="page-home" class="page">
+        <div class="card home-hero">
+          <div class="home-left">
+            <div id="homeDate" class="home-date"></div>
+            <div id="homeGreeting" class="home-greeting"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">今日能量</div>
+          <div id="homeQuote" class="quote"></div>
+        </div>
+
+        <div class="grid">
+          <div class="card stat">
+            <div class="stat-title">🏆 成就记录</div>
+            <div class="stat-num" id="statStreak">0</div>
+            <div class="stat-sub">已坚持 天</div>
+            <button id="goTodayBtn" class="ghost" type="button">去记录</button>
+          </div>
+
+          <div class="card stat">
+            <div class="stat-title">💗 小确幸墙</div>
+            <div class="stat-num" id="statAll">0</div>
+            <div class="stat-sub">个瞬间</div>
+            <button id="goWallBtn" class="ghost" type="button">去看看</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">最近的小快乐</div>
+          <div id="recentEmpty" class="empty">还没有记录～先写下第一个小小进步吧 ✨</div>
+          <div id="recentList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- Today -->
+      <section id="page-today" class="page hidden">
+        <div class="card">
+          <div class="card-title">✨ 记录微光</div>
+
+          <div class="input-box">
+            <textarea
+              id="achievementInput"
+              rows="2"
+              placeholder="今天你做了哪件微小的事？（可用 #标签，比如 #运动 #阅读）"
+            ></textarea>
+            <button id="addBtn" class="primary" type="button">封存这一刻</button>
+          </div>
+
+          <!-- quick tags (auto render by main.js if exists) -->
+          <div id="quickTags" class="chips hidden"></div>
+
+          <!-- mood row -->
+          <div class="mood-row">
+            <button class="mood" type="button" data-mood="平静"><span aria-hidden="true">🌙</span> 平静</button>
+            <button class="mood" type="button" data-mood="愉悦"><span aria-hidden="true">✨</span> 愉悦</button>
+            <button class="mood" type="button" data-mood="释然"><span aria-hidden="true">🌱</span> 释然</button>
+            <button class="mood" type="button" data-mood="慵懒"><span aria-hidden="true">☁️</span> 慵懒</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📅 今天</div>
+            <button id="clearTodayBtn" class="danger ghost" type="button">清空今天</button>
+          </div>
+          <div id="todayEmpty" class="empty">今天还没有记录～</div>
+          <div id="todayList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- Wall -->
+      <section id="page-wall" class="page hidden">
+        <div class="card">
+          <div class="card-title">成就墙</div>
+
+          <div class="input-box">
+            <input id="wallSearch" type="text" placeholder="搜索：文字 / #标签 / 心情（如 平静）" />
+            <button id="clearWall" class="ghost" type="button">清空</button>
+          </div>
+
+          <div id="wallChips" class="chips"></div>
+
+          <div id="wallEmpty" class="empty">还没有记录，先去“记录微光”写一条吧～</div>
+          <div id="wallList" class="list"></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="page-settings" class="page hidden">
+        <div class="card">
+          <div class="card-title">设置</div>
+
+          <!-- ✅ 你要的：昵称输入框 + 保存按钮 -->
+          <div class="setting-block">
+            <div class="setting-label">昵称（用于首页问候语）</div>
+            <div class="input-box">
+              <input id="nameInput" type="text" placeholder="例如：夏央" />
+              <button id="saveNameBtn" class="ghost" type="button">保存昵称</button>
+            </div>
+            <div class="setting-hint">保存后，首页会显示“早上好/晚上好，昵称”。</div>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="setting-block">
+            <div class="setting-label">导出数据</div>
+            <button id="exportBtn" class="ghost" type="button">复制全部数据到剪贴板</button>
+          </div>
+
+          <div class="setting-block">
+            <div class="setting-label">危险操作</div>
+            <button id="resetAllBtn" class="danger ghost" type="button">清空全部数据</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">PWA</div>
+          <div id="installHint" class="setting-hint">
+            如果你看到浏览器的“添加到主屏幕 / 安装应用”，就可以像 App 一样使用。
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="随机回顾">
+      <div id="modalMask" class="modal-mask"></div>
+      <div class="modal-panel">
+        <div class="modal-body" id="modalContent"></div>
+        <div class="modal-actions">
+          <button id="modalAgainBtn" class="ghost" type="button">再来一个</button>
+          <button id="modalCloseBtn" class="primary" type="button">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Your app logic -->
+  <script src="./main.js"></script>
+
+  <!-- Service Worker register (GitHub Pages subpath friendly) -->
+  <script>
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+
+      // IMPORTANT: GitHub Pages subpath: /xiaochengji-pwa/
+      // index.html is under that path, so ./sw.js resolves correctly.
+      window.addEventListener("load", async () => {
+        try {
+          const reg = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+          // optional: log
+          // console.log("SW registered:", reg.scope);
+        } catch (e) {
+          console.warn("SW register failed:", e);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
