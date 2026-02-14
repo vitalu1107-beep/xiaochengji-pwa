@@ -2,174 +2,380 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#49b05a" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#46B256" />
   <title>小成就 · Small Wins</title>
 
-  <link rel="manifest" href="./manifest.webmanifest" />
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="icon" href="./icons/icon-192.png" />
+
+  <!-- Styles -->
   <link rel="stylesheet" href="./style.css" />
+
+  <!-- ✅ 关键：给“移动端布局”加一层轻量兜底（不改你现有 style.css 也能稳住） -->
+  <style>
+    /* --- layout base --- */
+    :root { --container-max: 980px; }
+    body { margin: 0; }
+    .app { width: 100%; }
+    .container { max-width: var(--container-max); margin: 0 auto; padding: 16px; }
+
+    /* --- header --- */
+    .brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 8px; }
+    .brand .logo { width: 44px; height: 44px; border-radius: 14px; object-fit: cover; }
+    .brand .titles { line-height: 1.2; }
+    .brand h1 { font-size: 22px; margin: 0; }
+    .brand p { margin: 4px 0 0; opacity: .75; }
+
+    /* --- top nav (横排 + 自动换行，不允许变竖列) --- */
+    .topnav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;          /* ✅ 小屏不够就换行，但仍是“横向排列” */
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+    .topnav button {
+      appearance: none;
+      border: 1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.7);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      white-space: nowrap;      /* ✅ 文字不拆行，保证是胶囊按钮 */
+    }
+    .topnav button.active {
+      background: #46B256;
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* --- cards / panels base --- */
+    .panel { border-radius: 18px; padding: 16px; background: rgba(255,255,255,.72); border: 1px solid rgba(0,0,0,.06); }
+    .panel + .panel { margin-top: 14px; }
+    .section-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 18px; }
+    .muted { opacity: .7; }
+
+    /* --- homepage: 成就记录 + 小确幸墙 横排（移动端也尽量两列） --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;  /* ✅ 默认两列 */
+      gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 360px) {
+      .stats-grid { grid-template-columns: 1fr; } /* 超小屏才变一列 */
+    }
+    .stat-card { border-radius: 18px; padding: 16px; background: rgba(255,255,255,.72); border: 1px solid rgba(0,0,0,.06); }
+    .stat-card h3 { margin: 0 0 10px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .stat-card .big { font-size: 40px; font-weight: 800; line-height: 1; margin: 6px 0; }
+    .stat-card .sub { margin: 0 0 12px; }
+    .stat-card .btn { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(0,0,0,.08); background: rgba(255,255,255,.75); cursor: pointer; }
+
+    /* --- record page: 输入 + 选择心情(横排/网格) + 保存按钮在下面 --- */
+    .record-wrap { display: grid; gap: 12px; }
+    .record-input { width: 100%; min-height: 52px; padding: 14px 14px; border-radius: 16px; border: 1px solid rgba(0,0,0,.10); background: rgba(255,255,255,.78); font-size: 16px; box-sizing: border-box; }
+
+    .mood-title { margin: 6px 0 2px; font-size: 16px; font-weight: 700; }
+    .mood-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* ✅ 手机也横向一排四个 */
+      gap: 10px;
+      margin-top: 8px;
+    }
+    @media (max-width: 420px) {
+      .mood-grid { grid-template-columns: repeat(2, 1fr); } /* 小屏改2列更舒服 */
+    }
+    .mood-btn {
+      width: 100%;
+      padding: 12px 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.75);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .mood-btn.active { outline: 2px solid rgba(70,178,86,.35); border-color: rgba(70,178,86,.35); }
+
+    .primary-btn {
+      width: 100%;
+      padding: 16px 14px;
+      border-radius: 18px;
+      border: none;
+      background: #46B256;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* --- list items (通用占位：你 style.css 已经有 item 系列也没关系) --- */
+    .list { margin-top: 10px; }
+    .item {
+      display: flex; justify-content: space-between; gap: 10px;
+      padding: 12px; border-radius: 14px;
+      background: rgba(255,255,255,.75); border: 1px solid rgba(0,0,0,.06);
+    }
+    .item + .item { margin-top: 10px; }
+    .item-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .item-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+    /* --- settings form tidy --- */
+    .form-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+    .input { width: 100%; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(0,0,0,.10); background: rgba(255,255,255,.80); font-size: 16px; }
+    .small { font-size: 13px; }
+    .btn { padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(0,0,0,.10); background: rgba(255,255,255,.80); cursor: pointer; }
+    .btn.danger { background: #e85b5b; border-color: transparent; color: #fff; }
+  </style>
 </head>
 
 <body>
   <div class="app">
-    <!-- Header -->
-    <header class="top">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">🎯</div>
-        <div class="brand-text">
-          <div class="brand-title">小成就 <span class="en">Small Wins</span></div>
-          <div class="brand-sub">记录每天的小小进步。</div>
-        </div>
-      </div>
-
-      <nav class="tabs" aria-label="导航">
-        <button class="tab active" data-page="home" type="button">首页</button>
-        <button class="tab" data-page="today" type="button">记录微光</button>
-        <button class="tab" data-page="wall" type="button">成就墙</button>
-        <button class="tab" id="randomBtn" type="button">随机回顾</button>
-        <button class="tab" data-page="settings" type="button">设置</button>
-      </nav>
-    </header>
-
-    <main class="main">
-      <!-- Home -->
-      <section id="page-home">
-        <div class="panel">
-          <div id="homeDate" class="muted">—</div>
-          <div id="homeGreeting" class="h1">—</div>
-        </div>
-
-        <div class="panel">
-          <div class="muted">今日能量</div>
-          <div id="homeQuote" class="quote">—</div>
-        </div>
-
-        <!-- ✅ 关键：两张卡包一层，移动端保持两列 -->
-        <div class="home-two">
-          <div class="panel mini">
-            <div class="mini-title">🏆 成就记录</div>
-            <div class="mini-num" id="statStreak">0</div>
-            <div class="muted">已坚持 天</div>
-            <button class="ghost" id="goTodayBtn" type="button">去记录</button>
-          </div>
-
-          <div class="panel mini">
-            <div class="mini-title">💗 小确幸墙</div>
-            <div class="mini-num" id="statAll">0</div>
-            <div class="muted">个瞬间</div>
-            <button class="ghost" id="goWallBtn" type="button">去看看</button>
+    <div class="container">
+      <!-- 顶部品牌 -->
+      <header>
+        <div class="brand">
+          <img class="logo" src="./icons/icon-192.png" alt="logo" />
+          <div class="titles">
+            <h1>小成就 <span class="muted" style="font-size:14px;font-weight:600;margin-left:6px;">Small Wins</span></h1>
+            <p class="muted">记录每天的小小进步。</p>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="section-title">最近的小快乐</div>
-          <div id="recentEmpty" class="empty">还没有记录～先写下第一件小小进步吧 ✨</div>
-          <div id="recentList" class="list"></div>
-        </div>
-      </section>
+        <!-- 顶部导航（横排） -->
+        <nav class="topnav" aria-label="主导航">
+          <button id="tab-home" class="active" type="button" data-target="page-home">首页</button>
+          <button id="tab-today" type="button" data-target="page-today">记录微光</button>
+          <button id="tab-wall" type="button" data-target="page-wall">成就墙</button>
+          <button id="tab-random" type="button" data-target="page-random">随机回顾</button>
+          <button id="tab-settings" type="button" data-target="page-settings">设置</button>
+        </nav>
+      </header>
 
-      <!-- Today / Add -->
-      <section id="page-today" class="hidden">
-        <div class="panel">
-          <div class="section-title">✨ 记录微光</div>
+      <!-- ========== 页面：首页 ========== -->
+      <main id="page-home">
+        <!-- 问候 -->
+        <section class="panel">
+          <div class="muted" id="home-date">—</div>
+          <div style="font-size:20px;font-weight:800;margin-top:6px;" id="home-greeting">晚上好，夏央</div>
+        </section>
 
-          <!-- 输入框（单独一行） -->
-          <div class="input-box">
-            <textarea id="achievementInput" rows="2" placeholder="哪怕很小，也算数：今天我___"></textarea>
+        <!-- 今日能量 -->
+        <section class="panel">
+          <div class="muted small" style="margin-bottom:8px;">今日能量</div>
+          <div id="home-quote" style="font-size:22px;font-weight:900;line-height:1.35;">
+            “你不需要很厉害才开始，你需要开始才会变厉害。”
+          </div>
+        </section>
+
+        <!-- 两张卡：横排 -->
+        <section class="stats-grid" aria-label="统计卡片">
+          <div class="stat-card" id="card-achievement">
+            <h3>🏆 成就记录</h3>
+            <div class="big" id="stat-streak">0</div>
+            <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
+            <button class="btn" type="button" data-target="page-wall">去记录</button>
           </div>
 
-          <!-- ✅ 心情区：新增标题 + 横排 -->
-          <div class="mood-block">
-            <div class="mood-title">选择心情</div>
-            <div class="mood-row">
-              <button class="mood" type="button" data-mood="平静">🌙 平静</button>
-              <button class="mood" type="button" data-mood="愉悦">✨ 愉悦</button>
-              <button class="mood" type="button" data-mood="释然">🌱 释然</button>
-              <button class="mood" type="button" data-mood="慵懒">☁️ 慵懒</button>
+          <div class="stat-card" id="card-happy">
+            <h3>💗 小确幸墙</h3>
+            <div class="big" id="stat-happy">0</div>
+            <p class="sub muted" id="stat-happy-sub">0 个瞬间</p>
+            <button class="btn" type="button" data-target="page-wall">去看看</button>
+          </div>
+        </section>
+
+        <!-- 最近的小快乐 -->
+        <section class="panel">
+          <h2 class="section-title">最近的小快乐</h2>
+          <div id="recent-list" class="list">
+            <div class="muted" id="recent-empty">还没有记录～先写下第一件小小进步吧 ✨</div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：记录微光 ========== -->
+      <main id="page-today" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">✨ 记录微光</h2>
+
+          <div class="record-wrap">
+            <!-- 输入 -->
+            <input
+              id="input-text"
+              class="record-input"
+              type="text"
+              placeholder="比如：今天我完成了一个小目标 / 我把一件事推进了一步"
+              autocomplete="off"
+            />
+
+            <!-- 选择心情 -->
+            <div class="mood-title" id="mood-title">选择心情</div>
+
+            <div class="mood-grid" id="mood-group" role="group" aria-label="选择心情">
+              <button class="mood-btn" type="button" data-mood="calm">🌙 平静</button>
+              <button class="mood-btn" type="button" data-mood="happy">✨ 愉悦</button>
+              <button class="mood-btn" type="button" data-mood="relaxed">🌱 释然</button>
+              <button class="mood-btn" type="button" data-mood="lazy">☁️ 慵懒</button>
+            </div>
+
+            <!-- ✅ 保存按钮放在心情下面 -->
+            <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
+          </div>
+        </section>
+
+        <!-- 今日列表 -->
+        <section class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <h2 class="section-title" style="margin:0;">📅 今天</h2>
+            <button id="btn-clear-today" class="btn" type="button">清空今天</button>
+          </div>
+
+          <div id="today-list" class="list"></div>
+          <div id="today-empty" class="muted" style="text-align:center;padding:18px 0;">今天还没有记录～</div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：成就墙（全览+搜索） ========== -->
+      <main id="page-wall" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">🧱 成就墙（全览 + 搜索）</h2>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+            <button class="btn" type="button" data-filter="运动">#运动</button>
+            <button class="btn" type="button" data-filter="生活">#生活</button>
+          </div>
+
+          <input id="wall-search" class="input" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘" />
+
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            <button id="btn-wall-clear" class="btn" type="button">清空</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="section-title">🎲 随机回顾</h2>
+          <div id="random-box" class="item">
+            <div class="item-left">
+              <div class="item-text muted">点击“来一条”，看看过去的你。</div>
+            </div>
+            <div class="item-right" style="flex-direction:row;">
+              <button id="btn-random" class="btn" type="button">来一条</button>
+              <button id="btn-random-close" class="btn" type="button">关闭</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2 class="section-title">全部记录</h2>
+          <div id="wall-list" class="list"></div>
+          <div id="wall-empty" class="muted" style="text-align:center;padding:18px 0;">还没有记录～</div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：随机回顾 ========== -->
+      <main id="page-random" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">🎲 随机回顾</h2>
+          <div id="random-card" class="panel" style="background:rgba(255,255,255,.65);">
+            <div class="muted" style="margin-bottom:8px;">你抽到的是：</div>
+            <div id="random-text" style="font-size:18px;font-weight:800;line-height:1.4;">—</div>
+            <div id="random-time" class="muted small" style="margin-top:10px;">—</div>
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+              <button id="btn-random-next" class="btn" type="button">再来一条</button>
+              <button id="btn-random-delete" class="btn danger" type="button">删除</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：设置 ========== -->
+      <main id="page-settings" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">⚙️ 设置</h2>
+          <p class="muted small" style="margin-top:0;">
+            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
+          </p>
+
+          <div style="margin-top:14px;">
+            <button id="btn-install" class="btn" type="button">安装到手机（添加到桌面）</button>
+            <div class="small muted" id="install-tip" style="margin-top:8px;">✅ 可安装：点击上方按钮即可添加到桌面。</div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
+
+          <!-- 昵称 -->
+          <div style="margin-top:6px;">
+            <div style="font-weight:800;margin-bottom:8px;">昵称（用于首页问候语）</div>
+            <div class="form-row">
+              <input id="nickname-input" class="input" type="text" placeholder="比如：夏央" />
+              <button id="btn-save-nickname" class="btn" type="button">保存昵称</button>
+            </div>
+            <div class="muted small" style="margin-top:8px;">
+              保存后首页会显示：<span id="nickname-preview">晚上好，夏央</span>
             </div>
           </div>
 
-          <!-- ✅ 提交按钮放在心情下面 -->
-          <button id="addBtn" class="primary big" type="button">封存这一刻</button>
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
 
-          <!-- quick tags (可选) -->
-          <div id="quickTags" class="chips hidden"></div>
-        </div>
-
-        <div class="panel">
-          <div class="today-head">
-            <div class="section-title">📅 今天</div>
-            <button id="clearTodayBtn" class="danger ghost" type="button">清空今天</button>
+          <!-- 导出 / 清空 -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button id="btn-export" class="btn" type="button">导出为文本（复制）</button>
+            <button id="btn-clear-all" class="btn danger" type="button">清空全部数据</button>
           </div>
+        </section>
+      </main>
 
-          <div id="todayEmpty" class="empty">今天还没有记录～</div>
-          <div id="todayList" class="list"></div>
-        </div>
-      </section>
-
-      <!-- Wall -->
-      <section id="page-wall" class="hidden">
-        <div class="panel">
-          <div class="section-title">🧱 成就墙（全览 + 搜索）</div>
-
-          <div id="wallChips" class="chips"></div>
-
-          <div class="wall-bar">
-            <input id="wallSearch" placeholder="搜索：比如 运动 / 阅读 / 复盘 / #生活 / 平静" />
-            <button id="clearWall" class="ghost" type="button">清空</button>
-          </div>
-
-          <div id="wallEmpty" class="empty">没有匹配结果～</div>
-          <div id="wallList" class="list"></div>
-        </div>
-      </section>
-
-      <!-- Settings -->
-      <section id="page-settings" class="hidden">
-        <div class="panel">
-          <div class="section-title">⚙️ 设置</div>
-          <div class="muted">这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。</div>
-
-          <div class="setting-block">
-            <div class="setting-title">安装到手机（添加到桌面）</div>
-            <div class="muted">iPhone：Safari → 分享 → 添加到主屏幕</div>
-            <div class="muted">安卓：Chrome → 右上角菜单 → 添加到主屏幕 / 安装应用</div>
-          </div>
-
-          <!-- ✅ 昵称输入框 + 保存按钮 -->
-          <div class="setting-block">
-            <div class="setting-title">昵称（用于首页问候语）</div>
-            <div class="setting-row">
-              <input id="nameInput" placeholder="输入你的昵称" />
-              <button id="saveNameBtn" class="ghost" type="button">保存昵称</button>
-            </div>
-            <div class="muted">保存后首页会显示：晚上好，夏央</div>
-          </div>
-
-          <div class="setting-row">
-            <button id="editNameBtn" class="ghost" type="button">弹窗修改昵称</button>
-            <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
-            <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Modal -->
-    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-      <div id="modalMask" class="modal-mask"></div>
-      <div class="modal-card">
-        <div class="modal-title">🎲 随机回顾</div>
-        <div id="modalContent" class="modal-content"></div>
-        <div class="modal-actions">
-          <button id="modalAgainBtn" class="ghost" type="button">再来一条</button>
-          <button id="modalCloseBtn" class="ghost" type="button">关闭</button>
-        </div>
-      </div>
     </div>
   </div>
 
-  <script src="./main.js" defer></script>
+  <!-- Scripts -->
+  <script src="./main.js"></script>
+
+  <!-- ✅ 兜底导航切页（如果你的 main.js 已经实现了，也不会冲突；不需要可删） -->
+  <script>
+    (function () {
+      const tabs = Array.from(document.querySelectorAll(".topnav button"));
+      const pages = ["page-home","page-today","page-wall","page-random","page-settings"]
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+      function show(id){
+        pages.forEach(p => p.style.display = (p.id === id ? "" : "none"));
+        tabs.forEach(t => t.classList.toggle("active", t.dataset.target === id));
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener("click", () => show(btn.dataset.target));
+      });
+
+      // 让首页两个按钮也能切页
+      document.querySelectorAll('[data-target]').forEach(el => {
+        if (el.closest(".topnav")) return;
+        el.addEventListener("click", () => {
+          const t = el.getAttribute("data-target");
+          if (t) show(t);
+        });
+      });
+    })();
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
