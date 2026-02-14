@@ -1,20 +1,20 @@
 :root{
   --bg:#f4f9f4;
-  --card:#fff;
+  --card:#ffffff;
   --text:#222;
   --muted:#666;
   --border:#dfe8df;
 
   --green:#4caf50;
   --green2:#43a047;
-
   --danger:#e35d5d;
 
-  /* 统一主色（给 mood.active / chip.active 用） */
-  --primary: var(--green);
+  --shadow: 0 6px 18px rgba(0,0,0,0.04);
 }
 
 *{ box-sizing:border-box; }
+
+html,body{ height:100%; }
 
 body{
   margin:0;
@@ -23,17 +23,17 @@ body{
   color:var(--text);
 }
 
+/* ===== Layout ===== */
 .app{ min-height:100vh; }
 
-/* ================= Header ================= */
-.header{
+.app-header{
   position:sticky;
   top:0;
-  background:rgba(244,249,244,0.9);
-  backdrop-filter: blur(8px);
+  z-index:20;
+  background:rgba(244,249,244,0.92);
+  backdrop-filter: blur(10px);
   border-bottom:1px solid rgba(0,0,0,0.04);
   padding:14px 14px 10px;
-  z-index:10;
 }
 
 .brand{
@@ -44,7 +44,7 @@ body{
   margin-bottom:10px;
 }
 
-.logo{
+.brand-icon{
   width:40px;height:40px;
   display:grid;place-items:center;
   border-radius:12px;
@@ -52,22 +52,24 @@ body{
   border:1px solid var(--border);
 }
 
-.title{
-  font-weight:800;
+.brand-title{
+  font-weight:900;
   font-size:18px;
+  line-height:1.1;
 }
-.en{
+.brand-sub{
   font-size:12px;
   color:var(--muted);
-  font-weight:600;
+  font-weight:700;
   margin-left:6px;
 }
-.subtitle{
+.brand-desc{
   font-size:12px;
   color:var(--muted);
   margin-top:4px;
 }
 
+/* Tabs */
 .tabs{
   display:flex;
   gap:8px;
@@ -78,42 +80,44 @@ body{
 .tab{
   border:1px solid var(--border);
   background:#fff;
-  padding:8px 10px;
+  padding:8px 12px;
   border-radius:999px;
   cursor:pointer;
   font-size:13px;
   color:#333;
 }
+.tab:hover{ background:#f7f7f7; }
 .tab.active{
-  background:var(--primary);
-  border-color:var(--primary);
+  background:var(--green);
+  border-color:var(--green);
   color:#fff;
 }
 
-/* ================= Layout ================= */
-.container{
-  max-width:720px;
+.pages{
+  max-width:880px;
   margin:0 auto;
   padding:14px;
 }
 
 .page.hidden{ display:none; }
 
+/* ===== Cards ===== */
 .card{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:14px;
   padding:14px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.04);
+  box-shadow:var(--shadow);
   margin-top:12px;
 }
 
 .card-title{
-  font-weight:800;
+  font-weight:900;
   font-size:14px;
+  margin-bottom:10px;
 }
 
-.section-head{
+.card-head{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -121,32 +125,54 @@ body{
   margin-bottom:10px;
 }
 
+/* ===== Home ===== */
+.home-hero{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  min-height:64px;
+}
+
+.home-date{
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:6px;
+}
+.home-greeting{
+  font-size:16px;
+  font-weight:900;
+}
+
+.quote{
+  margin-top: 8px;
+  font-size: 18px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+/* Stats grid */
 .grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:12px;
 }
 
-.big{
-  font-size:30px;
+.stat-title{
   font-weight:900;
-  margin:8px 0 4px;
+  font-size:14px;
 }
-
-.muted{ color:var(--muted); }
-.small{ font-size:12px; }
-
-.quote{
-  margin-top:8px;
-  font-size:18px;
-  line-height:1.6;
-  font-weight:600;
+.stat-num{
+  font-size:34px;
+  font-weight:950;
+  margin:10px 0 2px;
 }
+.stat-sub{ color:var(--muted); }
 
-/* ================= Inputs / Buttons ================= */
+/* ===== Inputs / Buttons ===== */
 .input-box{
   display:flex;
   gap:10px;
+  align-items:stretch;
 }
 
 input, textarea{
@@ -158,24 +184,23 @@ input, textarea{
   outline:none;
   font-family: inherit;
 }
-
-input:focus, textarea:focus{ border-color:var(--primary); }
-
-textarea{
-  resize:none;
-}
+textarea{ resize:none; }
+input:focus, textarea:focus{ border-color:var(--green); }
 
 button{
   padding:12px 14px;
   border:none;
   border-radius:12px;
-  background:var(--primary);
+  background:var(--green);
   color:#fff;
   cursor:pointer;
   font-size:15px;
   white-space:nowrap;
 }
 button:hover{ background:var(--green2); }
+
+.primary{ background:var(--green); }
+.primary:hover{ background:var(--green2); }
 
 .ghost{
   background:transparent;
@@ -184,17 +209,16 @@ button:hover{ background:var(--green2); }
 }
 .ghost:hover{ background:#f7f7f7; }
 
-.danger{
-  background:var(--danger);
-}
+.danger{ background:var(--danger); }
+.danger:hover{ filter:brightness(0.97); }
 .danger.ghost{
   background:transparent;
   color:var(--danger);
-  border-color:#f0caca;
+  border:1px solid #f0caca;
 }
 .danger.ghost:hover{ background:#fff1f1; }
 
-/* ================= Empty / List ================= */
+/* ===== Empty / list ===== */
 .empty{
   text-align:center;
   color:var(--muted);
@@ -202,46 +226,47 @@ button:hover{ background:var(--green2); }
 }
 
 .list{
-  list-style:none;
-  padding:0;
-  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
-/* 你现在渲染的是 div.item（不是 li），这里保留原样 */
+/* Item row (no checkbox version friendly) */
 .item{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   justify-content:space-between;
-  gap:10px;
+  gap:12px;
   padding:12px;
   border:1px solid var(--border);
   border-radius:12px;
-  margin-bottom:10px;
   background:#fff;
 }
 
 .item-left{
   display:flex;
+  align-items:center;
   gap:10px;
-  align-items:flex-start;
-  flex:1;
-}
-
-.item-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:10px;
+  min-width:0;
 }
 
 .item-text{
   line-height:1.45;
   word-break:break-word;
+  font-size:15px;
 }
 
-.item-text.done{
-  opacity:.6;
-  text-decoration: line-through;
+.item-meta{
+  color:var(--muted);
+  font-size:12px;
+  margin-top:4px;
+}
+
+.item-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-shrink:0;
 }
 
 .item-time{
@@ -249,21 +274,18 @@ button:hover{ background:var(--green2); }
   font-size:12px;
 }
 
-.btn{
-  padding:8px 10px;
-  font-size:13px;
-  border-radius:10px;
-}
+/* Delete button inside item */
 .btn-danger{
   background:transparent;
   border:1px solid #f0caca;
   color:var(--danger);
+  padding:8px 12px;
+  font-size:13px;
+  border-radius:12px;
 }
-.btn-danger:hover{
-  background:#fff1f1;
-}
+.btn-danger:hover{ background:#fff1f1; }
 
-/* ================= Chips ================= */
+/* ===== Chips (tags) ===== */
 .chips{
   display:flex;
   gap:8px;
@@ -282,14 +304,13 @@ button:hover{ background:var(--green2); }
   user-select:none;
 }
 .chip:hover{ background:#f7f7f7; }
-
 .chip.active{
-  background:var(--primary);
-  border-color:var(--primary);
+  background:var(--green);
+  border-color:var(--green);
   color:#fff;
 }
 
-/* ================= Mood ================= */
+/* ===== Mood buttons (picker) ===== */
 .mood-row{
   display:flex;
   gap:10px;
@@ -300,51 +321,53 @@ button:hover{ background:var(--green2); }
 .mood{
   border:1px solid rgba(0,0,0,.08);
   background:#fff;
-  color:#333;
   padding:10px 12px;
   border-radius:12px;
   cursor:pointer;
-  user-select:none;
-  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+  color:#333;
+  font-size:14px;
 }
+.mood:hover{ background:#f7f7f7; }
 
-.mood:hover{
-  background:#f7f7f7;
-}
-
-.mood:active{
-  transform: translateY(1px);
-}
-
-/* ✅ 选中态（关键修复：用 --primary） */
+/* active state */
 .mood.active{
-  background: var(--primary);
+  background: var(--green);
+  border-color: var(--green);
   color:#fff;
-  border-color: var(--primary);
   font-weight:700;
 }
 
-/* ================= Toast / Modal ================= */
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:20px;
-  transform:translateX(-50%);
-  background:rgba(20,20,20,0.92);
-  color:#fff;
-  padding:10px 14px;
+/* ===== Mood pill in list (你要的“左边那种样式”) ===== */
+.mood-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
   border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:#333;
   font-size:14px;
-  z-index:9999;
+  line-height:1;
+  white-space:nowrap;
 }
+.mood-pill .mood-ico{ font-size:16px; }
+.mood-pill .mood-txt{ font-weight:700; }
 
-.hidden{ display:none !important; }
+/* subtle variants (optional) */
+.mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
+.mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
+.mood-pill.relaxed { background:#f1fbf6; border-color:#cfeed9; }
+.mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
+.mood-pill.neutral { background:#f7f7f7; border-color:#e6e6e6; }
 
+/* ===== Modal ===== */
 .modal{
   position:fixed;
   inset:0;
   z-index:9998;
 }
+.modal.hidden{ display:none; }
 
 .modal-mask{
   position:absolute;
@@ -352,12 +375,12 @@ button:hover{ background:var(--green2); }
   background:rgba(0,0,0,0.35);
 }
 
-.modal-card{
+.modal-panel{
   position:absolute;
   left:50%;
-  top:22%;
+  top:18%;
   transform:translateX(-50%);
-  width:min(520px, calc(100% - 24px));
+  width:min(560px, calc(100% - 24px));
   background:#fff;
   border-radius:16px;
   border:1px solid var(--border);
@@ -365,13 +388,8 @@ button:hover{ background:var(--green2); }
   padding:16px;
 }
 
-.modal-title{
-  font-weight:900;
-  margin-bottom:10px;
-}
-
-.modal-content{
-  line-height:1.55;
+.modal-body{
+  line-height:1.6;
   padding:10px 12px;
   border:1px dashed var(--border);
   border-radius:12px;
@@ -386,34 +404,34 @@ button:hover{ background:var(--green2); }
   margin-top:12px;
 }
 
-/* ================= Responsive ================= */
+/* ===== Settings extra (追加：让“昵称输入框 + 保存按钮”更好看) ===== */
+.setting-block{
+  margin-top:10px;
+}
+.setting-label{
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.setting-hint{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+.divider{
+  border:0;
+  border-top:1px solid rgba(0,0,0,0.06);
+  margin:16px 0;
+}
+
+/* ===== Responsive ===== */
+@media (max-width:720px){
+  .pages{ padding:12px; }
+}
+
 @media (max-width:520px){
   .grid{ grid-template-columns:1fr; }
   .input-box{ flex-direction:column; }
   button{ width:100%; }
 }
-
-/* ===== Mood badge in list ===== */
-.mood-pill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 12px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:#fff;
-  color:#333;
-  font-size:14px;
-  line-height:1;
-  white-space:nowrap;
-  margin-right:10px;
-}
-.mood-pill .mood-ico{ font-size:16px; }
-.mood-pill .mood-txt{ font-weight:600; }
-
-/* subtle variants */
-.mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
-.mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
-.mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
-.mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
-.mood-pill.neutral { background:#f7f7f7; border-color:#e6e6e6; }
