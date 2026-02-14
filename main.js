@@ -691,12 +691,6 @@ function openRandomModal() {
 
 
   // ===== 3️⃣ 输入框逻辑 =====
-  if (inputEl) {
-    inputEl.addEventListener("keydown", (e) => {
-    });
-  }
-
-}
     if (inputEl) {
       inputEl.addEventListener("keydown", (e) => {
         // Enter submit (Shift+Enter -> newline is not supported here unless textarea)
@@ -745,7 +739,6 @@ if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
         clearToday();
         renderAll();
       });
-    }
 
     // click outside closes quickTags
     document.addEventListener("click", () => {
