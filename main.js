@@ -1,33 +1,22 @@
-/* Small Wins - main.js (stable + mood badge + no checkbox)
- * - Tabs navigation
+/* Small Wins - main.js (v2 stable, drop checkbox + mood pill + user name)
+ * - Tabs navigation (Home / Today / Wall / Settings)
  * - Add wins to localStorage
- * - Home/Today/Wall/Settings
+ * - Mood select (no longer becomes #tag; stored as mood field and rendered as pill)
+ * - Quick tags: click won't produce "##生活"
+ * - Wall search + chips
  * - Random review modal
- * - Quick tags (#xxx) + wall search + chips
- * - Mood selection saved as item.mood and rendered as a badge (not #mood)
- * - Remove checkbox UI (since you already have delete + clear today)
+ * - User name personalization via localStorage (no login needed)
  */
+
 (() => {
   "use strict";
 
-  // ---------- Storage ----------
+  // ---------- Storage keys ----------
   const STORAGE_KEY = "smallwins_items_v1";
-
-  // ---------- Mood config ----------
-  const MOOD_ICON = {
-    平静: "🌙",
-    愉悦: "✨",
-    释然: "🌱",
-    慵懒: "☁️",
-  };
-
-  function moodToIcon(mood) {
-    return MOOD_ICON[mood] || "🙂";
-  }
+  const USER_NAME_KEY = "smallwins_user_name_v1";
 
   // ---------- Tag helpers ----------
   const TAG_RE = /#([\u4e00-\u9fa5A-Za-z0-9_]+)/g;
-
   function extractTagsFromText(text) {
     const s = String(text || "");
     const tags = [];
@@ -38,14 +27,6 @@
       if (t && !tags.includes(t)) tags.push(t);
     }
     return tags;
-  }
-
-  function ensureTags(item) {
-    if (!item) return item;
-    if (!Array.isArray(item.tags) || item.tags.length === 0) {
-      item.tags = extractTagsFromText(item.text);
-    }
-    return item;
   }
 
   // ---------- Utils ----------
@@ -92,10 +73,18 @@
     return `${yy}-${mm}-${dd} ${hh}:${mi}`;
   }
 
+  // ---------- User name (local only) ----------
+  function getUserName() {
+    return localStorage.getItem(USER_NAME_KEY) || "";
+  }
+  function setUserName(name) {
+    localStorage.setItem(USER_NAME_KEY, String(name || "").trim());
+  }
+
   // ---------- Load / Save ----------
   /**
-   * item schema:
-   * { id, text, ts, done?, tags?, mood? }
+   * item shape:
+   * { id, text, ts, mood?: string, tags?: string[] }
    */
   function loadItems() {
     try {
@@ -108,10 +97,9 @@
           const id = String(x.id || cryptoRandomId());
           const text = String(x.text || "").trim();
           const ts = Number(x.ts || Date.now());
-          const done = !!x.done;
-          const mood = String(x.mood || "").trim(); // NEW: mood field
+          const mood = typeof x.mood === "string" ? x.mood : "";
           const tags = Array.isArray(x.tags) && x.tags.length ? x.tags : extractTagsFromText(text);
-          return { id, text, ts, done, tags, mood };
+          return { id, text, ts, mood, tags };
         })
         .filter((x) => x.text.length > 0);
     } catch (e) {
@@ -128,7 +116,7 @@
     }
   }
 
-  let items = loadItems().map(ensureTags);
+  let items = loadItems();
 
   // ---------- DOM ----------
   const tabs = Array.from(document.querySelectorAll(".tab"));
@@ -140,22 +128,23 @@
     random: $("page-random"),
   };
 
+  // input / add
   const inputEl = $("achievementInput");
   const addBtn = $("addBtn");
+  const quickTagsEl = $("quickTags"); // optional
 
-  const quickTagsEl = $("quickTags"); // optional: if you have it
-  const statTodayEl = $("statToday"); // optional
+  // stats / home list
   const statAllEl = $("statAll");
   const recentListEl = $("recentList");
   const recentEmptyEl = $("recentEmpty");
 
+  // home buttons
   const goTodayBtn = $("goTodayBtn");
   const goWallBtn = $("goWallBtn");
   const goRecordBtn = $("goRecordBtn");
 
+  // random modal
   const randomBtn = $("randomBtn");
-
-  // modal
   const modalEl = $("modal");
   const modalMask = $("modalMask");
   const modalContent = $("modalContent");
@@ -165,25 +154,29 @@
   // today list
   const todayListEl = $("todayList");
   const todayEmptyEl = $("todayEmpty");
-  const clearTodayBtn = $("clearTodayBtn");
-
-  // compat placeholders (may exist hidden)
   const yesterdayListEl = $("yesterdayList");
   const yesterdayEmptyEl = $("yesterdayEmpty");
-  const historyWrapEl = $("historyWrap");
-  const historyEmptyEl = $("historyEmpty");
+  const clearTodayBtn = $("clearTodayBtn");
 
   // wall (search + chips)
   const wallSearchEl = $("wallSearch") || document.querySelector("#page-wall input");
   const wallListEl = $("wallList");
   const wallEmptyEl = $("wallEmpty");
   const wallChipsEl = $("wallChips") || document.querySelector("#page-wall .chips");
-  // 你的HTML里清空按钮 id 是 clearWall（不是 searchClearBtn）
-  const wallClearBtnEl = $("clearWall") || $("searchClearBtn") || document.querySelector("#page-wall .input-box .ghost");
+  // 你的 HTML 里清空按钮 id 是 clearWall
+  const wallClearBtnEl = $("clearWall") || $("searchClearBtn") || document.querySelector("#page-wall button.ghost");
 
-  // mood
+  // mood buttons
   const moodBtns = Array.from(document.querySelectorAll(".mood-row .mood"));
   let selectedMood = "";
+
+  // map mood -> emoji + variant class (for mood pill)
+  const MOOD_META = {
+    平静: { icon: "🌙", cls: "calm" },
+    愉悦: { icon: "✨", cls: "happy" },
+    释然: { icon: "🌱", cls: "relaxed" },
+    慵懒: { icon: "☁️", cls: "lazy" },
+  };
 
   // ---------- Core actions ----------
   function addItem(text, mood) {
@@ -196,9 +189,8 @@
       id: cryptoRandomId(),
       text: t,
       ts: Date.now(),
-      done: false,
+      mood: m,
       tags: extractTagsFromText(t),
-      mood: m, // store mood separately
     });
 
     saveItems(items);
@@ -217,20 +209,20 @@
   }
 
   // ---------- Rendering ----------
-  function renderMoodBadge(it) {
-  const mood = String(it?.mood || "").trim();
-  if (!mood) return "";
+  function renderMoodPill(mood) {
+    const m = String(mood || "").trim();
+    if (!m) return "";
+    const meta = MOOD_META[m] || { icon: "🙂", cls: "neutral" };
+    // 你 style.css 里已经有 .mood-pill / .mood-ico / .mood-txt / 以及变体类
+    return `
+      <span class="mood-pill ${meta.cls}">
+        <span class="mood-ico">${meta.icon}</span>
+        <span class="mood-txt">${escapeHtml(m)}</span>
+      </span>
+    `;
+  }
 
-  const icon = moodToIcon(mood);
-
-  return `
-    <span class="mood-pill">
-      <span class="mood-ico">${escapeHtml(icon)}</span>
-      <span class="mood-txt">${escapeHtml(mood)}</span>
-    </span>
-  `;
-}
-
+  // options: { hideDelete?: boolean }
   function renderList(containerEl, emptyEl, listItems, options = {}) {
     if (!containerEl) return;
 
@@ -250,11 +242,10 @@
       left.className = "item-left";
 
       const text = document.createElement("div");
-      text.className = "item-text" + (it.done ? " done" : "");
+      text.className = "item-text";
 
-      // ✅ mood badge + text
-      const moodHtml = options.hideMood ? "" : renderMoodBadge(it);
-      text.innerHTML = `${moodHtml}${escapeHtml(it.text)}`;
+      // ✅ mood pill + text (no checkbox)
+      text.innerHTML = `${renderMoodPill(it.mood)}${escapeHtml(it.text)}`;
 
       left.appendChild(text);
 
@@ -264,7 +255,6 @@
       const time = document.createElement("div");
       time.className = "item-time";
       time.textContent = formatTime(it.ts);
-
       right.appendChild(time);
 
       if (!options.hideDelete) {
@@ -287,10 +277,6 @@
   }
 
   function renderStats() {
-    // 兼容：如果首页没放 statToday 也不报错
-    const today = new Date();
-    const todayCount = items.filter((x) => isSameDay(new Date(x.ts), today)).length;
-    setText(statTodayEl, todayCount);
     setText(statAllEl, items.length);
   }
 
@@ -309,10 +295,21 @@
       dateEl.textContent = `${y}年${m}月${d}日`;
     }
 
+    // greeting + local name
     if (greetingEl) {
       const h = now.getHours();
       const hi = h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : "晚上好";
-      greetingEl.textContent = `${hi}，晨星`;
+
+      let name = getUserName();
+      if (!name) {
+        // 不强制：用户点取消就用“朋友”
+        const got = prompt("你好呀～请输入你的名字（可跳过）：")?.trim();
+        if (got) {
+          setUserName(got);
+          name = got;
+        }
+      }
+      greetingEl.textContent = `${hi}，${name || "朋友"}`;
     }
 
     if (quoteEl) {
@@ -346,14 +343,11 @@
 
   function renderTodayPage() {
     const now = new Date();
+    const yest = new Date(now.getTime() - 24 * 3600 * 1000);
     const todayItems = items.filter((x) => isSameDay(new Date(x.ts), now));
+    const yestItems = items.filter((x) => isSameDay(new Date(x.ts), yest));
     renderList(todayListEl, todayEmptyEl, todayItems);
-
-    // 兼容占位（不渲染也不报错）
-    if (yesterdayListEl) yesterdayListEl.innerHTML = "";
-    if (yesterdayEmptyEl) hide(yesterdayEmptyEl);
-    if (historyWrapEl) historyWrapEl.innerHTML = "";
-    if (historyEmptyEl) hide(historyEmptyEl);
+    renderList(yesterdayListEl, yesterdayEmptyEl, yestItems);
   }
 
   function getTopTags(limit = 8) {
@@ -372,31 +366,30 @@
       .map(([tag]) => tag);
   }
 
-  // ✅ 解决 “##生活” 的核心：插入 tag 时智能处理末尾的 #
+  // ✅ Fix "##生活" issue:
+  // - if tag already begins with '#', don't add another
+  // - if user has just typed '#', replace it (not append)
   function insertTagToInput(tag) {
     if (!inputEl) return;
 
-    const t = String(tag || "").replace(/^#/, ""); // 保证 tag 不带#
-    const cur = String(inputEl.value || "");
+    const raw = String(tag || "").trim();
+    if (!raw) return;
 
-    // 如果用户刚输入了 '#' 或 '# '，替换掉这部分再补标签
-    // 例如 cur = "#" 或 "# " 或 "今天... #"
-    let next = cur;
+    const normalized = raw.startsWith("#") ? raw : `#${raw}`;
 
-    // 把末尾的 "#"+可选空格去掉
-    next = next.replace(/#\s*$/, "").trimEnd();
-
-    const toAdd = `#${t}`;
-
-    // 已经有了就不加
-    if (next.includes(toAdd)) {
-      inputEl.value = next;
+    const cur = inputEl.value || "";
+    // 如果最后一个字符是 #（用户刚敲了 #），直接替换这个 #
+    if (cur.endsWith("#")) {
+      inputEl.value = cur.slice(0, -1) + normalized + " ";
       inputEl.focus();
       return;
     }
 
-    const sep = next.trim().length === 0 ? "" : " ";
-    inputEl.value = next + sep + toAdd + " ";
+    // 如果已经包含这个 tag，别重复加
+    if (cur.includes(normalized)) return;
+
+    const sep = cur.trim().length === 0 ? "" : " ";
+    inputEl.value = cur + sep + normalized + " ";
     inputEl.focus();
   }
 
@@ -416,6 +409,8 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip";
+      // 注意：dataset 存不带 # 的干净值
+      btn.dataset.tag = tag;
       btn.textContent = `#${tag}`;
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -426,26 +421,22 @@
     }
   }
 
-  // wall search: also matches mood
   function renderWallSearch() {
     if (!wallListEl) return;
 
-    let list = loadItems().map(ensureTags);
+    let list = loadItems();
     const qRaw = String(wallSearchEl?.value || "").trim();
     const q = qRaw.replace(/^#/, "");
 
     if (qRaw) {
       list = list.filter((it) => {
         const text = String(it?.text || "");
-        const tags = Array.isArray(it?.tags) ? it.tags : [];
-        const mood = String(it?.mood || "");
+        const tags = Array.isArray(it?.tags) ? it.tags : extractTagsFromText(text);
         return (
           text.includes(qRaw) ||
           text.includes("#" + q) ||
           tags.includes(q) ||
-          tags.some((t) => String(t).includes(q)) ||
-          mood.includes(q) ||
-          mood.includes(qRaw)
+          tags.some((t) => String(t).includes(q))
         );
       });
     }
@@ -456,10 +447,9 @@
 
   function renderWallChips() {
     if (!wallChipsEl) return;
-
-    // 如果你的 HTML 里本来就写死了一堆 chip（运动/阅读…），
-    // 这里就不强行覆盖；只在空的时候生成
-    if (wallChipsEl.children && wallChipsEl.children.length > 0) return;
+    // 你的 HTML 已经写死 chips 也没问题；这里不强制覆盖
+    // 如果你想动态 chips，取消下面 return
+    // return;
 
     wallChipsEl.innerHTML = "";
     const tags = getTopTags(10);
@@ -475,7 +465,7 @@
 
   function renderSettingsPage() {
     const exportBtn = $("exportBtn");
-    const exportText = $("exportText");
+    const exportText = $("exportText"); // optional
     if (exportBtn) {
       exportBtn.onclick = () => {
         const data = JSON.stringify(items, null, 2);
@@ -490,8 +480,8 @@
       };
     }
 
-    // 你的 HTML 里是 resetAllBtn，不是 clearAllBtn
-    const resetAllBtn = $("resetAllBtn") || $("clearAllBtn");
+    // 兼容你 HTML 里的 resetAllBtn（你现在是这个 id）
+    const resetAllBtn = $("resetAllBtn");
     if (resetAllBtn) {
       resetAllBtn.onclick = () => {
         if (!confirm("确定清空全部记录吗？此操作不可恢复。")) return;
@@ -508,7 +498,8 @@
     renderHomeRecent();
     renderTodayPage();
     renderWallSearch();
-    renderWallChips();
+    // 如果你不想动态 chips，就注释掉这一行
+    // renderWallChips();
     renderSettingsPage();
     renderQuickTags();
   }
@@ -532,11 +523,9 @@
     }
 
     const it = items[Math.floor(Math.random() * items.length)];
-    const moodHtml = renderMoodBadge(it);
-
     modalContent.innerHTML = `
       <div style="font-size:18px; line-height:1.5; margin-bottom:8px;">
-        ${moodHtml}${escapeHtml(it.text)}
+        ${renderMoodPill(it.mood)}${escapeHtml(it.text)}
       </div>
       <div style="opacity:.7; font-size:12px;">
         ${formatTime(it.ts)}
@@ -562,7 +551,7 @@
     if (pageKey === "wall") {
       try {
         renderWallSearch();
-        renderWallChips();
+        // renderWallChips();
       } catch (e) {
         console.warn("showPage(wall) failed:", e);
       }
@@ -573,7 +562,9 @@
     tabs.forEach((t) => {
       t.addEventListener("click", (e) => {
         e.preventDefault();
+        // 随机回顾：只弹窗
         if (t.id === "randomBtn") return;
+
         const pageKey = t.getAttribute("data-page") || t.dataset.page;
         if (!pageKey) return;
         showPage(pageKey);
@@ -603,19 +594,21 @@
 
         const ok = addItem(v, selectedMood);
         if (ok && inputEl) inputEl.value = "";
-
-        // ✅ 记录后清空心情选中（你也可以注释掉这两行，让它保留上次心情）
+        // 提交后清空 mood（你也可以选择保留）
         setMood("");
-        selectedMood = "";
 
+        // 重新 load 一次（避免墙页用 loadItems 时不同步）
+        items = loadItems();
         renderAll();
         inputEl?.focus?.();
       });
     }
 
-    // mood
+    // mood click
     moodBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const m = btn.dataset.mood || "";
         setMood(selectedMood === m ? "" : m);
       });
@@ -624,22 +617,16 @@
     // enter submit
     if (inputEl) {
       inputEl.addEventListener("keydown", (e) => {
+        // textarea: Enter 直接提交（Shift+Enter 换行）
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           addBtn?.click?.();
         }
       });
 
-      // quick tags show logic:
-      // - focus show once
-      // - when contains '#', show suggestions
-      inputEl.addEventListener("focus", () => {
-        renderQuickTags();
-        if (quickTagsEl) show(quickTagsEl);
-      });
-
+      // quick tags: only show when typing '#'
       inputEl.addEventListener("input", () => {
-        const v = String(inputEl.value || "");
+        const v = inputEl.value || "";
         if (v.includes("#")) {
           renderQuickTags();
           if (quickTagsEl) show(quickTagsEl);
@@ -647,6 +634,23 @@
           if (quickTagsEl) hide(quickTagsEl);
         }
       });
+
+      inputEl.addEventListener("focus", () => {
+        // 只有在包含 # 时才显示
+        if ((inputEl.value || "").includes("#")) {
+          renderQuickTags();
+          if (quickTagsEl) show(quickTagsEl);
+        }
+      });
+    }
+
+    // quick tags close on outside
+    document.addEventListener("click", () => {
+      if (!quickTagsEl) return;
+      hide(quickTagsEl);
+    });
+    if (quickTagsEl) {
+      quickTagsEl.addEventListener("click", (e) => e.stopPropagation());
     }
 
     // quick jump
@@ -662,8 +666,6 @@
         showRandomOne();
       });
     }
-
-    // modal events
     if (modalMask) modalMask.addEventListener("click", closeModal);
     if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
     if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
@@ -673,25 +675,16 @@
       clearTodayBtn.addEventListener("click", () => {
         if (!confirm("确定清空今天的记录吗？")) return;
         clearToday();
+        items = loadItems();
         renderAll();
       });
     }
 
-    // click outside closes quickTags
-    document.addEventListener("click", () => {
-      if (!quickTagsEl) return;
-      hide(quickTagsEl);
-    });
-    if (quickTagsEl) {
-      quickTagsEl.addEventListener("click", (e) => e.stopPropagation());
-    }
-
-    // wall bindings (once)
+    // wall search bindings (once)
     if (wallSearchEl && wallSearchEl.dataset.bound !== "1") {
       wallSearchEl.dataset.bound = "1";
       wallSearchEl.addEventListener("input", () => renderWallSearch());
     }
-
     if (wallClearBtnEl && wallClearBtnEl.dataset.bound !== "1") {
       wallClearBtnEl.dataset.bound = "1";
       wallClearBtnEl.addEventListener("click", () => {
@@ -699,15 +692,14 @@
         renderWallSearch();
       });
     }
-
     if (wallChipsEl && wallChipsEl.dataset.bound !== "1") {
       wallChipsEl.dataset.bound = "1";
       wallChipsEl.addEventListener("click", (e) => {
         const btn = e.target.closest("button.chip");
         if (!btn) return;
-        const raw = String(btn.dataset.chip || btn.textContent || "").trim();
+        const tag = String(btn.dataset.chip || btn.textContent || "").trim();
         if (!wallSearchEl) return;
-        wallSearchEl.value = wallSearchEl.value.trim() === raw ? "" : raw;
+        wallSearchEl.value = wallSearchEl.value.trim() === tag ? "" : tag;
         renderWallSearch();
       });
     }
@@ -736,7 +728,8 @@
       renderAll,
       showPage,
       addItem,
-      setMood,
+      setUserName,
+      getUserName,
     };
   }
 
