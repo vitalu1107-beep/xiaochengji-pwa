@@ -1,4 +1,4 @@
-/* Small Wins - main.js (PWA friendly, GitHub Pages friendly)
+/* Small Wins - main.js (PWA friendly, GitHub Pages friendly) FINAL
  * ✅ Tabs navigation
  * ✅ Add wins to localStorage
  * ✅ Home/Today/Wall/Settings
@@ -7,6 +7,7 @@
  * ✅ Mood select + render as pill (not #tag)
  * ✅ No checkbox (clean list) + single delete + clear today
  * ✅ Profile name (prompt once) + editable in Settings
+ * ✅ Backward compatible: fix old mood object -> string (prevents [object Object])
  */
 (() => {
   "use strict";
@@ -130,8 +131,7 @@
     // If already has #tag, do nothing
     if (cur.includes(want)) return;
 
-    // If cursor ended with "#", replace that trailing "#" with "#tag "
-    // Otherwise append with a space.
+    // If input ends with "#", replace that trailing "#"
     const trimmed = cur.replace(/\s+$/, "");
     if (/#$/.test(trimmed)) {
       inputEl.value = trimmed.slice(0, -1) + want + " ";
@@ -167,9 +167,27 @@
     释然: { icon: "🌱", cls: "relaxed" },
     慵懒: { icon: "☁️", cls: "lazy" },
   };
-  function moodToMeta(mood) {
-    const key = String(mood || "").trim();
+  function moodToMeta(moodText) {
+    const key = String(moodText || "").trim();
     return MOOD_META[key] || { icon: "🙂", cls: "neutral" };
+  }
+
+  // ✅ Fix old data: mood might be an object in previous versions
+  function normalizeMood(mood) {
+    if (!mood) return "";
+    if (typeof mood === "string") return mood.trim();
+    if (typeof mood === "object") {
+      // common fields from older attempts
+      const t =
+        mood.text ||
+        mood.label ||
+        mood.name ||
+        mood.value ||
+        mood.mood ||
+        "";
+      return String(t || "").trim();
+    }
+    return String(mood).trim();
   }
 
   // =========================
@@ -187,7 +205,7 @@
           const id = String(x.id || cryptoRandomId());
           const text = String(x.text || "").trim();
           const ts = Number(x.ts || Date.now());
-          const mood = String(x.mood || "").trim();
+          const mood = normalizeMood(x.mood); // ✅ key fix
           const tags = Array.isArray(x.tags) && x.tags.length ? x.tags : extractTagsFromText(text);
           return { id, text, ts, mood, tags };
         })
@@ -200,7 +218,12 @@
 
   function saveItems(itemsArr) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(itemsArr));
+      // keep mood as string only
+      const safe = (itemsArr || []).map((it) => ({
+        ...it,
+        mood: normalizeMood(it.mood),
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
     } catch (e) {
       console.warn("saveItems failed:", e);
     }
@@ -221,7 +244,7 @@
 
   const inputEl = $("achievementInput");
   const addBtn = $("addBtn");
-  const quickTagsEl = $("quickTags"); // if exists, will render suggestions; if not, safe
+  const quickTagsEl = $("quickTags");
 
   const statAllEl = $("statAll");
   const recentListEl = $("recentList");
@@ -257,10 +280,9 @@
   // settings elements (optional)
   const exportBtn = $("exportBtn");
   const resetAllBtn = $("resetAllBtn");
-  // optional name UI (if exists in settings)
   const nameInputEl = $("nameInput");
   const saveNameBtn = $("saveNameBtn");
-  const editNameBtn = $("editNameBtn"); // optional
+  const editNameBtn = $("editNameBtn");
 
   // =========================
   // Core actions
@@ -273,7 +295,7 @@
       id: cryptoRandomId(),
       text: t,
       ts: Date.now(),
-      mood: String(mood || "").trim(),
+      mood: normalizeMood(mood),
       tags: extractTagsFromText(t),
     });
     saveItems(items);
@@ -295,13 +317,15 @@
   // Rendering: list item block (no checkbox)
   // =========================
   function makeMoodPill(mood) {
-    const m = String(mood || "").trim();
+    const m = normalizeMood(mood);
     if (!m) return null;
 
     const meta = moodToMeta(m);
     const pill = document.createElement("span");
     pill.className = `mood-pill ${meta.cls}`;
-    pill.innerHTML = `<span class="mood-ico">${escapeHtml(meta.icon)}</span><span class="mood-txt">${escapeHtml(m)}</span>`;
+    pill.innerHTML =
+      `<span class="mood-ico">${escapeHtml(meta.icon)}</span>` +
+      `<span class="mood-txt">${escapeHtml(m)}</span>`;
     return pill;
   }
 
@@ -411,17 +435,22 @@
 
   function renderWallSearch() {
     if (!wallListEl) return;
-    let list = loadItems(); // refresh from storage
+    let list = loadItems(); // refresh from storage (also normalizes mood)
     const qRaw = String(wallSearchEl?.value || "").trim();
-
     const q = qRaw.replace(/^#/, "");
+
     if (qRaw) {
       list = list.filter((it) => {
         const text = String(it.text || "");
         const tags = Array.isArray(it.tags) ? it.tags : extractTagsFromText(text);
+        const mood = normalizeMood(it.mood);
+
         const hitText = text.includes(qRaw);
-        const hitTag = q ? (text.includes("#" + q) || tags.includes(q) || tags.some((t) => String(t).includes(q))) : false;
-        const hitMood = String(it.mood || "").includes(qRaw) || (q && String(it.mood || "").includes(q));
+        const hitTag = q
+          ? (text.includes("#" + q) || tags.includes(q) || tags.some((t) => String(t).includes(q)))
+          : false;
+        const hitMood = mood.includes(qRaw) || (q && mood.includes(q));
+
         return hitText || hitTag || hitMood;
       });
     }
@@ -434,7 +463,6 @@
     if (!wallChipsEl) return;
     wallChipsEl.innerHTML = "";
     const tags = getTopTags(items, 10);
-
     tags.forEach((tag) => {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -504,12 +532,7 @@
       });
     }
 
-    // Optional: name edit UI in settings (if you later add it)
-    // HTML suggestion (optional):
-    // <div class="input-box">
-    //   <input id="nameInput" placeholder="你的昵称" />
-    //   <button id="saveNameBtn" class="ghost" type="button">保存昵称</button>
-    // </div>
+    // Name edit UI in settings
     if (nameInputEl) {
       const p = loadProfile();
       if (!nameInputEl.dataset.inited) {
@@ -528,7 +551,6 @@
       });
     }
 
-    // Optional: edit button anywhere (if exists)
     if (editNameBtn && editNameBtn.dataset.bound !== "1") {
       editNameBtn.dataset.bound = "1";
       editNameBtn.addEventListener("click", () => {
@@ -570,9 +592,10 @@
       return;
     }
     const it = items[Math.floor(Math.random() * items.length)];
-    const moodMeta = moodToMeta(it.mood);
-    const moodLine = it.mood
-      ? `<div style="margin-bottom:8px; font-size:14px; opacity:.9;">${escapeHtml(moodMeta.icon)} ${escapeHtml(it.mood)}</div>`
+    const moodText = normalizeMood(it.mood);
+    const moodMeta = moodToMeta(moodText);
+    const moodLine = moodText
+      ? `<div style="margin-bottom:8px; font-size:14px; opacity:.9;">${escapeHtml(moodMeta.icon)} ${escapeHtml(moodText)}</div>`
       : "";
 
     modalContent.innerHTML = `
@@ -613,7 +636,6 @@
     tabs.forEach((t) => {
       t.addEventListener("click", (e) => {
         e.preventDefault();
-
         // random modal (not a page)
         if (t.id === "randomBtn") return;
 
@@ -628,7 +650,7 @@
   // Mood
   // =========================
   function setMood(m) {
-    selectedMood = String(m || "");
+    selectedMood = normalizeMood(m);
     moodBtns.forEach((b) => {
       b.classList.toggle("active", b.dataset.mood === selectedMood);
     });
@@ -651,7 +673,7 @@
         const ok = addItem(v, selectedMood);
         if (ok && inputEl) inputEl.value = "";
 
-        // reset mood after submit (optional)
+        // reset mood after submit
         setMood("");
 
         renderAll();
@@ -674,7 +696,6 @@
       });
 
       inputEl.addEventListener("input", () => {
-        // only show suggestions when user is typing tags
         if ((inputEl.value || "").includes("#")) {
           renderQuickTags();
           if (quickTagsEl) show(quickTagsEl);
@@ -756,9 +777,7 @@
   // Boot
   // =========================
   function boot() {
-    // Ensure profile name exists (prompt once)
     ensureProfileName();
-
     bindTabs();
     bindInputAndButtons();
 
