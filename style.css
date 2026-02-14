@@ -264,3 +264,22 @@ body{
 .mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
+
+.tag-suggest{
+  margin-top:6px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.tag-suggest button{
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+  padding:6px 10px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:14px;
+}
+.tag-suggest button:hover{
+  background:#f2f2f2;
+}
