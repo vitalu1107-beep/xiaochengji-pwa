@@ -4,9 +4,14 @@
   --text:#222;
   --muted:#666;
   --border:#dfe8df;
+
   --green:#4caf50;
   --green2:#43a047;
+
   --danger:#e35d5d;
+
+  /* 统一主色（给 mood.active / chip.active 用） */
+  --primary: var(--green);
 }
 
 *{ box-sizing:border-box; }
@@ -20,6 +25,7 @@ body{
 
 .app{ min-height:100vh; }
 
+/* ================= Header ================= */
 .header{
   position:sticky;
   top:0;
@@ -79,11 +85,12 @@ body{
   color:#333;
 }
 .tab.active{
-  background:var(--green);
-  border-color:var(--green);
+  background:var(--primary);
+  border-color:var(--primary);
   color:#fff;
 }
 
+/* ================= Layout ================= */
 .container{
   max-width:720px;
   margin:0 auto;
@@ -114,26 +121,55 @@ body{
   margin-bottom:10px;
 }
 
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.big{
+  font-size:30px;
+  font-weight:900;
+  margin:8px 0 4px;
+}
+
+.muted{ color:var(--muted); }
+.small{ font-size:12px; }
+
+.quote{
+  margin-top:8px;
+  font-size:18px;
+  line-height:1.6;
+  font-weight:600;
+}
+
+/* ================= Inputs / Buttons ================= */
 .input-box{
   display:flex;
   gap:10px;
 }
 
-input{
+input, textarea{
   flex:1;
   padding:12px;
   font-size:16px;
   border:1px solid var(--border);
   border-radius:12px;
   outline:none;
+  font-family: inherit;
 }
-input:focus{ border-color:var(--green); }
+
+input:focus, textarea:focus{ border-color:var(--primary); }
+
+textarea{
+  resize:none;
+}
 
 button{
   padding:12px 14px;
   border:none;
   border-radius:12px;
-  background:var(--green);
+  background:var(--primary);
   color:#fff;
   cursor:pointer;
   font-size:15px;
@@ -158,32 +194,7 @@ button:hover{ background:var(--green2); }
 }
 .danger.ghost:hover{ background:#fff1f1; }
 
-.hint{
-  margin-top:10px;
-  color:var(--muted);
-  font-size:12px;
-}
-kbd{
-  background:#f2f2f2;
-  border:1px solid #ddd;
-  padding:2px 6px;
-  border-radius:6px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
-}
-
-.big{
-  font-size:30px;
-  font-weight:900;
-  margin:8px 0 4px;
-}
-
-.muted{ color:var(--muted); }
-.small{ font-size:12px; }
+/* ================= Empty / List ================= */
 .empty{
   text-align:center;
   color:var(--muted);
@@ -196,6 +207,7 @@ kbd{
   margin:0;
 }
 
+/* 你现在渲染的是 div.item（不是 li），这里保留原样 */
 .item{
   display:flex;
   align-items:flex-start;
@@ -205,144 +217,53 @@ kbd{
   border:1px solid var(--border);
   border-radius:12px;
   margin-bottom:10px;
+  background:#fff;
 }
+
+.item-left{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  flex:1;
+}
+
+.item-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:10px;
+}
+
 .item-text{
   line-height:1.45;
   word-break:break-word;
 }
-.item-meta{
+
+.item-text.done{
+  opacity:.6;
+  text-decoration: line-through;
+}
+
+.item-time{
   color:var(--muted);
   font-size:12px;
-  margin-top:4px;
 }
 
-.del{
-  background:transparent;
-  border:1px solid #e6e6e6;
-  color:#888;
+.btn{
   padding:8px 10px;
   font-size:13px;
+  border-radius:10px;
 }
-.del:hover{ background:#fafafa; }
-
-.group{
-  margin-top:8px;
+.btn-danger{
+  background:transparent;
+  border:1px solid #f0caca;
+  color:var(--danger);
 }
-.group-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:10px 10px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  cursor:pointer;
-  background:#fff;
-}
-.group-head:hover{ background:#fafafa; }
-.group-title{
-  font-weight:800;
-  font-size:13px;
-}
-.group-body{
-  padding:10px 0 0;
+.btn-danger:hover{
+  background:#fff1f1;
 }
 
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:20px;
-  transform:translateX(-50%);
-  background:rgba(20,20,20,0.92);
-  color:#fff;
-  padding:10px 14px;
-  border-radius:999px;
-  font-size:14px;
-  z-index:9999;
-}
-.hidden{ display:none; }
-
-.modal{
-  position:fixed;
-  inset:0;
-  z-index:9998;
-}
-.modal-mask{
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-}
-.modal-card{
-  position:absolute;
-  left:50%;
-  top:22%;
-  transform:translateX(-50%);
-  width:min(520px, calc(100% - 24px));
-  background:#fff;
-  border-radius:16px;
-  border:1px solid var(--border);
-  box-shadow:0 20px 40px rgba(0,0,0,0.18);
-  padding:16px;
-}
-.modal-title{
-  font-weight:900;
-  margin-bottom:10px;
-}
-.modal-content{
-  line-height:1.55;
-  padding:10px 12px;
-  border:1px dashed var(--border);
-  border-radius:12px;
-  background:#fbfffb;
-  min-height:54px;
-}
-.modal-actions{
-  display:flex;
-  justify-content:flex-end;
-  gap:10px;
-  margin-top:12px;
-}
-
-@media (max-width:520px){
-  .grid{ grid-template-columns:1fr; }
-}
-/* ====== textarea for achievements ====== */
-textarea{
-  flex:1;
-  padding:12px;
-  font-size:16px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  outline:none;
-  resize:none;
-  font-family: inherit;
-}
-
-textarea:focus{
-  border-color: var(--green);
-}
-
-.chips{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin:10px 0 12px;
-}
-
-.chip{
-  border:1px solid var(--border);
-  background:#fff;
-  color:#333;
-  padding:6px 10px;
-  border-radius:999px;
-  cursor:pointer;
-  font-size:13px;
-}
-
-.chip:hover{
-  background:#f7f7f7;
-}
-
-/* ===== chips (multi-select) ===== */
+/* ================= Chips ================= */
 .chips{
   display:flex;
   gap:8px;
@@ -360,70 +281,15 @@ textarea:focus{
   font-size:13px;
   user-select:none;
 }
+.chip:hover{ background:#f7f7f7; }
 
-.chip:hover{
-  background:#f7f7f7;
-}
-
-/* ✅ 选中态：高亮 */
 .chip.active{
-  background: var(--green);
-  border-color: var(--green);
+  background:var(--primary);
+  border-color:var(--primary);
   color:#fff;
 }
 
-.editor-toolbar{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-  align-items:center;
-}
-
-.toolbtn{
-  border:1px solid #d6e6d6;
-  background:#fff;
-  border-radius:12px;
-  padding:6px 10px;
-  cursor:pointer;
-}
-
-.tag-menu{
-  position:absolute;
-  z-index:50;
-  margin-top:8px;
-  padding:8px;
-  background:#fff;
-  border:1px solid #e6eee6;
-  border-radius:12px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-  max-height:220px;
-  overflow:auto;
-  min-width:160px;
-}
-
-.tag-item{
-  display:block;
-  width:100%;
-  text-align:left;
-  padding:8px 10px;
-  border-radius:10px;
-  background:#fff;
-  border:0;
-  cursor:pointer;
-}
-
-.tag-item:hover{ background:#f3f8f3; }
-.hidden{ display:none; }
-
-
-.quote{
-  margin-top: 8px;
-  font-size: 18px;
-  line-height: 1.6;
-  font-weight: 600;
-}
-
-
+/* ================= Mood ================= */
 .mood-row{
   display:flex;
   gap:10px;
@@ -434,18 +300,95 @@ textarea:focus{
 .mood{
   border:1px solid rgba(0,0,0,.08);
   background:#fff;
+  color:#333;
   padding:10px 12px;
   border-radius:12px;
   cursor:pointer;
+  user-select:none;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
 }
 
+.mood:hover{
+  background:#f7f7f7;
+}
+
+.mood:active{
+  transform: translateY(1px);
+}
+
+/* ✅ 选中态（关键修复：用 --primary） */
 .mood.active{
   background: var(--primary);
-  color: #fff;
+  color:#fff;
   border-color: var(--primary);
+  font-weight:700;
 }
 
-.mood.active{
-  border-color: rgba(0,0,0,.18);
-  font-weight:600;
+/* ================= Toast / Modal ================= */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:20px;
+  transform:translateX(-50%);
+  background:rgba(20,20,20,0.92);
+  color:#fff;
+  padding:10px 14px;
+  border-radius:999px;
+  font-size:14px;
+  z-index:9999;
+}
+
+.hidden{ display:none !important; }
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:9998;
+}
+
+.modal-mask{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+}
+
+.modal-card{
+  position:absolute;
+  left:50%;
+  top:22%;
+  transform:translateX(-50%);
+  width:min(520px, calc(100% - 24px));
+  background:#fff;
+  border-radius:16px;
+  border:1px solid var(--border);
+  box-shadow:0 20px 40px rgba(0,0,0,0.18);
+  padding:16px;
+}
+
+.modal-title{
+  font-weight:900;
+  margin-bottom:10px;
+}
+
+.modal-content{
+  line-height:1.55;
+  padding:10px 12px;
+  border:1px dashed var(--border);
+  border-radius:12px;
+  background:#fbfffb;
+  min-height:54px;
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* ================= Responsive ================= */
+@media (max-width:520px){
+  .grid{ grid-template-columns:1fr; }
+  .input-box{ flex-direction:column; }
+  button{ width:100%; }
 }
