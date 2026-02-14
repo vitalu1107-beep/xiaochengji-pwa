@@ -520,3 +520,26 @@ button:hover{ background:var(--green2); }
   background: var(--border, #d9e4d9);
   margin: 14px 0;
 }
+
+/* ===== Fix: Mobile tabs stay horizontal (override any column/100% rules) ===== */
+.tabs{
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  overflow-x: auto;                 /* 手机横向不够就允许横滑 */
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 6px;
+}
+
+.tabs .tab{
+  display: inline-flex !important;
+  width: auto !important;           /* 关键：取消 100% */
+  white-space: nowrap;
+  flex: 0 0 auto;                   /* 关键：不要被挤成整行 */
+}
+
+/* 可选：隐藏横向滚动条（不影响滑动） */
+.tabs::-webkit-scrollbar{ height: 0; }
