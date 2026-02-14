@@ -786,10 +786,3 @@ if (modalAgainBtn) modalAgainBtn.addEventListener("click", showRandomOne);
       addItem,
     };
   }
-
-  // DOM ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
