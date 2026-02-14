@@ -1,11 +1,12 @@
-/* Small Wins - main.js (clean stable - mood badge only)
- * - Tabs navigation
- * - Add wins to localStorage
- * - Home/Today/Wall/Settings
- * - Random review modal
- * - Quick tags (#xxx) + wall search + chips
- * - Mood: stored in item.mood, rendered as badge, NOT appended as #tag in text
+/* Small Wins - main.js (stable, mood-as-field)
+ * ✅ Tabs navigation
+ * ✅ Add wins to localStorage
+ * ✅ Home/Today/Wall/Settings
+ * ✅ Random review modal
+ * ✅ Quick tags (#xxx) + wall search + chips
+ * ✅ Mood is stored as item.mood (NOT as #tag), rendered as "mood-pill"
  */
+
 (() => {
   "use strict";
 
@@ -18,7 +19,6 @@
     const s = String(text || "");
     const tags = [];
     let m;
-    TAG_RE.lastIndexI = 0;
     TAG_RE.lastIndex = 0;
     while ((m = TAG_RE.exec(s)) !== null) {
       const t = String(m[1] || "").trim();
@@ -33,20 +33,6 @@
       item.tags = extractTagsFromText(item.text);
     }
     return item;
-  }
-
-  // ---------- Mood helpers ----------
-  const MOOD_ICON = {
-    平静: "🌙",
-    愉悦: "✨",
-    释然: "🌱",
-    慵懒: "☁️",
-  };
-  function moodLabel(m) {
-    const k = String(m || "").trim();
-    if (!k) return "";
-    const icon = MOOD_ICON[k] || "🙂";
-    return `${icon} ${k}`;
   }
 
   // ---------- Utils ----------
@@ -72,13 +58,19 @@
   }
   function cryptoRandomId() {
     try {
-      return crypto?.randomUUID ? crypto.randomUUID() : "id_" + Math.random().toString(16).slice(2);
+      return crypto?.randomUUID
+        ? crypto.randomUUID()
+        : "id_" + Math.random().toString(16).slice(2);
     } catch {
       return "id_" + Math.random().toString(16).slice(2);
     }
   }
   function isSameDay(a, b) {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
   }
   function dayStart(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -91,6 +83,17 @@
     const hh = String(d.getHours()).padStart(2, "0");
     const mi = String(d.getMinutes()).padStart(2, "0");
     return `${yy}-${mm}-${dd} ${hh}:${mi}`;
+  }
+
+  // Mood meta for list badge
+  function moodMeta(mood) {
+    const map = {
+      平静: { icon: "🌙", cls: "calm" },
+      愉悦: { icon: "✨", cls: "happy" },
+      释然: { icon: "🌱", cls: "relaxed" },
+      慵懒: { icon: "☁️", cls: "lazy" },
+    };
+    return map[mood] || { icon: "💭", cls: "neutral" };
   }
 
   // ---------- Load / Save ----------
@@ -107,11 +110,11 @@
           const text = String(x.text || "").trim();
           const ts = Number(x.ts || Date.now());
           const done = !!x.done;
-
-          // ✅ mood 优先从字段读；兼容旧数据：如果以前把 #平静 写进 tags/text，不做强行清洗，只是不再自动生成
-          const mood = String(x.mood || "").trim();
-
-          const tags = Array.isArray(x.tags) && x.tags.length ? x.tags : extractTagsFromText(text);
+          const mood = String(x.mood || "").trim(); // ✅ mood field
+          const tags =
+            Array.isArray(x.tags) && x.tags.length
+              ? x.tags
+              : extractTagsFromText(text);
           return { id, text, ts, done, tags, mood };
         })
         .filter((x) => x.text.length > 0);
@@ -139,21 +142,21 @@
     today: $("page-today"),
     wall: $("page-wall"),
     settings: $("page-settings"),
-    random: $("page-random"),
+    random: $("page-random"), // optional
   };
 
   const inputEl = $("achievementInput");
   const addBtn = $("addBtn");
-  const quickTagsEl = $("quickTags");
+  const quickTagsEl = $("quickTags"); // optional: if you have it
 
-  const statTodayEl = $("statToday");
+  const statTodayEl = $("statToday"); // optional
   const statAllEl = $("statAll");
   const recentListEl = $("recentList");
   const recentEmptyEl = $("recentEmpty");
 
   const goTodayBtn = $("goTodayBtn");
   const goWallBtn = $("goWallBtn");
-  const goRecordBtn = $("goRecordBtn");
+  const goRecordBtn = $("goRecordBtn"); // optional
 
   const randomBtn = $("randomBtn");
 
@@ -171,7 +174,7 @@
   const yesterdayEmptyEl = $("yesterdayEmpty");
   const clearTodayBtn = $("clearTodayBtn");
 
-  // wall (history grouped)
+  // wall (history grouped) - optional
   const historyWrapEl = $("historyWrap");
   const historyEmptyEl = $("historyEmpty");
 
@@ -180,28 +183,28 @@
   const wallListEl = $("wallList");
   const wallEmptyEl = $("wallEmpty");
   const wallChipsEl = $("wallChips") || document.querySelector("#page-wall .chips");
-  // ✅ 你 HTML 里清空按钮是 clearWall
-  const wallClearBtnEl = $("clearWall") || $("searchClearBtn") || document.querySelector("#page-wall button.ghost");
+  const wallClearBtnEl =
+    $("clearWall") || $("searchClearBtn") || document.querySelector("#page-wall .input-box button.ghost");
 
   // mood
   const moodBtns = Array.from(document.querySelectorAll(".mood-row .mood"));
   let selectedMood = "";
 
   // ---------- Core actions ----------
-  function addItem(text, mood) {
+  function addItem(text) {
     const t = String(text || "").trim();
     if (!t) return false;
 
-    const moodClean = String(mood || "").trim();
-
+    // ✅ IMPORTANT: mood is stored as field, NOT as "#mood" in text/tags
     items.unshift({
       id: cryptoRandomId(),
       text: t,
       ts: Date.now(),
       done: false,
-      tags: extractTagsFromText(t), // ✅ 只从正文提取主题标签，不包含 mood
-      mood: moodClean,              // ✅ mood 单独字段保存
+      tags: extractTagsFromText(t),
+      mood: selectedMood || "",
     });
+
     saveItems(items);
     return true;
   }
@@ -243,9 +246,9 @@
       const left = document.createElement("div");
       left.className = "item-left";
 
-      let checkbox = null;
+      // checkbox
       if (!options.hideCheckbox) {
-        checkbox = document.createElement("input");
+        const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.checked = !!it.done;
         checkbox.addEventListener("change", () => {
@@ -255,19 +258,23 @@
         left.appendChild(checkbox);
       }
 
-      // ✅ mood badge（不再往正文拼 #平静）
-      if (!options.hideMood && it.mood) {
+      // ✅ mood badge (pill) - shown like your "left style", NOT a #tag
+      const mood = String(it.mood || "").trim();
+      if (mood) {
+        const meta = moodMeta(mood);
         const badge = document.createElement("span");
-        badge.className = "mood-badge"; // 你可以在 CSS 里定义
-        badge.textContent = moodLabel(it.mood);
+        badge.className = `mood-pill ${meta.cls}`;
+        badge.innerHTML = `<span class="mood-ico">${meta.icon}</span><span class="mood-txt">${escapeHtml(mood)}</span>`;
         left.appendChild(badge);
       }
 
+      // text
       const text = document.createElement("div");
       text.className = "item-text" + (it.done ? " done" : "");
       text.innerHTML = escapeHtml(it.text);
       left.appendChild(text);
 
+      // right
       const right = document.createElement("div");
       right.className = "item-right";
 
@@ -349,7 +356,10 @@
   function renderHomeRecent() {
     if (!recentListEl) return;
     const recent = items.slice(0, 5);
-    renderList(recentListEl, recentEmptyEl, recent, { hideDelete: true, hideCheckbox: true });
+    renderList(recentListEl, recentEmptyEl, recent, {
+      hideDelete: true,
+      hideCheckbox: true,
+    });
   }
 
   function renderTodayPage() {
@@ -357,8 +367,9 @@
     const yest = new Date(now.getTime() - 24 * 3600 * 1000);
     const todayItems = items.filter((x) => isSameDay(new Date(x.ts), now));
     const yestItems = items.filter((x) => isSameDay(new Date(x.ts), yest));
+
     renderList(todayListEl, todayEmptyEl, todayItems);
-    renderList(yesterdayListEl, yesterdayEmptyEl, yestItems);
+    renderList(yesterdayListEl, yesterdayEmptyEl, yestItems, { hideDelete: false });
   }
 
   function renderWallPageGrouped() {
@@ -375,10 +386,9 @@
     const groups = new Map();
     for (const it of items) {
       const d = new Date(it.ts);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(
-        2,
-        "0"
-      )}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+        d.getDate()
+      ).padStart(2, "0")}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(it);
     }
@@ -403,6 +413,7 @@
     }
   }
 
+  // ---------- Quick tags ----------
   function getTopTags(limit = 8) {
     const counter = new Map();
     for (const it of items) {
@@ -419,45 +430,37 @@
       .map(([tag]) => tag);
   }
 
-  // ✅ 修复：点击标签时不要产生 “##生活”
-  // 规则：如果光标前已经有 # 或者刚好在 # 后面，就只插入 tag 文本；否则插入 "#tag "
+  // ✅ Insert tag without "##"
   function insertTagToInput(tag) {
     if (!inputEl) return;
-
     const rawTag = String(tag || "").replace(/^#/, "").trim();
     if (!rawTag) return;
 
-    const v = String(inputEl.value || "");
-    const pos = typeof inputEl.selectionStart === "number" ? inputEl.selectionStart : v.length;
+    const cur = String(inputEl.value || "");
+    const toAdd = `#${rawTag}`;
 
-    const before = v.slice(0, pos);
-    const after = v.slice(pos);
+    // If already included, do nothing
+    if (cur.includes(toAdd)) return;
 
-    const charBefore = before.slice(-1);          // 光标前一位
-    const hasHashJustBefore = charBefore === "#"; // 刚打了一个 #
+    // If user already typed trailing '#', avoid double '#'
+    // e.g. current "... #" + click tag -> "... #生活 "
+    const curTrimEnd = cur.replace(/\s+$/, "");
+    const endsWithHash = /#$/.test(curTrimEnd);
 
-    // 如果当前输入里已经包含 #tag，则不重复插入（简单去重）
-    if (v.includes("#" + rawTag)) {
-      inputEl.focus();
-      return;
+    let next = cur;
+
+    if (endsWithHash) {
+      // remove trailing '#', keep a single '#'
+      next = curTrimEnd.slice(0, -1);
+      // ensure single space before #
+      if (next.length && !/\s$/.test(next)) next += " ";
+      next += `#${rawTag} `;
+    } else {
+      const sep = cur.trim().length === 0 ? "" : " ";
+      next = cur + sep + `#${rawTag} `;
     }
 
-    if (hasHashJustBefore) {
-      // ...#| -> ...#生活 |
-      inputEl.value = before + rawTag + " " + after;
-      const newPos = (before + rawTag + " ").length;
-      inputEl.setSelectionRange?.(newPos, newPos);
-      inputEl.focus();
-      return;
-    }
-
-    // 普通插入：补一个空格分隔
-    const sep = before.trim().length === 0 ? "" : (before.endsWith(" ") ? "" : " ");
-    const insert = `${sep}#${rawTag} `;
-    inputEl.value = before + insert + after;
-
-    const newPos = (before + insert).length;
-    inputEl.setSelectionRange?.(newPos, newPos);
+    inputEl.value = next;
     inputEl.focus();
   }
 
@@ -477,7 +480,7 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "chip";
-      btn.dataset.chip = String(tag);
+      btn.dataset.chip = tag; // store raw
       btn.textContent = `#${tag}`;
       btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -488,6 +491,7 @@
     }
   }
 
+  // ---------- Wall search + chips ----------
   function renderWallSearch() {
     if (!wallListEl) return;
 
@@ -499,17 +503,15 @@
       list = list.filter((it) => {
         const text = String(it?.text || "");
         const tags = Array.isArray(it?.tags) ? it.tags : [];
+        // ✅ also allow searching mood by plain text (optional)
         const mood = String(it?.mood || "");
-
-        // ✅ 支持按 mood 搜索：输入 平静 / #平静 都能命中
-        const hitMood = mood && (mood.includes(q) || mood.includes(qRaw) || ("#" + mood) === qRaw);
-
         return (
           text.includes(qRaw) ||
           text.includes("#" + q) ||
           tags.includes(q) ||
           tags.some((t) => String(t).includes(q)) ||
-          hitMood
+          mood.includes(qRaw) ||
+          mood.includes(q)
         );
       });
     }
@@ -520,17 +522,14 @@
 
   function renderWallChips() {
     if (!wallChipsEl) return;
-    // 你 HTML 里有固定 chips，这里就不强行重建；如果你想动态 chips，打开下面这段即可
+
+    // If your HTML already has chips, you can keep them and just bind click.
+    // But if you want auto chips by history tags, uncomment the next 3 lines.
     // wallChipsEl.innerHTML = "";
     // const tags = getTopTags(10);
-    // tags.forEach((tag) => {
-    //   const btn = document.createElement("button");
-    //   btn.type = "button";
-    //   btn.className = "chip";
-    //   btn.dataset.chip = `#${tag}`;
-    //   btn.textContent = `#${tag}`;
-    //   wallChipsEl.appendChild(btn);
-    // });
+    // tags.forEach(tag => { ... });
+
+    // For safety, we won't overwrite existing chips unless you want.
   }
 
   function renderSettingsPage() {
@@ -550,7 +549,7 @@
       };
     }
 
-    // ✅ 你 HTML 里是 resetAllBtn
+    // ✅ compatible with both ids: resetAllBtn (your HTML) / clearAllBtn (older)
     const clearAllBtn = $("resetAllBtn") || $("clearAllBtn");
     if (clearAllBtn) {
       clearAllBtn.onclick = () => {
@@ -593,15 +592,15 @@
     }
 
     const it = items[Math.floor(Math.random() * items.length)];
-    const moodLine = it.mood ? `<div style="margin-bottom:6px; opacity:.85;">${escapeHtml(moodLabel(it.mood))}</div>` : "";
+    const mood = String(it.mood || "").trim();
+    const moodLine = mood ? ` · ${escapeHtml(mood)}` : "";
 
     modalContent.innerHTML = `
-      ${moodLine}
       <div style="font-size:18px; line-height:1.5; margin-bottom:8px;">
         ${escapeHtml(it.text)}
       </div>
       <div style="opacity:.7; font-size:12px;">
-        ${formatTime(it.ts)}
+        ${formatTime(it.ts)}${moodLine}
       </div>
     `;
     openModal();
@@ -634,7 +633,9 @@
     tabs.forEach((t) => {
       t.addEventListener("click", (e) => {
         e.preventDefault();
+        // randomBtn is modal, not a page
         if (t.id === "randomBtn" || t.getAttribute("data-page") === "random") return;
+
         const pageKey = t.getAttribute("data-page") || t.dataset.page;
         if (!pageKey) return;
         showPage(pageKey);
@@ -644,7 +645,7 @@
 
   // ---------- Input / Mood / Buttons ----------
   function setMood(m) {
-    selectedMood = String(m || "");
+    selectedMood = String(m || "").trim();
     moodBtns.forEach((b) => {
       b.classList.toggle("active", b.dataset.mood === selectedMood);
     });
@@ -661,19 +662,17 @@
           return;
         }
 
-        // ✅ 保存 mood 到字段，不再拼进正文/标签
-        const ok = addItem(v, selectedMood);
-
+        const ok = addItem(v);
         if (ok && inputEl) inputEl.value = "";
-        // 发布后可选：清空 mood 选中
-        setMood("");
 
+        // ✅ optional: reset mood after submit
+        setMood("");
         renderAll();
         inputEl?.focus?.();
       });
     }
 
-    // mood
+    // mood buttons
     moodBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const m = btn.dataset.mood || "";
@@ -690,16 +689,14 @@
         }
       });
 
-      // quick tags hint
+      // quick tags: show when focusing or typing '#'
       inputEl.addEventListener("focus", () => {
         renderQuickTags();
         if (quickTagsEl) show(quickTagsEl);
       });
 
       inputEl.addEventListener("input", () => {
-        const val = String(inputEl.value || "");
-        // 只有包含 # 才弹出
-        if (val.includes("#")) {
+        if ((inputEl.value || "").includes("#")) {
           renderQuickTags();
           if (quickTagsEl) show(quickTagsEl);
         }
@@ -748,6 +745,8 @@
       wallSearchEl.dataset.bound = "1";
       wallSearchEl.addEventListener("input", () => renderWallSearch());
     }
+
+    // wall clear button (your HTML uses id="clearWall")
     if (wallClearBtnEl && wallClearBtnEl.dataset.bound !== "1") {
       wallClearBtnEl.dataset.bound = "1";
       wallClearBtnEl.addEventListener("click", () => {
@@ -755,14 +754,19 @@
         renderWallSearch();
       });
     }
+
+    // wall chips click
     if (wallChipsEl && wallChipsEl.dataset.bound !== "1") {
       wallChipsEl.dataset.bound = "1";
       wallChipsEl.addEventListener("click", (e) => {
         const btn = e.target.closest("button.chip");
         if (!btn) return;
-        const tag = String(btn.dataset.chip || btn.textContent || "").trim();
+        const tagRaw = String(btn.dataset.chip || btn.textContent || "").trim();
+        const tag = tagRaw.replace(/^#/, ""); // normalize
         if (!wallSearchEl) return;
-        wallSearchEl.value = wallSearchEl.value.trim() === tag ? "" : tag;
+
+        const next = `#${tag}`;
+        wallSearchEl.value = wallSearchEl.value.trim() === next ? "" : next;
         renderWallSearch();
       });
     }
@@ -776,6 +780,7 @@
     showPage("home");
     renderAll();
 
+    // debug helpers
     window.__smallwins = {
       loadItems,
       saveItems,
@@ -790,7 +795,7 @@
       renderAll,
       showPage,
       addItem,
-      setMood,
+      setMood, // for debugging mood UI
     };
   }
 
