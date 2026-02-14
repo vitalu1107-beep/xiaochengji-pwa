@@ -573,55 +573,74 @@
   renderSettings();
 })();
 
+// ===== 标签联想（优化版）=====
 const input = document.getElementById("input-text");
 const tagBox = document.getElementById("tag-suggest");
 
-function extractTags(text){
-  const matches = text.match(/#\S+/g);
-  return matches ? matches.map(t => t.replace("#","")) : [];
-}
+if (input && tagBox) {
 
-function getAllTags(){
-  const data = JSON.parse(localStorage.getItem("records") || "[]");
-  const tagSet = new Set();
-  data.forEach(item=>{
-    extractTags(item.text).forEach(t=>tagSet.add(t));
-  });
-  return Array.from(tagSet);
-}
-
-input.addEventListener("input", ()=>{
-  const value = input.value;
-  const cursor = input.selectionStart;
-  const left = value.slice(0,cursor);
-
-  const match = left.match(/#(\S*)$/);
-  if(!match){
-    tagBox.style.display = "none";
-    return;
+  function extractTags(text){
+    const matches = text.match(/#\S+/g);
+    return matches ? matches.map(t => t.replace("#","")) : [];
   }
 
-  const keyword = match[1];
-  const allTags = getAllTags();
-  const filtered = allTags.filter(t=>t.startsWith(keyword));
-
-  if(filtered.length === 0){
-    tagBox.style.display = "none";
-    return;
+  function getAllTags(){
+    const data = JSON.parse(localStorage.getItem("records") || "[]");
+    const tagSet = new Set();
+    data.forEach(item=>{
+      extractTags(item.text || "").forEach(t=>tagSet.add(t));
+    });
+    return Array.from(tagSet);
   }
 
-  tagBox.innerHTML = "";
-  filtered.forEach(tag=>{
-    const btn = document.createElement("button");
-    btn.textContent = "#"+tag;
-    btn.onclick = ()=>{
-      const newText = value.replace(/#\S*$/, "#"+tag+" ");
-      input.value = newText;
+  input.addEventListener("input", ()=>{
+    const value = input.value;
+    const cursor = input.selectionStart;
+    const left = value.slice(0, cursor);
+
+    // 只要检测到正在输入 #xxx
+    const match = left.match(/#(\S*)$/);
+
+    if(!match){
       tagBox.style.display = "none";
-      input.focus();
-    };
-    tagBox.appendChild(btn);
-  });
+      return;
+    }
 
-  tagBox.style.display = "flex";
-});
+    const keyword = match[1];
+    const allTags = getAllTags();
+
+    let filtered;
+
+    if(keyword === ""){
+      // 只输入 #
+      filtered = allTags;
+    }else{
+      // 输入 #生 这种
+      filtered = allTags.filter(t => t.startsWith(keyword));
+    }
+
+    if(filtered.length === 0){
+      tagBox.style.display = "none";
+      return;
+    }
+
+    tagBox.innerHTML = "";
+
+    filtered.forEach(tag=>{
+      const btn = document.createElement("button");
+      btn.textContent = "#"+tag;
+      btn.type = "button";
+
+      btn.onclick = ()=>{
+        const newText = value.replace(/#\S*$/, "#"+tag+" ");
+        input.value = newText;
+        tagBox.style.display = "none";
+        input.focus();
+      };
+
+      tagBox.appendChild(btn);
+    });
+
+    tagBox.style.display = "flex";
+  });
+}
