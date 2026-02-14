@@ -1,24 +1,19 @@
 :root{
   --bg:#f4f9f4;
   --card:rgba(255,255,255,.72);
-  --cardSolid:#fff;
-  --text:#1f2a1f;
-  --muted:rgba(0,0,0,.6);
+  --text:#1c241c;
+  --muted:rgba(28,36,28,.65);
   --border:rgba(0,0,0,.08);
 
   --primary:#46B256;
-  --primary2:#3fa54f;
+  --primary2:#3ea54f;
 
   --danger:#e85b5b;
 
-  --shadow: 0 10px 26px rgba(0,0,0,.06);
   --radius:18px;
-  --radius2:14px;
 }
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
@@ -27,91 +22,63 @@ body{
 }
 
 .app{ width:100%; min-height:100vh; }
-
-/* ================= Container ================= */
 .container{
   max-width:980px;
   margin:0 auto;
   padding:16px;
 }
 
-/* ================= Brand / Header ================= */
+/* ---------- Brand ---------- */
 .brand{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:12px;
   margin-top:8px;
-  text-align:left;
 }
-
 .brand .logo{
   width:44px;
   height:44px;
   border-radius:14px;
   object-fit:cover;
-  border:1px solid var(--border);
-  background:#fff;
 }
-
 .brand .titles{ line-height:1.2; }
+.brand h1{ font-size:22px; margin:0; }
+.brand p{ margin:4px 0 0; color:var(--muted); }
 
-.brand h1{
-  font-size:22px;
-  margin:0;
-  font-weight:900;
-}
-
-.brand p{
-  margin:4px 0 0;
-  color:var(--muted);
-  font-size:13px;
-}
-
-/* ================= Top Nav（关键：移动端不要竖排） ================= */
+/* ---------- Top nav ---------- */
 .topnav{
   display:flex;
   justify-content:center;
-  align-items:center;
+  flex-wrap:wrap;
   gap:10px;
   margin:14px 0 18px;
-
-  /* 小屏：不够就横滑，不要变竖列 */
-  flex-wrap:nowrap;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:6px 2px;
 }
-.topnav::-webkit-scrollbar{ height:0; }
-
 .topnav button{
   appearance:none;
   border:1px solid var(--border);
-  background:rgba(255,255,255,.75);
+  background:rgba(255,255,255,.7);
   border-radius:999px;
   padding:10px 14px;
   font-size:15px;
   cursor:pointer;
   white-space:nowrap;
-  flex:0 0 auto;
-  color:rgba(0,0,0,.78);
+  color:var(--text);
 }
-
 .topnav button.active{
   background:var(--primary);
   color:#fff;
   border-color:transparent;
 }
 
-/* ================= Panels / Sections ================= */
+/* ---------- Panels / common ---------- */
 .panel{
   border-radius:var(--radius);
   padding:16px;
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
-  box-shadow: var(--shadow);
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
 }
-
 .panel + .panel{ margin-top:14px; }
 
 .section-title{
@@ -126,12 +93,15 @@ body{
 .muted{ color:var(--muted); }
 .small{ font-size:13px; }
 
-/* ================= Homepage: stats grid ================= */
+/* ---------- Home stats cards ---------- */
 .stats-grid{
   display:grid;
-  grid-template-columns: 1fr 1fr;  /* 默认两列（手机也两列） */
+  grid-template-columns:1fr 1fr;
   gap:12px;
   margin-top:14px;
+}
+@media (max-width:360px){
+  .stats-grid{ grid-template-columns:1fr; }
 }
 
 .stat-card{
@@ -139,92 +109,55 @@ body{
   padding:16px;
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
-  box-shadow: var(--shadow);
+  box-shadow:0 10px 30px rgba(0,0,0,.05);
 }
-
 .stat-card h3{
   margin:0 0 10px;
   font-size:16px;
+  font-weight:900;
   display:flex;
   align-items:center;
   gap:8px;
-  font-weight:900;
 }
-
 .stat-card .big{
   font-size:40px;
   font-weight:900;
   line-height:1;
   margin:6px 0;
 }
-
 .stat-card .sub{ margin:0 0 12px; color:var(--muted); }
 
-.stat-card .btn{
-  width:100%;
-}
-
-/* 超小屏才变一列 */
-@media (max-width:360px){
-  .stats-grid{ grid-template-columns:1fr; }
-}
-
-/* ================= Buttons / Inputs（统一按钮行为，避免“全宽毁布局”） ================= */
+/* ---------- Buttons / inputs ---------- */
 .btn{
   padding:12px 14px;
-  border-radius:var(--radius2);
-  border:1px solid rgba(0,0,0,.10);
-  background:rgba(255,255,255,.82);
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.80);
   cursor:pointer;
-  font-size:15px;
-  color:rgba(0,0,0,.8);
+  color:var(--text);
 }
-
-.btn:hover{ background:#fff; }
+.btn:hover{ background:rgba(255,255,255,.92); }
 
 .btn.danger{
   background:var(--danger);
   border-color:transparent;
   color:#fff;
 }
-.btn.danger:hover{ filter:brightness(.96); }
+.btn.danger:hover{ filter:brightness(.98); }
 
-.input{
+.input, .record-input{
   width:100%;
-  padding:12px 12px;
-  border-radius:var(--radius2);
-  border:1px solid rgba(0,0,0,.10);
-  background:rgba(255,255,255,.86);
-  font-size:16px;
-  outline:none;
-}
-
-.input:focus{
-  border-color: rgba(70,178,86,.45);
-  box-shadow: 0 0 0 4px rgba(70,178,86,.12);
-}
-
-/* ================= Record Page ================= */
-.record-wrap{
-  display:grid;
-  gap:12px;
-}
-
-.record-input{
-  width:100%;
-  min-height:52px;
   padding:14px 14px;
   border-radius:16px;
   border:1px solid rgba(0,0,0,.10);
-  background:rgba(255,255,255,.86);
+  background:rgba(255,255,255,.78);
   font-size:16px;
   outline:none;
 }
+.input:focus, .record-input:focus{ border-color:rgba(70,178,86,.6); }
 
-.record-input:focus{
-  border-color: rgba(70,178,86,.45);
-  box-shadow: 0 0 0 4px rgba(70,178,86,.12);
-}
+/* ---------- Record page layout ---------- */
+.record-wrap{ display:grid; gap:12px; }
 
 .mood-title{
   margin:6px 0 2px;
@@ -232,23 +165,22 @@ body{
   font-weight:900;
 }
 
-/* 心情按钮：网页端 4 个一排；手机默认 2×2 更舒服 */
 .mood-grid{
   display:grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns:repeat(4, 1fr);
   gap:10px;
   margin-top:8px;
 }
 @media (max-width:420px){
-  .mood-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mood-grid{ grid-template-columns:repeat(2, 1fr); }
 }
 
 .mood-btn{
   width:100%;
   padding:12px 10px;
   border-radius:16px;
-  border:1px solid rgba(0,0,0,.10);
-  background:rgba(255,255,255,.86);
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.75);
   cursor:pointer;
   font-size:16px;
   display:flex;
@@ -256,17 +188,13 @@ body{
   justify-content:center;
   gap:8px;
   white-space:nowrap;
-  color:rgba(0,0,0,.78);
+  color:var(--text);
 }
-
-.mood-btn:hover{ background:#fff; }
-
 .mood-btn.active{
-  border-color: rgba(70,178,86,.35);
-  box-shadow: 0 0 0 4px rgba(70,178,86,.10);
+  border-color:rgba(70,178,86,.45);
+  outline:2px solid rgba(70,178,86,.22);
 }
 
-/* 主按钮：封存这一刻（在心情下面，自然就是下面） */
 .primary-btn{
   width:100%;
   padding:16px 14px;
@@ -278,10 +206,9 @@ body{
   font-weight:900;
   cursor:pointer;
 }
-
 .primary-btn:hover{ background:var(--primary2); }
 
-/* ================= List / Items ================= */
+/* ---------- Lists / items ---------- */
 .list{ margin-top:10px; }
 
 .item{
@@ -290,10 +217,9 @@ body{
   gap:10px;
   padding:12px;
   border-radius:14px;
-  background:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.75);
   border:1px solid rgba(0,0,0,.06);
 }
-
 .item + .item{ margin-top:10px; }
 
 .item-left{
@@ -303,49 +229,38 @@ body{
   min-width:0;
   flex:1;
 }
-
 .item-text{
-  min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
-
 .item-right{
   display:flex;
   flex-direction:column;
   align-items:flex-end;
   gap:8px;
 }
+.item-time{ color:var(--muted); font-size:12px; }
 
-/* 如果你在列表里有时间文本 */
-.item-time{
-  font-size:12px;
-  color:var(--muted);
-}
-
-/* ================= Settings tidy ================= */
-.form-row{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  gap:10px;
+/* mood pill */
+.mood-pill{
+  display:inline-flex;
   align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(0,0,0,.06);
+  background:#fff;
+  color:var(--text);
+  font-size:14px;
+  line-height:1;
+  white-space:nowrap;
 }
+.mood-pill .mood-ico{ font-size:16px; }
+.mood-pill .mood-txt{ font-weight:800; }
 
-@media (max-width:520px){
-  .form-row{ grid-template-columns: 1fr; }
-}
-
-/* ================= Mobile: 让整体更“App”一点 ================= */
-@media (max-width:520px){
-  .container{ padding:14px; }
-  .brand h1{ font-size:20px; }
-  .topnav button{ font-size:14px; padding:9px 12px; }
-  .section-title{ font-size:17px; }
-}
-
-/* 超小屏：避免按钮挤爆 */
-@media (max-width:360px){
-  .mood-btn{ font-size:15px; padding:11px 10px; }
-  .primary-btn{ font-size:18px; }
-}
+/* subtle variants */
+.mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
+.mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
+.mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
+.mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
