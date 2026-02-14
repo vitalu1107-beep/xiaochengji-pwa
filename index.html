@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>小成就 · Small Wins</title>
 
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="style.css" />
+  <!-- ✅ PWA -->
+  <link rel="manifest" href="/xiaochengji-pwa/manifest.json" />
+  <meta name="theme-color" content="#4CAF50" />
+
+  <link rel="stylesheet" href="/xiaochengji-pwa/style.css" />
 </head>
 
 <body>
@@ -29,15 +32,15 @@
       </nav>
     </header>
 
+    <!-- HOME -->
     <main class="container">
-      <!-- HOME -->
       <section id="page-home" class="page">
         <!-- 顶部：问候 + 日期 -->
         <div class="card">
           <div class="section-head">
             <div>
-              <div class="muted small" id="homeDate">—</div>
-              <div class="card-title" id="homeGreeting">你好，夏央</div>
+              <div class="muted small" id="homeDate">2026年2月11日</div>
+              <div class="card-title" id="homeGreeting">你好，朋友</div>
             </div>
           </div>
         </div>
@@ -45,7 +48,9 @@
         <!-- 今日能量：一句话 -->
         <div class="card">
           <div class="muted small">今日能量</div>
-          <div class="quote" id="homeQuote">—</div>
+          <div class="quote" id="homeQuote">
+            “哪怕只是把碗洗了，也是对生活的一次温柔重塑。”
+          </div>
         </div>
 
         <!-- 两张入口卡：统计/入口 -->
@@ -82,19 +87,13 @@
           <div class="card-title">✨ 记录微光</div>
 
           <div class="input-box">
-            <textarea
-              id="achievementInput"
+            <textarea id="achievementInput"
               rows="2"
-              placeholder="今天你做了哪件微小的事？（可用 #标签，比如 #运动 #阅读）"
-              autocomplete="off"
-            ></textarea>
+              placeholder="今天你做了哪件微小的事？"
+              autocomplete="off"></textarea>
             <button id="addBtn" type="button">封存这一刻</button>
           </div>
 
-          <!-- ✅ quick tags 容器（可选，JS 有就会渲染） -->
-          <div id="quickTags" class="chips hidden"></div>
-
-          <!-- ✅ 心情（重点：data-mood + type=button） -->
           <div class="mood-row">
             <button class="mood" type="button" data-mood="平静">🌙 平静</button>
             <button class="mood" type="button" data-mood="愉悦">✨ 愉悦</button>
@@ -106,7 +105,6 @@
         <div class="card">
           <div class="section-head">
             <div class="card-title">📅 今天</div>
-            <!-- ✅ 只保留一份 clearTodayBtn（你之前重复了） -->
             <button id="clearTodayBtn" class="danger ghost" type="button">清空今天</button>
           </div>
 
@@ -114,10 +112,9 @@
           <div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
         </div>
 
-        <!-- 兼容：如果 JS 里还会渲染昨天/历史，这些保留但不展示也没关系 -->
+        <!-- 兼容占位（不显示也无所谓） -->
         <ul id="yesterdayList" class="list hidden"></ul>
         <div id="yesterdayEmpty" class="empty hidden"></div>
-
         <div id="historyWrap" class="hidden"></div>
         <div id="historyEmpty" class="empty hidden"></div>
       </section>
@@ -129,11 +126,17 @@
             <div class="card-title">🧱 成就墙（全览 + 搜索）</div>
           </div>
 
-          <div class="chips" id="wallChips"></div>
+          <div class="chips" id="wallChips">
+            <button class="chip" type="button" data-chip="运动">运动</button>
+            <button class="chip" type="button" data-chip="阅读">阅读</button>
+            <button class="chip" type="button" data-chip="复盘">复盘</button>
+            <button class="chip" type="button" data-chip="学习">学习</button>
+            <button class="chip" type="button" data-chip="工作">工作</button>
+            <button class="chip" type="button" data-chip="生活">生活</button>
+          </div>
 
           <div class="input-box">
             <input id="wallSearch" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
-            <!-- ✅ 清空按钮 id 对齐：clearWall -->
             <button id="clearWall" class="ghost" type="button">清空</button>
           </div>
 
@@ -148,12 +151,17 @@
         <div class="card">
           <div class="card-title">⚙️ 设置</div>
           <p class="muted small">
-            数据保存在本地浏览器（localStorage），不会上传服务器。
+            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
           </p>
 
+          <!-- ✅ 安装按钮（Android Chrome 可直接弹安装） -->
+          <button id="installBtn" class="ghost" type="button">安装到手机（添加到桌面）</button>
+          <div class="muted small" id="installHint" style="margin-top:8px;"></div>
+
+          <div style="height:10px;"></div>
+
           <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
-          <!-- ✅ id 对齐：clearAllBtn（对应 main.js） -->
-          <button id="clearAllBtn" class="danger" type="button">清空全部数据</button>
+          <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
         </div>
       </section>
     </main>
@@ -174,10 +182,85 @@
     <div id="toast" class="toast hidden">已记录 ✅</div>
   </div>
 
-  <script src="main.js"></script>
+  <!-- ✅ 你的业务 JS（用绝对路径更稳） -->
+  <script src="/xiaochengji-pwa/main.js"></script>
+
+  <!-- ✅ PWA install detection + SW register -->
   <script>
+    // --- Service Worker ---
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/xiaochengji-pwa/sw.js").catch(console.warn);
+      });
+    }
+
+    // --- Install prompt (Android/Chrome/Edge) ---
+    let deferredPrompt = null;
+
+    const installBtn = document.getElementById("installBtn");
+    const installHint = document.getElementById("installHint");
+
+    function isIOS() {
+      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    }
+    function isStandalone() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+
+      if (installHint) installHint.textContent = "✅ 可安装：点击上方按钮即可添加到桌面。";
+      if (installBtn) installBtn.disabled = false;
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      if (installHint) installHint.textContent = "🎉 已安装到桌面！";
+      if (installBtn) installBtn.disabled = true;
+    });
+
+    async function installPWA() {
+      // 已经是独立模式就不用装
+      if (isStandalone()) {
+        if (installHint) installHint.textContent = "已在桌面应用模式运行 ✅";
+        return;
+      }
+
+      // iOS 指引
+      if (isIOS()) {
+        if (installHint) {
+          installHint.textContent = "iPhone：请用 Safari 打开 → 分享 → 添加到主屏幕。";
+        } else {
+          alert("iPhone：请用 Safari 打开 → 分享 → 添加到主屏幕。");
+        }
+        return;
+      }
+
+      // Android/Chrome prompt
+      if (!deferredPrompt) {
+        if (installHint) {
+          installHint.textContent = "暂时没有弹出安装提示：请多打开几次，或用 Chrome/Edge 访问后再试。";
+        } else {
+          alert("暂时没有弹出安装提示：请多打开几次，或用 Chrome/Edge 访问后再试。");
+        }
+        return;
+      }
+
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    }
+
+    if (installBtn) {
+      installBtn.addEventListener("click", installPWA);
+      // 默认提示
+      if (installHint) {
+        if (isStandalone()) installHint.textContent = "已在桌面应用模式运行 ✅";
+        else if (isIOS()) installHint.textContent = "iPhone：Safari → 分享 → 添加到主屏幕。";
+        else installHint.textContent = "Android：如果可安装，会出现提示；也可点按钮尝试。";
+      }
     }
   </script>
 </body>
