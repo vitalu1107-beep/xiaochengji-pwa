@@ -572,3 +572,56 @@
   renderRandom();
   renderSettings();
 })();
+
+const input = document.getElementById("input-text");
+const tagBox = document.getElementById("tag-suggest");
+
+function extractTags(text){
+  const matches = text.match(/#\S+/g);
+  return matches ? matches.map(t => t.replace("#","")) : [];
+}
+
+function getAllTags(){
+  const data = JSON.parse(localStorage.getItem("records") || "[]");
+  const tagSet = new Set();
+  data.forEach(item=>{
+    extractTags(item.text).forEach(t=>tagSet.add(t));
+  });
+  return Array.from(tagSet);
+}
+
+input.addEventListener("input", ()=>{
+  const value = input.value;
+  const cursor = input.selectionStart;
+  const left = value.slice(0,cursor);
+
+  const match = left.match(/#(\S*)$/);
+  if(!match){
+    tagBox.style.display = "none";
+    return;
+  }
+
+  const keyword = match[1];
+  const allTags = getAllTags();
+  const filtered = allTags.filter(t=>t.startsWith(keyword));
+
+  if(filtered.length === 0){
+    tagBox.style.display = "none";
+    return;
+  }
+
+  tagBox.innerHTML = "";
+  filtered.forEach(tag=>{
+    const btn = document.createElement("button");
+    btn.textContent = "#"+tag;
+    btn.onclick = ()=>{
+      const newText = value.replace(/#\S*$/, "#"+tag+" ");
+      input.value = newText;
+      tagBox.style.display = "none";
+      input.focus();
+    };
+    tagBox.appendChild(btn);
+  });
+
+  tagBox.style.display = "flex";
+});
