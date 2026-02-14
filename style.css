@@ -417,3 +417,106 @@ button:hover{ background:var(--green2); }
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
 .mood-pill.neutral { background:#f7f7f7; border-color:#e6e6e6; }
+
+/* =========================
+   Settings page typography + spacing (only settings)
+   ========================= */
+
+#page-settings,
+#page-settings *{
+  box-sizing: border-box;
+}
+
+#page-settings{
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text, #1f2a1f);
+}
+
+/* 标题/说明统一 */
+#page-settings h2,
+#page-settings .title,
+#page-settings .section-title{
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+#page-settings p,
+#page-settings .desc,
+#page-settings .hint{
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 6px 0;
+  color: var(--muted, #6b7a6b);
+}
+
+/* 每一行设置项：统一行距、对齐 */
+#page-settings .settings-row{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+/* 如果你没有 settings-row 这个类，也没关系：
+   下面会把“输入框 + 按钮那一排”也拉齐 */
+#page-settings .input-box{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+/* label 统一 */
+#page-settings label{
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 10px 0 6px;
+  color: var(--text, #1f2a1f);
+}
+
+/* 输入框统一高度、字号、行高 */
+#page-settings input[type="text"],
+#page-settings input[type="search"],
+#page-settings input{
+  height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  line-height: 44px;
+  border: 1px solid var(--border, #d9e4d9);
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
+}
+
+/* 按钮统一高度、字号、内边距 */
+#page-settings button,
+#page-settings .btn{
+  height: 44px;
+  padding: 0 14px;
+  font-size: 14px;
+  line-height: 44px;
+  border-radius: 12px;
+}
+
+/* 让“保存昵称”这种按钮不要因为文字换行导致变丑 */
+#page-settings button{
+  white-space: nowrap;
+}
+
+/* 分组间距（让整体更干净） */
+#page-settings .card,
+#page-settings .panel,
+#page-settings .box{
+  padding: 18px;
+}
+
+#page-settings .divider{
+  height: 1px;
+  background: var(--border, #d9e4d9);
+  margin: 14px 0;
+}
