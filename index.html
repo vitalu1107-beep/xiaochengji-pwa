@@ -21,116 +21,106 @@
       </div>
 
       <nav class="tabs">
-        <button class="tab active" data-page="home">首页</button>
-        <button class="tab" data-page="today">记录微光</button>
-        <button class="tab" data-page="wall">成就墙</button>
+        <button class="tab active" data-page="home" type="button">首页</button>
+        <button class="tab" data-page="today" type="button">记录微光</button>
+        <button class="tab" data-page="wall" type="button">成就墙</button>
         <button class="tab" id="randomBtn" type="button">随机回顾</button>
-        <button class="tab" data-page="settings">设置</button>
+        <button class="tab" data-page="settings" type="button">设置</button>
       </nav>
     </header>
 
-    <!-- HOME -->
     <main class="container">
-      
-<section id="page-home" class="page">
+      <!-- HOME -->
+      <section id="page-home" class="page">
+        <!-- 顶部：问候 + 日期 -->
+        <div class="card">
+          <div class="section-head">
+            <div>
+              <div class="muted small" id="homeDate">—</div>
+              <div class="card-title" id="homeGreeting">你好，夏央</div>
+            </div>
+          </div>
+        </div>
 
-  <!-- 顶部：问候 + 日期 -->
-  <div class="card">
-    <div class="section-head">
-      <div>
-        <div class="muted small" id="homeDate">2026年2月11日</div>
-        <div class="card-title" id="homeGreeting">你好，夏央</div>
-      </div>
-    </div>
-  </div>
+        <!-- 今日能量：一句话 -->
+        <div class="card">
+          <div class="muted small">今日能量</div>
+          <div class="quote" id="homeQuote">—</div>
+        </div>
 
-  <!-- 今日能量：一句话 -->
-  <div class="card">
-    <div class="muted small">今日能量</div>
-    <div class="quote" id="homeQuote">
-      “哪怕只是把碗洗了，也是对生活的一次温柔重塑。”
-    </div>
-  </div>
+        <!-- 两张入口卡：统计/入口 -->
+        <div class="grid">
+          <div class="card">
+            <div class="card-title">🏆 成就记录</div>
+            <div class="big" id="statStreak">0</div>
+            <div class="muted">已坚持 天</div>
+            <button class="ghost" id="goTodayBtn" type="button">去记录</button>
+          </div>
 
-  <!-- 两张入口卡：统计/入口 -->
-  <div class="grid">
-    <div class="card">
-      <div class="card-title">🏆 成就记录</div>
-      <div class="big" id="statStreak">0</div>
-      <div class="muted">已坚持 天</div>
-      <button class="ghost" id="goTodayBtn" type="button">去记录</button>
-    </div>
+          <div class="card">
+            <div class="card-title">💗 小确幸墙</div>
+            <div class="big" id="statAll">0</div>
+            <div class="muted">个瞬间</div>
+            <button class="ghost" id="goWallBtn" type="button">去看看</button>
+          </div>
+        </div>
 
-    <div class="card">
-      <div class="card-title">💗 小确幸墙</div>
-      <div class="big" id="statAll">0</div>
-      <div class="muted">个瞬间</div>
-      <button class="ghost" id="goWallBtn" type="button">去看看</button>
-    </div>
-  </div>
+        <!-- 最近的小快乐 -->
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">最近的小快乐</div>
+          </div>
 
-  <!-- 最近的小快乐（复用原来的 recentList / recentEmpty） -->
-  <div class="card">
-    <div class="section-head">
-      <div class="card-title">最近的小快乐</div>
-    </div>
+          <ul id="recentList" class="list"></ul>
+          <div id="recentEmpty" class="empty hidden">还没有记录～先写下第一个小小进步吧 ✨</div>
+        </div>
+      </section>
 
-    <ul id="recentList" class="list"></ul>
-    <div id="recentEmpty" class="empty hidden">还没有记录～先写下第一个小小进步吧 ✨</div>
-  </div>
-
-</section>
-
-      <!-- TODAY (Today/Yesterday/History grouped) -->
+      <!-- TODAY -->
       <section id="page-today" class="page hidden">
+        <div class="card">
+          <div class="card-title">✨ 记录微光</div>
 
-  <!-- 记录微光 -->
-  <div class="card">
-    <div class="card-title">✨ 记录微光</div>
+          <div class="input-box">
+            <textarea
+              id="achievementInput"
+              rows="2"
+              placeholder="今天你做了哪件微小的事？（可用 #标签，比如 #运动 #阅读）"
+              autocomplete="off"
+            ></textarea>
+            <button id="addBtn" type="button">封存这一刻</button>
+          </div>
 
-    <div class="input-box">
-      <textarea id="achievementInput"
-        rows="2"
-        placeholder="今天你做了哪件微小的事？"
-        autocomplete="off"></textarea>
-      <button id="addBtn" type="button">封存这一刻</button>
-    </div>
+          <!-- ✅ quick tags 容器（可选，JS 有就会渲染） -->
+          <div id="quickTags" class="chips hidden"></div>
 
-    <div class="mood-row">
-      <button class="mood" data-mood="平静">🌙 平静</button>
-      <button class="mood" data-mood="愉悦">✨ 愉悦</button>
-      <button class="mood" data-mood="释然">🌱 释然</button>
-      <button class="mood" data-mood="慵懒">☁️ 慵懒</button>
-    </div>
-  </div>
+          <!-- ✅ 心情（重点：data-mood + type=button） -->
+          <div class="mood-row">
+            <button class="mood" type="button" data-mood="平静">🌙 平静</button>
+            <button class="mood" type="button" data-mood="愉悦">✨ 愉悦</button>
+            <button class="mood" type="button" data-mood="释然">🌱 释然</button>
+            <button class="mood" type="button" data-mood="慵懒">☁️ 慵懒</button>
+          </div>
+        </div>
 
-  <!-- 今日列表 -->
-  <div class="card">
-    <div class="section-head">
-      <div class="card-title">📅 今天</div>
-      <button id="clearTodayBtn"
-        class="danger ghost"
-        type="button">清空今天</button>
-    </div>
+        <div class="card">
+          <div class="section-head">
+            <div class="card-title">📅 今天</div>
+            <!-- ✅ 只保留一份 clearTodayBtn（你之前重复了） -->
+            <button id="clearTodayBtn" class="danger ghost" type="button">清空今天</button>
+          </div>
 
-    <ul id="todayList" class="list"></ul>
-    <div id="todayEmpty"
-      class="empty hidden">今天还没有记录～</div>
-  </div>
-<!-- 下面这些是 main.js 旧逻辑依赖的，占位即可 -->
-<button class="danger ghost hidden" id="clearTodayBtn" type="button">清空今天</button>
+          <ul id="todayList" class="list"></ul>
+          <div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
+        </div>
 
-<ul id="todayList" class="list"></ul>
-<div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
+        <!-- 兼容：如果 JS 里还会渲染昨天/历史，这些保留但不展示也没关系 -->
+        <ul id="yesterdayList" class="list hidden"></ul>
+        <div id="yesterdayEmpty" class="empty hidden"></div>
 
-<!-- 如果 main.js 仍引用 yesterday/history，你也先补占位（不显示） -->
-<ul id="yesterdayList" class="list hidden"></ul>
-<div id="yesterdayEmpty" class="empty hidden"></div>
-
-<div id="historyWrap" class="hidden"></div>
-<div id="historyEmpty" class="empty hidden"></div>
-        
-</section>
+        <div id="historyWrap" class="hidden"></div>
+        <div id="historyEmpty" class="empty hidden"></div>
+      </section>
 
       <!-- WALL -->
       <section id="page-wall" class="page hidden">
@@ -138,18 +128,12 @@
           <div class="section-head">
             <div class="card-title">🧱 成就墙（全览 + 搜索）</div>
           </div>
-          
-          <div class="chips" id="wallChips">
-  <button class="chip" type="button" data-chip="运动">运动</button>
-  <button class="chip" type="button" data-chip="阅读">阅读</button>
-  <button class="chip" type="button" data-chip="复盘">复盘</button>
-  <button class="chip" type="button" data-chip="学习">学习</button>
-  <button class="chip" type="button" data-chip="工作">工作</button>
-  <button class="chip" type="button" data-chip="生活">生活</button>
-</div>
-       
+
+          <div class="chips" id="wallChips"></div>
+
           <div class="input-box">
             <input id="wallSearch" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
+            <!-- ✅ 清空按钮 id 对齐：clearWall -->
             <button id="clearWall" class="ghost" type="button">清空</button>
           </div>
 
@@ -164,11 +148,12 @@
         <div class="card">
           <div class="card-title">⚙️ 设置</div>
           <p class="muted small">
-            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
+            数据保存在本地浏览器（localStorage），不会上传服务器。
           </p>
 
           <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
-          <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
+          <!-- ✅ id 对齐：clearAllBtn（对应 main.js） -->
+          <button id="clearAllBtn" class="danger" type="button">清空全部数据</button>
         </div>
       </section>
     </main>
