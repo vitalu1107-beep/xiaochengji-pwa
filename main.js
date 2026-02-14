@@ -218,12 +218,18 @@
 
   // ---------- Rendering ----------
   function renderMoodBadge(it) {
-    const mood = String(it?.mood || "").trim();
-    if (!mood) return "";
-    const icon = moodToIcon(mood);
-    // 用 span，靠 CSS 做成“左边那种胶囊”
-    return `<span class="mood-badge">${escapeHtml(icon)} ${escapeHtml(mood)}</span>`;
-  }
+  const mood = String(it?.mood || "").trim();
+  if (!mood) return "";
+
+  const icon = moodToIcon(mood);
+
+  return `
+    <span class="mood-pill">
+      <span class="mood-ico">${escapeHtml(icon)}</span>
+      <span class="mood-txt">${escapeHtml(mood)}</span>
+    </span>
+  `;
+}
 
   function renderList(containerEl, emptyEl, listItems, options = {}) {
     if (!containerEl) return;
