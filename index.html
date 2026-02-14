@@ -1,29 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#49b05a" />
   <title>小成就 · Small Wins</title>
 
-  <!-- ✅ PWA -->
-  <link rel="manifest" href="/xiaochengji-pwa/manifest.json" />
-  <meta name="theme-color" content="#4CAF50" />
-
-  <link rel="stylesheet" href="/xiaochengji-pwa/style.css" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
   <div class="app">
-    <header class="header">
+    <!-- Header -->
+    <header class="top">
       <div class="brand">
-        <div class="logo">🎯</div>
-        <div>
-          <div class="title">小成就 <span class="en">Small Wins</span></div>
-          <div class="subtitle">记录每天的小小进步。</div>
+        <div class="logo" aria-hidden="true">🎯</div>
+        <div class="brand-text">
+          <div class="brand-title">小成就 <span class="en">Small Wins</span></div>
+          <div class="brand-sub">记录每天的小小进步。</div>
         </div>
       </div>
 
-      <nav class="tabs">
+      <nav class="tabs" aria-label="导航">
         <button class="tab active" data-page="home" type="button">首页</button>
         <button class="tab" data-page="today" type="button">记录微光</button>
         <button class="tab" data-page="wall" type="button">成就墙</button>
@@ -32,246 +32,144 @@
       </nav>
     </header>
 
-    <!-- HOME -->
-    <main class="container">
-      <section id="page-home" class="page">
-        <!-- 顶部：问候 + 日期 -->
-        <div class="card">
-          <div class="section-head">
-            <div>
-              <div class="muted small" id="homeDate">2026年2月11日</div>
-              <div class="card-title" id="homeGreeting">你好，朋友</div>
-            </div>
-          </div>
+    <main class="main">
+      <!-- Home -->
+      <section id="page-home">
+        <div class="panel">
+          <div id="homeDate" class="muted">—</div>
+          <div id="homeGreeting" class="h1">—</div>
         </div>
 
-        <!-- 今日能量：一句话 -->
-        <div class="card">
-          <div class="muted small">今日能量</div>
-          <div class="quote" id="homeQuote">
-            “哪怕只是把碗洗了，也是对生活的一次温柔重塑。”
-          </div>
+        <div class="panel">
+          <div class="muted">今日能量</div>
+          <div id="homeQuote" class="quote">—</div>
         </div>
 
-        <!-- 两张入口卡：统计/入口 -->
-        <div class="grid">
-          <div class="card">
-            <div class="card-title">🏆 成就记录</div>
-            <div class="big" id="statStreak">0</div>
+        <!-- ✅ 关键：两张卡包一层，移动端保持两列 -->
+        <div class="home-two">
+          <div class="panel mini">
+            <div class="mini-title">🏆 成就记录</div>
+            <div class="mini-num" id="statStreak">0</div>
             <div class="muted">已坚持 天</div>
             <button class="ghost" id="goTodayBtn" type="button">去记录</button>
           </div>
 
-          <div class="card">
-            <div class="card-title">💗 小确幸墙</div>
-            <div class="big" id="statAll">0</div>
+          <div class="panel mini">
+            <div class="mini-title">💗 小确幸墙</div>
+            <div class="mini-num" id="statAll">0</div>
             <div class="muted">个瞬间</div>
             <button class="ghost" id="goWallBtn" type="button">去看看</button>
           </div>
         </div>
 
-        <!-- 最近的小快乐 -->
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">最近的小快乐</div>
-          </div>
-
-          <ul id="recentList" class="list"></ul>
-          <div id="recentEmpty" class="empty hidden">还没有记录～先写下第一个小小进步吧 ✨</div>
+        <div class="panel">
+          <div class="section-title">最近的小快乐</div>
+          <div id="recentEmpty" class="empty">还没有记录～先写下第一件小小进步吧 ✨</div>
+          <div id="recentList" class="list"></div>
         </div>
       </section>
 
-      <!-- TODAY -->
-      <section id="page-today" class="page hidden">
-        <div class="card">
-          <div class="card-title">✨ 记录微光</div>
+      <!-- Today / Add -->
+      <section id="page-today" class="hidden">
+        <div class="panel">
+          <div class="section-title">✨ 记录微光</div>
 
+          <!-- 输入框（单独一行） -->
           <div class="input-box">
-            <textarea id="achievementInput"
-              rows="2"
-              placeholder="哪怕很小，也算数：今天我___"
-              autocomplete="off"></textarea>
-            <button id="addBtn" type="button">封存这一刻</button>
+            <textarea id="achievementInput" rows="2" placeholder="哪怕很小，也算数：今天我___"></textarea>
           </div>
 
-          <div class="mood-row">
-            <button class="mood" type="button" data-mood="平静">🌙 平静</button>
-            <button class="mood" type="button" data-mood="愉悦">✨ 愉悦</button>
-            <button class="mood" type="button" data-mood="释然">🌱 释然</button>
-            <button class="mood" type="button" data-mood="慵懒">☁️ 慵懒</button>
+          <!-- ✅ 心情区：新增标题 + 横排 -->
+          <div class="mood-block">
+            <div class="mood-title">选择心情</div>
+            <div class="mood-row">
+              <button class="mood" type="button" data-mood="平静">🌙 平静</button>
+              <button class="mood" type="button" data-mood="愉悦">✨ 愉悦</button>
+              <button class="mood" type="button" data-mood="释然">🌱 释然</button>
+              <button class="mood" type="button" data-mood="慵懒">☁️ 慵懒</button>
+            </div>
           </div>
+
+          <!-- ✅ 提交按钮放在心情下面 -->
+          <button id="addBtn" class="primary big" type="button">封存这一刻</button>
+
+          <!-- quick tags (可选) -->
+          <div id="quickTags" class="chips hidden"></div>
         </div>
 
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">📅 今天</div>
+        <div class="panel">
+          <div class="today-head">
+            <div class="section-title">📅 今天</div>
             <button id="clearTodayBtn" class="danger ghost" type="button">清空今天</button>
           </div>
 
-          <ul id="todayList" class="list"></ul>
-          <div id="todayEmpty" class="empty hidden">今天还没有记录～</div>
+          <div id="todayEmpty" class="empty">今天还没有记录～</div>
+          <div id="todayList" class="list"></div>
         </div>
-
-        <!-- 兼容占位（不显示也无所谓） -->
-        <ul id="yesterdayList" class="list hidden"></ul>
-        <div id="yesterdayEmpty" class="empty hidden"></div>
-        <div id="historyWrap" class="hidden"></div>
-        <div id="historyEmpty" class="empty hidden"></div>
       </section>
 
-      <!-- WALL -->
-      <section id="page-wall" class="page hidden">
-        <div class="card">
-          <div class="section-head">
-            <div class="card-title">🧱 成就墙（全览 + 搜索）</div>
-          </div>
+      <!-- Wall -->
+      <section id="page-wall" class="hidden">
+        <div class="panel">
+          <div class="section-title">🧱 成就墙（全览 + 搜索）</div>
 
-          <div class="chips" id="wallChips">
-            <button class="chip" type="button" data-chip="运动">运动</button>
-            <button class="chip" type="button" data-chip="阅读">阅读</button>
-            <button class="chip" type="button" data-chip="复盘">复盘</button>
-            <button class="chip" type="button" data-chip="学习">学习</button>
-            <button class="chip" type="button" data-chip="工作">工作</button>
-            <button class="chip" type="button" data-chip="生活">生活</button>
-          </div>
+          <div id="wallChips" class="chips"></div>
 
-          <div class="input-box">
-            <input id="wallSearch" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘…" autocomplete="off" />
+          <div class="wall-bar">
+            <input id="wallSearch" placeholder="搜索：比如 运动 / 阅读 / 复盘 / #生活 / 平静" />
             <button id="clearWall" class="ghost" type="button">清空</button>
           </div>
 
-          <div class="muted small" id="searchMeta"></div>
-          <ul id="wallList" class="list"></ul>
-          <div id="wallEmpty" class="empty hidden">没有匹配结果。</div>
+          <div id="wallEmpty" class="empty">没有匹配结果～</div>
+          <div id="wallList" class="list"></div>
         </div>
       </section>
 
-      <!-- SETTINGS -->
-      <section id="page-settings" class="page hidden">
-        <div class="card">
-          <div class="card-title">⚙️ 设置</div>
-          <p class="muted small">
-            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
-          </p>
+      <!-- Settings -->
+      <section id="page-settings" class="hidden">
+        <div class="panel">
+          <div class="section-title">⚙️ 设置</div>
+          <div class="muted">这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。</div>
 
-          <!-- ✅ 安装按钮（Android Chrome 可直接弹安装） -->
-          <button id="installBtn" class="ghost" type="button">安装到手机（添加到桌面）</button>
-          <div class="muted small" id="installHint" style="margin-top:8px;"></div>
+          <div class="setting-block">
+            <div class="setting-title">安装到手机（添加到桌面）</div>
+            <div class="muted">iPhone：Safari → 分享 → 添加到主屏幕</div>
+            <div class="muted">安卓：Chrome → 右上角菜单 → 添加到主屏幕 / 安装应用</div>
+          </div>
 
-          <div style="height:10px;"></div>
+          <!-- ✅ 昵称输入框 + 保存按钮 -->
+          <div class="setting-block">
+            <div class="setting-title">昵称（用于首页问候语）</div>
+            <div class="setting-row">
+              <input id="nameInput" placeholder="输入你的昵称" />
+              <button id="saveNameBtn" class="ghost" type="button">保存昵称</button>
+            </div>
+            <div class="muted">保存后首页会显示：晚上好，夏央</div>
+          </div>
 
-          <!-- 昵称设置（新增） -->
-<div class="setting-row">
-  <div class="setting-label">昵称（用于首页问候语）</div>
-  <div class="input-box">
-    <input id="nameInput" type="text" placeholder="比如：夏央" />
-    <button id="saveNameBtn" class="ghost" type="button">保存昵称</button>
-  </div>
-  <div class="hint">保存后首页会显示：晚上好，夏央</div>
-</div>
-          <button id="editNameBtn" class="ghost" type="button">弹窗修改昵称</button>
-          <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
-          <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
+          <div class="setting-row">
+            <button id="editNameBtn" class="ghost" type="button">弹窗修改昵称</button>
+            <button id="exportBtn" class="ghost" type="button">导出为文本（复制）</button>
+            <button id="resetAllBtn" class="danger" type="button">清空全部数据</button>
+          </div>
         </div>
       </section>
     </main>
 
-    <!-- Modal: Random Review -->
-    <div id="modal" class="modal hidden">
-      <div class="modal-mask" id="modalMask"></div>
+    <!-- Modal -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div id="modalMask" class="modal-mask"></div>
       <div class="modal-card">
         <div class="modal-title">🎲 随机回顾</div>
         <div id="modalContent" class="modal-content"></div>
         <div class="modal-actions">
           <button id="modalAgainBtn" class="ghost" type="button">再来一条</button>
-          <button id="modalCloseBtn" type="button">关闭</button>
+          <button id="modalCloseBtn" class="ghost" type="button">关闭</button>
         </div>
       </div>
     </div>
-
-    <div id="toast" class="toast hidden">已记录 ✅</div>
   </div>
 
-  <!-- ✅ 你的业务 JS（用绝对路径更稳） -->
-  <script src="/xiaochengji-pwa/main.js"></script>
-
-  <!-- ✅ PWA install detection + SW register -->
-  <script>
-    // --- Service Worker ---
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/xiaochengji-pwa/sw.js").catch(console.warn);
-      });
-    }
-
-    // --- Install prompt (Android/Chrome/Edge) ---
-    let deferredPrompt = null;
-
-    const installBtn = document.getElementById("installBtn");
-    const installHint = document.getElementById("installHint");
-
-    function isIOS() {
-      return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    }
-    function isStandalone() {
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    }
-
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-
-      if (installHint) installHint.textContent = "✅ 可安装：点击上方按钮即可添加到桌面。";
-      if (installBtn) installBtn.disabled = false;
-    });
-
-    window.addEventListener("appinstalled", () => {
-      deferredPrompt = null;
-      if (installHint) installHint.textContent = "🎉 已安装到桌面！";
-      if (installBtn) installBtn.disabled = true;
-    });
-
-    async function installPWA() {
-      // 已经是独立模式就不用装
-      if (isStandalone()) {
-        if (installHint) installHint.textContent = "已在桌面应用模式运行 ✅";
-        return;
-      }
-
-      // iOS 指引
-      if (isIOS()) {
-        if (installHint) {
-          installHint.textContent = "iPhone：请用 Safari 打开 → 分享 → 添加到主屏幕。";
-        } else {
-          alert("iPhone：请用 Safari 打开 → 分享 → 添加到主屏幕。");
-        }
-        return;
-      }
-
-      // Android/Chrome prompt
-      if (!deferredPrompt) {
-        if (installHint) {
-          installHint.textContent = "暂时没有弹出安装提示：请多打开几次，或用 Chrome/Edge 访问后再试。";
-        } else {
-          alert("暂时没有弹出安装提示：请多打开几次，或用 Chrome/Edge 访问后再试。");
-        }
-        return;
-      }
-
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    }
-
-    if (installBtn) {
-      installBtn.addEventListener("click", installPWA);
-      // 默认提示
-      if (installHint) {
-        if (isStandalone()) installHint.textContent = "已在桌面应用模式运行 ✅";
-        else if (isIOS()) installHint.textContent = "iPhone：Safari → 分享 → 添加到主屏幕。";
-        else installHint.textContent = "Android：如果可安装，会出现提示；也可点按钮尝试。";
-      }
-    }
-  </script>
+  <script src="./main.js" defer></script>
 </body>
 </html>
