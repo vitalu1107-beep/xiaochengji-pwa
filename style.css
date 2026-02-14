@@ -393,14 +393,27 @@ button:hover{ background:var(--green2); }
   button{ width:100%; }
 }
 
-.mood-badge{
-  display:inline-block;
-  padding:2px 8px;
-  margin-right:6px;
+/* ===== Mood badge in list ===== */
+.mood-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
   border-radius:999px;
-  font-size:12px;
   border:1px solid var(--border);
-  background:#f7fbf7;
+  background:#fff;
   color:#333;
-  vertical-align:middle;
+  font-size:14px;
+  line-height:1;
+  white-space:nowrap;
+  margin-right:10px;
 }
+.mood-pill .mood-ico{ font-size:16px; }
+.mood-pill .mood-txt{ font-weight:600; }
+
+/* subtle variants */
+.mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
+.mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
+.mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
+.mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
+.mood-pill.neutral { background:#f7f7f7; border-color:#e6e6e6; }
