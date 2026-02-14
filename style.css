@@ -543,3 +543,50 @@ button:hover{ background:var(--green2); }
 
 /* 可选：隐藏横向滚动条（不影响滑动） */
 .tabs::-webkit-scrollbar{ height: 0; }
+
+/* =========================
+   Mobile layout fixes (append to end)
+   ========================= */
+
+/* 首页：成就记录 + 小确幸墙，移动端保持两列 */
+.home-two{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+/* 记录微光：心情区块 */
+.mood-block{
+  margin-top: 12px;
+}
+
+.mood-title{
+  font-weight: 700;
+  margin: 4px 0 10px;
+}
+
+/* 心情按钮横排 + 自动换行 */
+.mood-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* 让 4 个按钮在手机上更像“横排四格” */
+.mood-row .mood{
+  flex: 1;
+  min-width: 120px; /* 屏幕窄时会自动换行成两列 */
+  white-space: nowrap;
+}
+
+/* 封存按钮：在手机更好看 */
+#addBtn.big{
+  width: 100%;
+  margin-top: 14px;
+}
+
+/* 如果你手机上出现“按钮/输入框太拥挤”，可打开这段微调 */
+@media (max-width: 420px){
+  .home-two{ gap: 10px; }
+  .mood-row .mood{ min-width: 46%; } /* 更稳：两列 */
+}
