@@ -402,7 +402,6 @@ main > section + section{ margin-top:14px; }
 /* 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
 @media (max-width: 767px) {
   .tabbar { display:flex; }
-  .topnav { display:none; }
 }
 
 /* ✅✅ 关键：Tabbar 必须 fixed 才能一直在底部，不需要上拉才能看到 */
