@@ -8,6 +8,7 @@
 
   <!-- PWA -->
   <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <link rel="icon" href="./icons/icon-192.png" />
 
@@ -23,7 +24,7 @@
         <div class="brand">
           <img class="logo" src="./icons/icon-192.png" alt="logo" />
           <div class="titles">
-            <h1>小成就 <span class="muted brand-en">Small Wins</span></h1>
+            <h1>小成就 <span class="muted" style="font-size:14px;font-weight:600;margin-left:6px;">Small Wins</span></h1>
             <p class="muted">记录每天的小小进步。</p>
           </div>
         </div>
@@ -43,13 +44,13 @@
         <!-- 问候 -->
         <section class="panel">
           <div class="muted" id="home-date">—</div>
-          <div class="home-greeting" id="home-greeting">晚上好，夏央</div>
+          <div style="font-size:20px;font-weight:800;margin-top:6px;" id="home-greeting">晚上好，夏央</div>
         </section>
 
         <!-- 今日能量 -->
         <section class="panel">
           <div class="muted small" style="margin-bottom:8px;">今日能量</div>
-          <div id="home-quote" class="home-quote">
+          <div id="home-quote" style="font-size:22px;font-weight:900;line-height:1.35;">
             “你不需要很厉害才开始，你需要开始才会变厉害。”
           </div>
         </section>
@@ -57,33 +58,17 @@
         <!-- 两张卡：横排 -->
         <section class="stats-grid" aria-label="统计卡片">
           <div class="stat-card" id="card-achievement">
-            <div class="stat-top">
-              <h3>🏆 成就记录</h3>
-            </div>
-
-            <div class="stat-mid">
-              <div class="big" id="stat-streak">0</div>
-              <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
-            </div>
-
-            <div class="stat-actions">
-              <button class="btn btn-soft" type="button" data-target="page-today">去记录</button>
-            </div>
+            <h3>🏆 成就记录</h3>
+            <div class="big" id="stat-streak">0</div>
+            <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
+            <button class="btn" type="button" data-target="page-today">去记录</button>
           </div>
 
           <div class="stat-card" id="card-happy">
-            <div class="stat-top">
-              <h3>💗 小确幸墙</h3>
-            </div>
-
-            <div class="stat-mid">
-              <div class="big" id="stat-happy">0</div>
-              <p class="sub muted" id="stat-happy-sub">0 个瞬间</p>
-            </div>
-
-            <div class="stat-actions">
-              <button class="btn btn-soft" type="button" data-target="page-wall">去看看</button>
-            </div>
+            <h3>💗 小确幸墙</h3>
+            <div class="big" id="stat-happy">0</div>
+            <p class="sub muted" id="stat-happy-sub">记录 0 个瞬间</p>
+            <button class="btn" type="button" data-target="page-wall">去看看</button>
           </div>
         </section>
 
@@ -102,7 +87,6 @@
           <h2 class="section-title">✨ 记录微光</h2>
 
           <div class="record-wrap">
-            <!-- 输入改为 textarea（更大） -->
             <textarea
               id="input-text"
               class="record-input"
@@ -127,14 +111,14 @@
             <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
 
             <div class="muted small hint">
-              小提示：长按下面的某条记录可以删除；想换行直接回车；快捷保存用 Ctrl/⌘ + Enter。
+              小提示：长按某条记录可删除；点击可查看全文与时间。
             </div>
           </div>
         </section>
 
         <!-- 今日列表 -->
         <section class="panel">
-          <div class="panel-head-row">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h2 class="section-title" style="margin:0;">📅 今天</h2>
             <button id="btn-clear-today" class="btn" type="button">清空今天</button>
           </div>
@@ -146,33 +130,27 @@
 
       <!-- ========== 页面：成就墙（全览+搜索） ========== -->
       <main id="page-wall" style="display:none;">
-        <!-- 搜索面板（方案 A：不放固定标签行） -->
         <section class="panel">
           <h2 class="section-title">🧱 成就墙（全览 + 搜索）</h2>
 
-          <div class="search-row">
+          <div class="wall-search-row">
             <input id="wall-search" class="input" type="text" placeholder="搜索：比如 #运动 / #工作 / 阅读 / 复盘" />
-            <button id="btn-wall-clear-search" class="btn" type="button">清空搜索</button>
+            <button id="btn-wall-clear-input" class="btn" type="button">清空搜索</button>
           </div>
 
-          <div class="muted small" style="margin-top:10px;">
-            小提示：输入 <b>#</b> 会出现你记录过的标签联想（比如 #工作）。
+          <div class="muted small hint">
+            小提示：输入 # 会出现你记录过的标签联想（比如 #工作）。
           </div>
         </section>
 
-        <!-- 全部记录面板 -->
         <section class="panel">
-          <div class="panel-head-row">
+          <div class="wall-head">
             <h2 class="section-title" style="margin:0;">全部记录</h2>
-            <button id="btn-wall-clear-all" class="btn danger" type="button">清空全部</button>
+            <button id="btn-wall-clear" class="btn danger" type="button">清空全部</button>
           </div>
 
           <div id="wall-list" class="list"></div>
           <div id="wall-empty" class="muted" style="text-align:center;padding:18px 0;">还没有记录～</div>
-
-          <div class="muted small hint" style="margin-top:10px;">
-            小提示：长按某条记录可删除（不会影响点击查看全文）。
-          </div>
         </section>
       </main>
 
@@ -184,9 +162,10 @@
             <div class="muted" style="margin-bottom:8px;">你抽到的是：</div>
             <div id="random-text" style="font-size:18px;font-weight:800;line-height:1.4;">—</div>
             <div id="random-time" class="muted small" style="margin-top:10px;">—</div>
-            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
-              <button id="btn-random-next" class="btn" type="button">再来一条</button>
-              <!-- ✅ 不再显示删除按钮 -->
+
+            <!-- ✅ 只保留“再来一条”，做大并居中 -->
+            <div class="random-actions">
+              <button id="btn-random-next" class="btn btn-big" type="button">再来一条</button>
             </div>
           </div>
         </section>
@@ -205,7 +184,7 @@
             <div class="small muted" id="install-tip" style="margin-top:8px;">✅ 可安装：点击上方按钮即可添加到桌面。</div>
           </div>
 
-          <hr class="hr" />
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
 
           <!-- 昵称 -->
           <div style="margin-top:6px;">
@@ -219,7 +198,7 @@
             </div>
           </div>
 
-          <hr class="hr" />
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
 
           <!-- 导出 / 清空 -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
