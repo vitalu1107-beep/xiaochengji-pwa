@@ -1,4 +1,4 @@
-/* ========= Small Wins · main.js (matches your index.html) ========= */
+/* ========= Small Wins · main.js ========= */
 (() => {
   const LS_KEY = "smallwins_records_v1";
   const LS_NICK = "smallwins_nickname_v1";
@@ -96,7 +96,7 @@
   const recentListEl = $("#recent-list");
   const recentEmptyEl = $("#recent-empty");
 
-  const inputTextEl = $("#input-text"); // textarea
+  const inputTextEl = $("#input-text");
   const tagSuggestEl = $("#tag-suggest");
   const moodGroupEl = $("#mood-group");
   const saveBtnEl = $("#btn-save");
@@ -113,7 +113,6 @@
   const randomTextEl = $("#random-text");
   const randomTimeEl = $("#random-time");
   const randomNextBtn = $("#btn-random-next");
-  const randomDeleteBtn = $("#btn-random-delete");
 
   const installBtn = $("#btn-install");
   const installTip = $("#install-tip");
@@ -125,7 +124,7 @@
   const exportBtn = $("#btn-export");
   const clearAllBtn = $("#btn-clear-all");
 
-  // Modal
+  // Modal (全文查看)
   const modalEl = $("#modal");
   const modalTitleEl = $("#modal-title");
   const modalBodyEl = $("#modal-body");
@@ -180,6 +179,7 @@
 
   tabs.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.target)));
 
+  // 让所有 data-target（比如首页卡片按钮）也能切页
   $$("[data-target]").forEach((el) => {
     if (el.closest(".topnav")) return;
     if (el.closest(".tabbar")) return;
@@ -188,6 +188,79 @@
       if (t) showPage(t);
     });
   });
+
+  // ---------- Long-press delete (for Today/Wall items) ----------
+  function attachLongPressDelete(listEl, getRecordById, onDeleteDone) {
+    if (!listEl) return;
+
+    const LONG_PRESS_MS = 520;
+    const MOVE_TOL = 10;
+
+    listEl.querySelectorAll(".item[data-id]").forEach((item) => {
+      let timer = null;
+      let startX = 0;
+      let startY = 0;
+      let fired = false;
+
+      const clear = () => {
+        if (timer) clearTimeout(timer);
+        timer = null;
+        item.classList.remove("pressing");
+      };
+
+      const onPointerDown = (e) => {
+        // 只处理主指针/左键
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+
+        fired = false;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        item.classList.add("pressing");
+
+        timer = setTimeout(() => {
+          fired = true;
+          item.classList.remove("pressing");
+
+          const id = item.getAttribute("data-id");
+          const r = id ? getRecordById(id) : null;
+          if (!r) return;
+
+          const preview = (r.text || "").length > 18 ? (r.text || "").slice(0, 18) + "…" : (r.text || "");
+          const ok = confirm(`删除这条记录？\n\n${preview}`);
+          if (!ok) return;
+
+          records = records.filter((x) => x.id !== r.id);
+          saveRecords(records);
+          toast("已删除");
+          onDeleteDone();
+        }, LONG_PRESS_MS);
+      };
+
+      const onPointerMove = (e) => {
+        if (!timer) return;
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx > MOVE_TOL || dy > MOVE_TOL) clear();
+      };
+
+      const onPointerUp = () => {
+        // 如果长按触发了，阻止接下来的 click 打开 modal
+        if (fired) {
+          item.__skipNextClick = true;
+          setTimeout(() => (item.__skipNextClick = false), 0);
+        }
+        clear();
+      };
+
+      const onPointerCancel = () => clear();
+
+      item.addEventListener("pointerdown", onPointerDown, { passive: true });
+      item.addEventListener("pointermove", onPointerMove, { passive: true });
+      item.addEventListener("pointerup", onPointerUp, { passive: true });
+      item.addEventListener("pointercancel", onPointerCancel, { passive: true });
+    });
+  }
 
   // ---------- Home ----------
   function calcStreak(arr) {
@@ -235,13 +308,8 @@
           div.className = "item";
           div.innerHTML = `
             <div class="item-left">
-              ${mood ? `<span class="mood-pill ${r.mood}">
-                <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
-              </span>` : ""}
+              ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
               <div class="item-text">${escapeHtml(r.text)}</div>
-            </div>
-            <div class="item-right">
-              <div class="item-time">${escapeHtml(r.timeText)}</div>
             </div>
           `;
           div.addEventListener("click", () => openModal(r.timeText, r.text));
@@ -283,40 +351,34 @@
       const mood = MOODS[r.mood] || null;
       const div = document.createElement("div");
       div.className = "item";
+      div.setAttribute("data-id", r.id);
 
+      // ✅ 列表不显示时间、不显示删除按钮（长按删除）
       div.innerHTML = `
         <div class="item-left">
-          ${mood ? `<span class="mood-pill ${r.mood}">
-            <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
-          </span>` : ""}
+          ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
           <div class="item-text">${escapeHtml(r.text)}</div>
-        </div>
-        <div class="item-right">
-          <div class="item-time">${escapeHtml(r.timeText)}</div>
-          <button class="btn danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
         </div>
       `;
 
-      div.addEventListener("click", (e) => {
-        if (e.target.closest("[data-del]")) return;
+      div.addEventListener("click", () => {
+        if (div.__skipNextClick) return;
         openModal(r.timeText, r.text);
       });
 
       if (todayListEl) todayListEl.appendChild(div);
     });
 
-    $$("#today-list [data-del]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const id = btn.getAttribute("data-del");
-        records = records.filter((x) => x.id !== id);
-        saveRecords(records);
+    // ✅ 绑定长按删除
+    attachLongPressDelete(
+      todayListEl,
+      (id) => records.find((x) => x.id === id) || null,
+      () => {
         renderToday();
         renderHome();
         renderWall();
-        toast("已删除");
-      });
-    });
+      }
+    );
   }
 
   function saveRecord() {
@@ -381,37 +443,34 @@
       const mood = MOODS[r.mood] || null;
       const div = document.createElement("div");
       div.className = "item";
+      div.setAttribute("data-id", r.id);
+
+      // ✅ 列表不显示时间、不显示删除按钮（长按删除）
       div.innerHTML = `
         <div class="item-left">
-          ${mood ? `<span class="mood-pill ${r.mood}">
-            <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
-          </span>` : ""}
+          ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
           <div class="item-text">${escapeHtml(r.text)}</div>
         </div>
-        <div class="item-right">
-          <div class="item-time">${escapeHtml(r.timeText)}</div>
-          <button class="btn danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
-        </div>
       `;
-      div.addEventListener("click", (e) => {
-        if (e.target.closest("[data-del]")) return;
+
+      div.addEventListener("click", () => {
+        if (div.__skipNextClick) return;
         openModal(r.timeText, r.text);
       });
+
       wallListEl.appendChild(div);
     });
 
-    $$("#wall-list [data-del]").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const id = btn.getAttribute("data-del");
-        records = records.filter((x) => x.id !== id);
-        saveRecords(records);
+    // ✅ 绑定长按删除
+    attachLongPressDelete(
+      wallListEl,
+      (id) => records.find((x) => x.id === id) || null,
+      () => {
         renderWall();
         renderHome();
         renderToday();
-        toast("已删除");
-      });
-    });
+      }
+    );
   }
 
   function clearWallAll() {
@@ -426,7 +485,7 @@
     toast("已清空");
   }
 
-  function clearWallSearchOnly() {
+  function clearWallSearch() {
     if (!wallSearchEl) return;
     if (!wallSearchEl.value) return toast("搜索框已经是空的");
     wallSearchEl.value = "";
@@ -464,18 +523,6 @@
         if (randomTimeEl) randomTimeEl.textContent = r.timeText;
       }
     }
-  }
-
-  function deleteCurrentRandom() {
-    if (!currentRandomId) return toast("没有可删除的记录");
-    records = records.filter((x) => x.id !== currentRandomId);
-    saveRecords(records);
-    currentRandomId = null;
-    renderHome();
-    renderToday();
-    renderWall();
-    pickRandom();
-    toast("已删除");
   }
 
   // ---------- Settings ----------
@@ -539,7 +586,7 @@
     });
   }
 
-  // ---------- Tag Suggest (共享给记录页 & 成就墙搜索框) ----------
+  // ---------- Tag Suggest ----------
   function extractTagsFromText(text) {
     const res = [];
     const re = /[#＃]([^\s#＃]+)/g;
@@ -566,13 +613,8 @@
     tagSuggestEl.innerHTML = "";
   }
 
-  // ✅ clamp：避免 iOS 小数像素造成 1px 溢出
-  function clamp(n, min, max) {
-    return Math.max(min, Math.min(max, n));
-  }
-
-  function showTagSuggestFor(anchorEl, tags, leftText, cursorPos, onPick) {
-    if (!tagSuggestEl || !anchorEl) return;
+  function showTagSuggest(tags, leftText, cursorPos) {
+    if (!tagSuggestEl || !inputTextEl) return;
     if (!tags.length) return hideTagSuggest();
 
     tagSuggestEl.innerHTML = "";
@@ -583,35 +625,35 @@
       btn.textContent = "#" + tag;
 
       btn.addEventListener("click", () => {
-        onPick(tag, leftText, cursorPos);
+        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
+        const right = inputTextEl.value.slice(cursorPos);
+        inputTextEl.value = newLeft + right;
+
+        const pos = newLeft.length;
+        inputTextEl.focus();
+        inputTextEl.setSelectionRange(pos, pos);
+
         hideTagSuggest();
       });
 
       tagSuggestEl.appendChild(btn);
     });
 
-    const rect = anchorEl.getBoundingClientRect();
-    const vv = window.visualViewport;
-    const vw = vv ? vv.width : window.innerWidth;
-
-    // 给左右留 8px 缓冲，避免 overflow
-    const left = clamp(rect.left, 8, Math.max(8, vw - 8));
-    const width = clamp(rect.width, 120, Math.max(120, vw - left - 8));
-
+    const rect = inputTextEl.getBoundingClientRect();
     tagSuggestEl.style.position = "fixed";
-    tagSuggestEl.style.left = `${Math.floor(left)}px`;
-    tagSuggestEl.style.top = `${Math.floor(rect.bottom + 8)}px`;
-    tagSuggestEl.style.width = `${Math.floor(width)}px`;
+    tagSuggestEl.style.left = rect.left + "px";
+    tagSuggestEl.style.top = rect.bottom + 8 + "px";
+    tagSuggestEl.style.width = rect.width + "px";
     tagSuggestEl.style.zIndex = "99999";
     tagSuggestEl.style.display = "flex";
   }
 
-  function setupTagSuggestForTextarea(textareaEl) {
-    if (!textareaEl || !tagSuggestEl) return;
+  function setupTagSuggest() {
+    if (!inputTextEl || !tagSuggestEl) return;
 
-    textareaEl.addEventListener("input", () => {
-      const value = textareaEl.value || "";
-      const cursor = textareaEl.selectionStart ?? value.length;
+    inputTextEl.addEventListener("input", () => {
+      const value = inputTextEl.value || "";
+      const cursor = inputTextEl.selectionStart ?? value.length;
       const left = value.slice(0, cursor);
 
       const m = left.match(/[#＃]([^\s#＃]*)$/);
@@ -621,53 +663,16 @@
       const all = getAllTagsSorted();
       const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
 
-      showTagSuggestFor(textareaEl, filtered, left, cursor, (tag, leftText, cursorPos) => {
-        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
-        const right = textareaEl.value.slice(cursorPos);
-        textareaEl.value = newLeft + right;
-
-        const pos = newLeft.length;
-        textareaEl.focus();
-        textareaEl.setSelectionRange(pos, pos);
-      });
+      showTagSuggest(filtered, left, cursor);
     });
-  }
 
-  function setupTagSuggestForWallSearch(inputEl) {
-    if (!inputEl || !tagSuggestEl) return;
-
-    inputEl.addEventListener("input", () => {
-      const value = inputEl.value || "";
-      const cursor = inputEl.selectionStart ?? value.length;
-      const left = value.slice(0, cursor);
-
-      const m = left.match(/[#＃]([^\s#＃]*)$/);
-      if (!m) return hideTagSuggest();
-
-      const keyword = (m[1] || "").trim();
-      const all = getAllTagsSorted();
-      const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
-
-      showTagSuggestFor(inputEl, filtered, left, cursor, (tag, leftText, cursorPos) => {
-        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag);
-        const right = inputEl.value.slice(cursorPos);
-        inputEl.value = newLeft + right;
-
-        const pos = newLeft.length;
-        inputEl.focus();
-        inputEl.setSelectionRange(pos, pos);
-
-        renderWall();
-      });
-    });
-  }
-
-  function setupGlobalHideSuggest() {
     document.addEventListener("click", (e) => {
-      const t = e.target;
-      if (t === inputTextEl || t === wallSearchEl) return;
-      if (tagSuggestEl && tagSuggestEl.contains(t)) return;
+      if (e.target === inputTextEl || (tagSuggestEl && tagSuggestEl.contains(e.target))) return;
       hideTagSuggest();
+    });
+
+    inputTextEl.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") hideTagSuggest();
     });
 
     window.addEventListener("scroll", hideTagSuggest, { passive: true });
@@ -679,10 +684,10 @@
 
   if (saveBtnEl) saveBtnEl.addEventListener("click", saveRecord);
 
-  // ✅ textarea：Enter 保存；Shift+Enter 换行
   if (inputTextEl) {
     inputTextEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+      // textarea：回车换行；Ctrl/⌘ + Enter 快速保存
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         saveRecord();
       }
@@ -692,14 +697,13 @@
   if (clearTodayBtn) clearTodayBtn.addEventListener("click", clearToday);
 
   if (wallSearchEl) wallSearchEl.addEventListener("input", renderWall);
-  if (wallClearSearchBtn) wallClearSearchBtn.addEventListener("click", clearWallSearchOnly);
+  if (wallClearSearchBtn) wallClearSearchBtn.addEventListener("click", clearWallSearch);
   if (wallClearAllBtn) wallClearAllBtn.addEventListener("click", clearWallAll);
 
   if (randomNextBtn) randomNextBtn.addEventListener("click", () => {
     currentRandomId = null;
     pickRandom();
   });
-  if (randomDeleteBtn) randomDeleteBtn.addEventListener("click", deleteCurrentRandom);
 
   if (saveNickBtn) {
     saveNickBtn.addEventListener("click", () => {
@@ -716,14 +720,7 @@
   if (clearAllBtn) clearAllBtn.addEventListener("click", clearAll);
 
   // ---------- Init ----------
-  // 兜底：防止“去记录”被错误指向成就墙
-  $$('button[data-target="page-wall"]').forEach((b) => {
-    if (b.textContent.includes("去记录")) b.setAttribute("data-target", "page-today");
-  });
-
-  setupTagSuggestForTextarea(inputTextEl);
-  setupTagSuggestForWallSearch(wallSearchEl);
-  setupGlobalHideSuggest();
+  setupTagSuggest();
 
   renderHome();
   renderToday();
