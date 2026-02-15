@@ -80,10 +80,10 @@
 
   // ---------- Mood mapping ----------
   const MOODS = {
-    calm:   { icon: "🌙", label: "平静" },
-    happy:  { icon: "✨", label: "愉悦" },
-    relaxed:{ icon: "🌱", label: "释然" },
-    lazy:   { icon: "☁️", label: "慵懒" },
+    calm:    { icon: "🌙", label: "平静" },
+    happy:   { icon: "✨", label: "愉悦" },
+    relaxed: { icon: "🌱", label: "释然" },
+    lazy:    { icon: "☁️", label: "慵懒" },
   };
 
   // ---------- Elements (new index.html) ----------
@@ -98,6 +98,7 @@
   const recentEmptyEl = $("#recent-empty");
 
   const inputTextEl = $("#input-text");
+  const tagSuggestEl = $("#tag-suggest");
   const moodGroupEl = $("#mood-group");
   const saveBtnEl = $("#btn-save");
   const todayListEl = $("#today-list");
@@ -129,7 +130,7 @@
   let selectedMood = null;
   let currentRandomId = null;
 
-  // ---------- Tabs navigation (your index already has a simple one, but we keep this safe) ----------
+  // ---------- Tabs navigation ----------
   const tabs = $$(".topnav button");
   const pages = ["page-home", "page-today", "page-wall", "page-random", "page-settings"]
     .map((id) => document.getElementById(id))
@@ -138,7 +139,7 @@
   function showPage(id) {
     pages.forEach((p) => (p.style.display = p.id === id ? "" : "none"));
     tabs.forEach((t) => t.classList.toggle("active", t.dataset.target === id));
-    // re-render on page switch
+
     if (id === "page-home") renderHome();
     if (id === "page-today") renderToday();
     if (id === "page-wall") renderWall();
@@ -148,7 +149,6 @@
 
   tabs.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.target)));
 
-  // Make any [data-target] outside topnav switch pages
   $$("[data-target]").forEach((el) => {
     if (el.closest(".topnav")) return;
     el.addEventListener("click", () => {
@@ -159,7 +159,6 @@
 
   // ---------- Home ----------
   function calcStreak(arr) {
-    // streak = consecutive days ending today with >=1 record each day
     const set = new Set(arr.map((r) => r.dateKey));
     const today = new Date();
     let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -178,10 +177,8 @@
 
     const greet = `${greetingByHour(now.getHours())}，${nick}`;
     if (homeGreetingEl) homeGreetingEl.textContent = greet;
-
     if (nicknamePreview) nicknamePreview.textContent = greet;
 
-    // stats
     const streak = calcStreak(records);
     const happyCount = records.length;
 
@@ -190,10 +187,9 @@
     if (statHappyEl) statHappyEl.textContent = String(happyCount);
     if (statHappySubEl) statHappySubEl.textContent = `${happyCount} 个瞬间`;
 
-    // recent list (latest 2)
     const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2);
+
     if (recentListEl) {
-      // clear all except the empty placeholder
       recentListEl.querySelectorAll(".item").forEach((n) => n.remove());
 
       if (latest.length === 0) {
@@ -203,22 +199,18 @@
 
         latest.forEach((r) => {
           const mood = MOODS[r.mood] || null;
-          const left = `
+
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
             <div class="item-left">
               ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
               <div class="item-text">${escapeHtml(r.text)}</div>
             </div>
-          `;
-
-          const right = `
             <div class="item-right">
               <div class="item-time">${escapeHtml(r.timeText)}</div>
             </div>
           `;
-
-          const div = document.createElement("div");
-          div.className = "item";
-          div.innerHTML = left + right;
           recentListEl.appendChild(div);
         });
       }
@@ -228,8 +220,8 @@
   // ---------- Today / Record ----------
   function bindMood() {
     if (!moodGroupEl) return;
-
     const btns = $$("#mood-group .mood-btn");
+
     btns.forEach((b) => {
       b.addEventListener("click", () => {
         btns.forEach((x) => x.classList.remove("active"));
@@ -240,7 +232,6 @@
   }
 
   function renderToday() {
-    // today list
     const todayKey = toDateKey(new Date());
     const todays = records
       .filter((r) => r.dateKey === todayKey)
@@ -273,7 +264,6 @@
       if (todayListEl) todayListEl.appendChild(div);
     });
 
-    // delete handlers
     $$("#today-list [data-del]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-del");
@@ -289,9 +279,6 @@
   function saveRecord() {
     const text = (inputTextEl?.value || "").trim();
     if (!text) return toast("先写一句再封存～");
-
-    // mood optional; but if you want required, uncomment:
-    // if (!selectedMood) return toast("先选一个心情～");
 
     const now = new Date();
     const dateKey = toDateKey(now);
@@ -310,9 +297,11 @@
     saveRecords(records);
 
     if (inputTextEl) inputTextEl.value = "";
-    // keep mood selection if you like; or reset:
     selectedMood = null;
     $$("#mood-group .mood-btn").forEach((b) => b.classList.remove("active"));
+
+    // 标签联想：保存后也同步（下一次输入立刻可用）
+    // 不需要额外处理，因为我们每次 input 都会从 records 取标签
 
     renderToday();
     renderHome();
@@ -320,7 +309,6 @@
     toast("已封存 ✨");
   }
 
-  // clear today
   function clearToday() {
     const todayKey = toDateKey(new Date());
     const before = records.length;
@@ -338,11 +326,7 @@
     const q = (wallSearchEl?.value || "").trim().toLowerCase();
     let list = [...records].sort((a, b) => b.ts - a.ts);
 
-    // filter by quick tag buttons (data-filter) if clicked
-    // (we keep it simple: buttons set input value)
-    if (q) {
-      list = list.filter((r) => r.text.toLowerCase().includes(q));
-    }
+    if (q) list = list.filter((r) => r.text.toLowerCase().includes(q));
 
     if (wallListEl) wallListEl.innerHTML = "";
 
@@ -413,7 +397,6 @@
   }
 
   function renderRandom() {
-    // keep current if exists, else pick
     if (!currentRandomId) pickRandom();
     else {
       const r = records.find((x) => x.id === currentRandomId);
@@ -461,7 +444,6 @@
     navigator.clipboard?.writeText(text)
       .then(() => toast("已复制到剪贴板"))
       .catch(() => {
-        // fallback
         prompt("复制下面内容：", text);
       });
   }
@@ -501,14 +483,104 @@
     });
   }
 
+  // ---------- 标签联想（修复版：使用 LS_KEY / records） ----------
+  function setupTagSuggest() {
+    if (!inputTextEl || !tagSuggestEl) return;
+
+    // 1) 从记录里提取标签（#生活 #工作）
+    function extractTagsFromText(text) {
+      const res = [];
+      const re = /#([^\s#]+)/g; // #后面跟非空白非#的连续字符
+      let m;
+      while ((m = re.exec(text || "")) !== null) res.push(m[1]);
+      return res;
+    }
+
+    // 2) 汇总 + 频次排序（更好用：常用的排前面）
+    function getAllTagsSorted() {
+      const counter = new Map();
+      records.forEach((r) => {
+        extractTagsFromText(r.text || "").forEach((t) => {
+          counter.set(t, (counter.get(t) || 0) + 1);
+        });
+      });
+      return [...counter.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([tag]) => tag);
+    }
+
+    function hide() {
+      tagSuggestEl.style.display = "none";
+      tagSuggestEl.innerHTML = "";
+    }
+
+    function show(tags, leftText, cursorPos) {
+      if (!tags.length) return hide();
+
+      tagSuggestEl.innerHTML = "";
+      tags.slice(0, 12).forEach((tag) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tag-suggest-item";
+        btn.textContent = "#" + tag;
+
+        btn.addEventListener("click", () => {
+          // 替换“光标前的最后一个 #xxx”
+          const newLeft = leftText.replace(/#([^\s#]*)$/, "#" + tag + " ");
+          const right = inputTextEl.value.slice(cursorPos);
+          const next = newLeft + right;
+
+          inputTextEl.value = next;
+
+          // 光标放到插入的标签后面
+          const pos = newLeft.length;
+          inputTextEl.focus();
+          inputTextEl.setSelectionRange(pos, pos);
+
+          hide();
+        });
+
+        tagSuggestEl.appendChild(btn);
+      });
+
+      tagSuggestEl.style.display = "flex";
+    }
+
+    inputTextEl.addEventListener("input", () => {
+      const value = inputTextEl.value;
+      const cursor = inputTextEl.selectionStart ?? value.length;
+      const left = value.slice(0, cursor);
+
+      // 只在光标前最后 token 是 # 或 #xxx 时触发
+      const m = left.match(/#([^\s#]*)$/);
+      if (!m) return hide();
+
+      const keyword = (m[1] || "").trim(); // 可能为空（只输入了#）
+      const all = getAllTagsSorted();
+
+      // keyword为空：输入# -> 全部；有值：输入#生 -> 过滤
+      const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
+
+      show(filtered, left, cursor);
+    });
+
+    // 点击空白处收起
+    document.addEventListener("click", (e) => {
+      if (e.target === inputTextEl || tagSuggestEl.contains(e.target)) return;
+      hide();
+    });
+
+    // Esc 收起
+    inputTextEl.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") hide();
+    });
+  }
+
   // ---------- Events ----------
-  // Mood
   bindMood();
 
-  // Save
   if (saveBtnEl) saveBtnEl.addEventListener("click", saveRecord);
 
-  // Enter to save (optional)
   if (inputTextEl) {
     inputTextEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -518,14 +590,11 @@
     });
   }
 
-  // Clear today
   if (clearTodayBtn) clearTodayBtn.addEventListener("click", clearToday);
 
-  // Wall search
   if (wallSearchEl) wallSearchEl.addEventListener("input", renderWall);
 
-  // Wall quick filters (#运动/#生活)
-  $$('[data-filter]').forEach((btn) => {
+  $$("[data-filter]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const v = btn.getAttribute("data-filter") || "";
       if (wallSearchEl) wallSearchEl.value = v;
@@ -533,17 +602,14 @@
     });
   });
 
-  // Wall clear
   if (wallClearBtn) wallClearBtn.addEventListener("click", clearWallAll);
 
-  // Random
   if (randomNextBtn) randomNextBtn.addEventListener("click", () => {
     currentRandomId = null;
     pickRandom();
   });
   if (randomDeleteBtn) randomDeleteBtn.addEventListener("click", deleteCurrentRandom);
 
-  // Nickname
   if (saveNickBtn) {
     saveNickBtn.addEventListener("click", () => {
       const v = (nicknameInput?.value || "").trim();
@@ -555,16 +621,16 @@
     });
   }
 
-  // Export / Clear all
   if (exportBtn) exportBtn.addEventListener("click", exportText);
   if (clearAllBtn) clearAllBtn.addEventListener("click", clearAll);
 
   // ---------- Init ----------
-  // Fix: your “去记录/去看看”按钮现在要去“记录微光/成就墙”
-  // 你可以在 index.html 里把 data-target 改对，但这里也兜底修一次：
+  // 兜底：防止“去记录”被错误指向成就墙
   $$('button[data-target="page-wall"]').forEach((b) => {
     if (b.textContent.includes("去记录")) b.setAttribute("data-target", "page-today");
   });
+
+  setupTagSuggest();
 
   renderHome();
   renderToday();
@@ -572,75 +638,3 @@
   renderRandom();
   renderSettings();
 })();
-
-// ===== 标签联想（优化版）=====
-const input = document.getElementById("input-text");
-const tagBox = document.getElementById("tag-suggest");
-
-if (input && tagBox) {
-
-  function extractTags(text){
-    const matches = text.match(/#\S+/g);
-    return matches ? matches.map(t => t.replace("#","")) : [];
-  }
-
-  function getAllTags(){
-    const data = JSON.parse(localStorage.getItem("records") || "[]");
-    const tagSet = new Set();
-    data.forEach(item=>{
-      extractTags(item.text || "").forEach(t=>tagSet.add(t));
-    });
-    return Array.from(tagSet);
-  }
-
-  input.addEventListener("input", ()=>{
-    const value = input.value;
-    const cursor = input.selectionStart;
-    const left = value.slice(0, cursor);
-
-    // 只要检测到正在输入 #xxx
-    const match = left.match(/#(\S*)$/);
-
-    if(!match){
-      tagBox.style.display = "none";
-      return;
-    }
-
-    const keyword = match[1];
-    const allTags = getAllTags();
-
-    let filtered;
-
-    if(keyword === ""){
-      // 只输入 #
-      filtered = allTags;
-    }else{
-      // 输入 #生 这种
-      filtered = allTags.filter(t => t.startsWith(keyword));
-    }
-
-    if(filtered.length === 0){
-      tagBox.style.display = "none";
-      return;
-    }
-
-    tagBox.innerHTML = "";
-
-    filtered.forEach(tag=>{
-      const btn = document.createElement("button");
-      btn.textContent = "#"+tag;
-      btn.type = "button";
-
-      btn.onclick = ()=>{
-        const newText = value.replace(/#\S*$/, "#"+tag+" ");
-        input.value = newText;
-        tagBox.style.display = "none";
-        input.focus();
-      };
-
-      tagBox.appendChild(btn);
-    });
-
-    tagBox.style.display = "flex";
-  });
-}
