@@ -107,8 +107,8 @@
   const wallSearchEl = $("#wall-search");
   const wallListEl = $("#wall-list");
   const wallEmptyEl = $("#wall-empty");
-  const wallClearSearchBtn = $("#btn-wall-clear-search");
-  const wallClearAllBtn = $("#btn-wall-clear-all");
+  const wallClearBtn = $("#btn-wall-clear");
+  const wallClearInputBtn = $("#btn-wall-clear-input");
 
   const randomTextEl = $("#random-text");
   const randomTimeEl = $("#random-time");
@@ -179,7 +179,6 @@
 
   tabs.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.target)));
 
-  // 让所有 data-target（比如首页卡片按钮）也能切页
   $$("[data-target]").forEach((el) => {
     if (el.closest(".topnav")) return;
     if (el.closest(".tabbar")) return;
@@ -189,76 +188,56 @@
     });
   });
 
-  // ---------- Long-press delete (for Today/Wall items) ----------
-  function attachLongPressDelete(listEl, getRecordById, onDeleteDone) {
-    if (!listEl) return;
+  // ---------- Long press delete helper ----------
+  function bindLongPressDelete(el, record) {
+    if (!el || !record) return;
 
-    const LONG_PRESS_MS = 520;
-    const MOVE_TOL = 10;
+    let timer = null;
+    let moved = false;
 
-    listEl.querySelectorAll(".item[data-id]").forEach((item) => {
-      let timer = null;
-      let startX = 0;
-      let startY = 0;
-      let fired = false;
-
-      const clear = () => {
-        if (timer) clearTimeout(timer);
+    const start = () => {
+      moved = false;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
         timer = null;
-        item.classList.remove("pressing");
-      };
+        const ok = confirm("长按删除：确定删除这条记录吗？");
+        if (!ok) return;
+        records = records.filter((x) => x.id !== record.id);
+        saveRecords(records);
+        renderHome();
+        renderToday();
+        renderWall();
+        renderRandom();
+        toast("已删除");
+      }, 520);
+    };
 
-      const onPointerDown = (e) => {
-        // 只处理主指针/左键
-        if (e.pointerType === "mouse" && e.button !== 0) return;
+    const cancel = () => {
+      clearTimeout(timer);
+      timer = null;
+    };
 
-        fired = false;
-        startX = e.clientX;
-        startY = e.clientY;
+    el.addEventListener("pointerdown", start, { passive: true });
+    el.addEventListener("pointerup", cancel, { passive: true });
+    el.addEventListener("pointercancel", cancel, { passive: true });
+    el.addEventListener("pointermove", () => {
+      moved = true;
+      cancel();
+    }, { passive: true });
 
-        item.classList.add("pressing");
+    // iOS Safari 兜底
+    el.addEventListener("touchstart", start, { passive: true });
+    el.addEventListener("touchend", cancel, { passive: true });
+    el.addEventListener("touchcancel", cancel, { passive: true });
+    el.addEventListener("touchmove", () => {
+      moved = true;
+      cancel();
+    }, { passive: true });
 
-        timer = setTimeout(() => {
-          fired = true;
-          item.classList.remove("pressing");
-
-          const id = item.getAttribute("data-id");
-          const r = id ? getRecordById(id) : null;
-          if (!r) return;
-
-          const preview = (r.text || "").length > 18 ? (r.text || "").slice(0, 18) + "…" : (r.text || "");
-          const ok = confirm(`删除这条记录？\n\n${preview}`);
-          if (!ok) return;
-
-          records = records.filter((x) => x.id !== r.id);
-          saveRecords(records);
-          toast("已删除");
-          onDeleteDone();
-        }, LONG_PRESS_MS);
-      };
-
-      const onPointerMove = (e) => {
-        if (!timer) return;
-        const dx = Math.abs(e.clientX - startX);
-        const dy = Math.abs(e.clientY - startY);
-        if (dx > MOVE_TOL || dy > MOVE_TOL) clear();
-      };
-
-      const onPointerUp = () => {
-        // 如果长按触发了，阻止接下来的 click 打开 modal
-        if (fired) {
-          item.__skipNextClick = true;
-          setTimeout(() => (item.__skipNextClick = false), 0);
-        }
-        clear();
-      };
-
-      const onPointerCancel = () => clear();
-
-      item.addEventListener("pointerdown", onPointerDown, { passive: true });
-      item.addEventListener("pointermove", onPointerMove, { passive: true });
-      item.addEventListener("pointerup", onPointerUp, { passive: true });
-      item.addEventListener("pointercancel", onPointerCancel, { passive: true });
+    // 正常点击：看全文（如果刚刚在长按/移动，避免误触）
+    el.addEventListener("click", () => {
+      if (timer === null && moved) return;
+      openModal(record.timeText, record.text);
     });
   }
 
@@ -290,7 +269,7 @@
     if (statStreakEl) statStreakEl.textContent = String(streak);
     if (statStreakSubEl) statStreakSubEl.textContent = `已坚持 ${streak} 天`;
     if (statHappyEl) statHappyEl.textContent = String(happyCount);
-    if (statHappySubEl) statHappySubEl.textContent = `${happyCount} 个瞬间`;
+    if (statHappySubEl) statHappySubEl.textContent = `记录 ${happyCount} 个瞬间`;
 
     const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2);
 
@@ -312,7 +291,8 @@
               <div class="item-text">${escapeHtml(r.text)}</div>
             </div>
           `;
-          div.addEventListener("click", () => openModal(r.timeText, r.text));
+          // 点击：看全文+时间；长按：删除
+          bindLongPressDelete(div, r);
           recentListEl.appendChild(div);
         });
       }
@@ -351,9 +331,7 @@
       const mood = MOODS[r.mood] || null;
       const div = document.createElement("div");
       div.className = "item";
-      div.setAttribute("data-id", r.id);
 
-      // ✅ 列表不显示时间、不显示删除按钮（长按删除）
       div.innerHTML = `
         <div class="item-left">
           ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
@@ -361,24 +339,9 @@
         </div>
       `;
 
-      div.addEventListener("click", () => {
-        if (div.__skipNextClick) return;
-        openModal(r.timeText, r.text);
-      });
-
+      bindLongPressDelete(div, r);
       if (todayListEl) todayListEl.appendChild(div);
     });
-
-    // ✅ 绑定长按删除
-    attachLongPressDelete(
-      todayListEl,
-      (id) => records.find((x) => x.id === id) || null,
-      () => {
-        renderToday();
-        renderHome();
-        renderWall();
-      }
-    );
   }
 
   function saveRecord() {
@@ -443,34 +406,15 @@
       const mood = MOODS[r.mood] || null;
       const div = document.createElement("div");
       div.className = "item";
-      div.setAttribute("data-id", r.id);
-
-      // ✅ 列表不显示时间、不显示删除按钮（长按删除）
       div.innerHTML = `
         <div class="item-left">
           ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
           <div class="item-text">${escapeHtml(r.text)}</div>
         </div>
       `;
-
-      div.addEventListener("click", () => {
-        if (div.__skipNextClick) return;
-        openModal(r.timeText, r.text);
-      });
-
+      bindLongPressDelete(div, r);
       wallListEl.appendChild(div);
     });
-
-    // ✅ 绑定长按删除
-    attachLongPressDelete(
-      wallListEl,
-      (id) => records.find((x) => x.id === id) || null,
-      () => {
-        renderWall();
-        renderHome();
-        renderToday();
-      }
-    );
   }
 
   function clearWallAll() {
@@ -483,14 +427,6 @@
     renderWall();
     renderRandom();
     toast("已清空");
-  }
-
-  function clearWallSearch() {
-    if (!wallSearchEl) return;
-    if (!wallSearchEl.value) return toast("搜索框已经是空的");
-    wallSearchEl.value = "";
-    renderWall();
-    toast("已清空搜索");
   }
 
   // ---------- Random ----------
@@ -673,6 +609,11 @@
 
     inputTextEl.addEventListener("keydown", (e) => {
       if (e.key === "Escape") hideTagSuggest();
+      // textarea：Enter 保存；Shift+Enter 换行
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        saveRecord();
+      }
     });
 
     window.addEventListener("scroll", hideTagSuggest, { passive: true });
@@ -684,21 +625,19 @@
 
   if (saveBtnEl) saveBtnEl.addEventListener("click", saveRecord);
 
-  if (inputTextEl) {
-    inputTextEl.addEventListener("keydown", (e) => {
-      // textarea：回车换行；Ctrl/⌘ + Enter 快速保存
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        saveRecord();
-      }
-    });
-  }
-
   if (clearTodayBtn) clearTodayBtn.addEventListener("click", clearToday);
 
   if (wallSearchEl) wallSearchEl.addEventListener("input", renderWall);
-  if (wallClearSearchBtn) wallClearSearchBtn.addEventListener("click", clearWallSearch);
-  if (wallClearAllBtn) wallClearAllBtn.addEventListener("click", clearWallAll);
+
+  if (wallClearInputBtn) {
+    wallClearInputBtn.addEventListener("click", () => {
+      if (wallSearchEl) wallSearchEl.value = "";
+      renderWall();
+      toast("已清空搜索");
+    });
+  }
+
+  if (wallClearBtn) wallClearBtn.addEventListener("click", clearWallAll);
 
   if (randomNextBtn) randomNextBtn.addEventListener("click", () => {
     currentRandomId = null;
