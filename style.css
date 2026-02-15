@@ -12,12 +12,13 @@
 
   --radius:18px;
 
-  /* ✅ 底部 TabBar 高度（你觉得小，就调大这里） */
-  --bottom-nav-h: 92px;
+  /* 统一用一个变量控制底部导航高度（含安全区） */
+  --bottom-nav-h: 86px;
 }
 
 *{ box-sizing:border-box; }
 html, body{ height:100%; }
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
@@ -26,13 +27,17 @@ body{
   overflow-x:hidden; /* ✅ 防止横向溢出导致的“右侧白边” */
 }
 
-.app{ width:100%; min-height:100vh; }
+/* ✅ 再加一层保险：任何情况下都不要出现横向滚动 */
+.app, .container, main, section, .panel{ max-width:100%; }
+.app{ width:100%; min-height:100vh; overflow-x:hidden; }
+
 .container{
   max-width:980px;
   margin:0 auto;
   padding:16px;
-  /* ✅ 让内容区给 TabBar 让出空间，避免被覆盖 */
+  /* ✅ 给底部 tabbar 预留空间（避免内容被挡） */
   padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
+  overflow-x:hidden;
 }
 
 /* ---------- Brand ---------- */
@@ -112,13 +117,13 @@ main > section + section{ margin-top:14px; }
   grid-template-columns:1fr 1fr;
   gap:12px;
   margin-top:14px;
-  margin-bottom:14px; /* ✅ 关键：让“最近的小快乐”不贴太近 */
+  margin-bottom:16px; /* ✅ 拉开与“最近的小快乐”的间距 */
 }
 @media (max-width:360px){
   .stats-grid{ grid-template-columns:1fr; }
 }
 @media (max-width:520px){
-  .stats-grid{ gap:10px; margin-top:12px; margin-bottom:14px; }
+  .stats-grid{ gap:10px; margin-top:12px; margin-bottom:16px; }
   .stat-card{ padding:12px; }
   .stat-card h3{ font-size:14px; margin:0 0 8px; }
   .stat-card .big{ font-size:28px; margin:4px 0; }
@@ -197,6 +202,8 @@ main > section + section{ margin-top:14px; }
   display:grid;
   gap:12px;
   position: relative;
+  max-width:100%;
+  overflow-x:hidden;
 }
 
 .mood-title{
@@ -205,14 +212,16 @@ main > section + section{ margin-top:14px; }
   font-weight:900;
 }
 
+/* ✅ 防止 4 列按钮把页面撑出右侧 */
 .mood-grid{
   display:grid;
-  grid-template-columns:repeat(4, 1fr);
+  grid-template-columns:repeat(4, minmax(0, 1fr));
   gap:10px;
   margin-top:8px;
+  max-width:100%;
 }
 @media (max-width:520px){
-  .mood-grid{ grid-template-columns:repeat(4, 1fr); gap:8px; }
+  .mood-grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; }
   .mood-btn{
     padding:10px 6px;
     font-size:13px;
@@ -223,6 +232,7 @@ main > section + section{ margin-top:14px; }
 
 .mood-btn{
   width:100%;
+  min-width:0;                /* ✅ 防止撑破 */
   padding:12px 10px;
   border-radius:16px;
   border:1px solid var(--border);
@@ -265,6 +275,7 @@ main > section + section{ margin-top:14px; }
   border-radius:14px;
   background:rgba(255,255,255,.75);
   border:1px solid rgba(0,0,0,.06);
+  max-width:100%;
 }
 .item + .item{ margin-top:10px; }
 
@@ -272,11 +283,12 @@ main > section + section{ margin-top:14px; }
   display:flex;
   align-items:center;
   gap:10px;
-  min-width:0;
+  min-width:0; /* ✅ 必须：允许文字区域收缩 */
   flex:1;
 }
 
 .item-text{
+  min-width:0; /* ✅ 必须：防止右侧溢出 */
   overflow:hidden;
   display:-webkit-box;
   -webkit-line-clamp:2;
@@ -301,8 +313,11 @@ main > section + section{ margin-top:14px; }
   line-height:1;
   white-space:nowrap;
   flex:0 0 auto;
+  max-width: 42vw;         /* ✅ 防止超长词撑破 */
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.mood-pill .mood-ico{ font-size:14px; } /* ✅ 再紧一点 */
+.mood-pill .mood-ico{ font-size:14px; }
 .mood-pill .mood-txt{ font-weight:800; }
 
 /* subtle variants */
@@ -324,6 +339,8 @@ main > section + section{ margin-top:14px; }
   padding:10px;
   box-shadow:0 10px 24px rgba(0,0,0,.08);
   z-index:99999;
+  max-width:100%;
+  overflow:hidden;
 }
 .tag-suggest button{
   border:1px solid rgba(0,0,0,.08);
@@ -344,6 +361,7 @@ main > section + section{ margin-top:14px; }
   display:flex;
   gap:10px;
   align-items:center;
+  max-width:100%;
 }
 .wall-search-row .input{ flex:1; min-width:0; }
 @media (max-width:520px){
@@ -378,76 +396,117 @@ main > section + section{ margin-top:14px; }
    Responsive: Desktop vs Mobile
    =============================== */
 
-/* ✅ 桌面端：默认不显示底部 Tabbar */
-.tabbar{
-  display:none;
+/* 桌面端：默认不显示底部 Tabbar */
+.tabbar { display:none; }
+
+/* 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
+@media (max-width: 767px) {
+  .tabbar { display:flex; }
+  .topnav { display:none; }
 }
 
-/* ✅ 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
-@media (max-width: 767px){
-  .topnav{ display:none; }
-  .tabbar{ display:flex; }
-}
-
-/* ===============================
-   ✅ iOS/Android 底部 TabBar：最终正确版（固定 + 放大）
-   =============================== */
+/* ✅✅ 关键：Tabbar 必须 fixed 才能一直在底部，不需要上拉才能看到 */
 .tabbar{
   position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-
-  height: var(--bottom-nav-h);
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  box-sizing:border-box;
+  left:0; right:0; bottom:0;
+  width:100%;
+  z-index:9999;
 
   display:flex;
-  align-items:center;
   justify-content:space-around;
-  gap: 10px;
+  align-items:center;
 
   background: rgba(255,255,255,.88);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0,0,0,.06);
 
-  z-index: 9999;
+  /* 变大 + 安全区 */
+  height: 74px;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(0,0,0,.06);
 }
 
+/* ✅ Tabbar 里的按钮要均分宽度，不要撑破 */
 .tabbar-btn{
-  appearance:none;
-  border:none;
-  background: transparent;
-  color: rgba(28,36,28,.70);
-  cursor:pointer;
-
   flex:1;
   min-width:0;
-
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:6px;
 
-  padding: 10px 10px;
-  border-radius: 16px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  gap: 6px;
+
+  border: none;
+  background: transparent;
+  color: var(--text);
+}
+
+.tabbar-btn.active{
+  background: rgba(70,178,86,.12);
 }
 
 .tabbar-btn .ico{
-  font-size: 24px;   /* ✅ 图标更大 */
+  font-size: 22px;
   line-height: 1;
 }
 
 .tabbar-btn .txt{
-  font-size: 14px;   /* ✅ 文字更大 */
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1;
 }
 
-/* ✅ 当前选中态：更像 iOS 底栏的“高亮胶囊” */
-.tabbar-btn.active{
-  background: rgba(70,178,86,.14);
-  color: var(--primary);
+/* ===============================
+   ✅✅ Modal（弹窗）必须 fixed 居中
+   =============================== */
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+}
+
+.modal-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.modal-card{
+  position:relative;
+  z-index:1;
+
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 120px);
+  overflow:auto;
+
+  border-radius: 18px;
+  padding: 16px;
+
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0,0,0,.06);
+  box-shadow: 0 20px 60px rgba(0,0,0,.18);
+}
+
+.modal-title{
+  font-size:18px;
+  font-weight:900;
+  margin:0 0 10px;
+}
+
+.modal-body{
+  font-size:16px;
+  line-height:1.55;
+  word-break:break-word;
+  margin-bottom:14px;
 }
