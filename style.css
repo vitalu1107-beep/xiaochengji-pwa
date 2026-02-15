@@ -12,7 +12,8 @@
 
   --radius:18px;
 
-  --bottom-nav-h: 84px;
+  /* ✅ 底部 TabBar 高度（你觉得小，就调大这里） */
+  --bottom-nav-h: 92px;
 }
 
 *{ box-sizing:border-box; }
@@ -30,6 +31,7 @@ body{
   max-width:980px;
   margin:0 auto;
   padding:16px;
+  /* ✅ 让内容区给 TabBar 让出空间，避免被覆盖 */
   padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
 }
 
@@ -376,45 +378,76 @@ main > section + section{ margin-top:14px; }
    Responsive: Desktop vs Mobile
    =============================== */
 
-/* 桌面端：默认不显示底部 Tabbar */
-.tabbar {
-  display: none;
-}
-
-/* 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
-@media (max-width: 767px) {
-  .tabbar {
-    display: flex;
-  }
-
-  .topnav {
-    display: none;
-  }
-}
-
-/* ===== iOS PWA: 底部 TabBar 放大 + 适配安全区 ===== */
+/* ✅ 桌面端：默认不显示底部 Tabbar */
 .tabbar{
-  /* 让它更“像 App” */
-  height: 78px;                 /* 关键：整体变高 */
-  padding: 10px 12px
-           calc(10px + env(safe-area-inset-bottom)); /* 关键：适配刘海/小横条 */
+  display:none;
+}
+
+/* ✅ 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
+@media (max-width: 767px){
+  .topnav{ display:none; }
+  .tabbar{ display:flex; }
+}
+
+/* ===============================
+   ✅ iOS/Android 底部 TabBar：最终正确版（固定 + 放大）
+   =============================== */
+.tabbar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+
+  height: var(--bottom-nav-h);
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  box-sizing:border-box;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  gap: 10px;
+
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(0,0,0,.06);
+
+  z-index: 9999;
 }
 
 .tabbar-btn{
-  padding: 8px 10px;            /* 点击区域变大 */
-  min-width: 64px;
-  border-radius: 14px;
-  gap: 6px;                     /* 图标和文字间距 */
+  appearance:none;
+  border:none;
+  background: transparent;
+  color: rgba(28,36,28,.70);
+  cursor:pointer;
+
+  flex:1;
+  min-width:0;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  padding: 10px 10px;
+  border-radius: 16px;
 }
 
 .tabbar-btn .ico{
-  font-size: 22px;              /* 图标变大 */
+  font-size: 24px;   /* ✅ 图标更大 */
   line-height: 1;
 }
 
 .tabbar-btn .txt{
-  font-size: 13px;              /* 文字变大 */
-  font-weight: 700;
+  font-size: 14px;   /* ✅ 文字更大 */
+  font-weight: 800;
   line-height: 1;
+}
+
+/* ✅ 当前选中态：更像 iOS 底栏的“高亮胶囊” */
+.tabbar-btn.active{
+  background: rgba(70,178,86,.14);
+  color: var(--primary);
 }
