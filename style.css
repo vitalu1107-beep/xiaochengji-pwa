@@ -11,6 +11,9 @@
   --danger:#e85b5b;
 
   --radius:18px;
+
+  /* 底部导航高度（如果你后面有底部 tabbar，可用它防遮挡） */
+  --bottom-nav-h: 84px;
 }
 
 *{ box-sizing:border-box; }
@@ -19,7 +22,6 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  padding-bottom: 0; /* 移动端会在 media 里加 */
 }
 
 .app{ width:100%; min-height:100vh; }
@@ -27,15 +29,23 @@ body{
   max-width:980px;
   margin:0 auto;
   padding:16px;
+  /* ✅ 避免底部 tabbar 遮住内容（没有 tabbar 也不影响） */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
 }
 
 /* ---------- Brand ---------- */
+header{
+  /* ✅ 顶部品牌区和下面内容的“呼吸感” */
+  padding-bottom: 8px;
+}
+
 .brand{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:12px;
-  margin-top:8px;
+  margin-top:10px;
+  margin-bottom:16px; /* ✅ 关键：与下面内容拉开距离 */
 }
 .brand .logo{
   width:44px;
@@ -47,13 +57,13 @@ body{
 .brand h1{ font-size:22px; margin:0; }
 .brand p{ margin:4px 0 0; color:var(--muted); }
 
-/* ---------- Top nav (desktop) ---------- */
+/* ---------- Top nav ---------- */
 .topnav{
   display:flex;
   justify-content:center;
   flex-wrap:wrap;
   gap:10px;
-  margin:14px 0 18px;
+  margin:8px 0 18px; /* 稍微缩小顶部占用 */
 }
 .topnav button{
   appearance:none;
@@ -97,12 +107,24 @@ body{
 /* ---------- Home stats cards ---------- */
 .stats-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:1fr 1fr; /* ✅ 默认两列 */
   gap:12px;
   margin-top:14px;
 }
+
+/* ✅ 手机也尽量保持两列；极小屏才单列 */
 @media (max-width:360px){
   .stats-grid{ grid-template-columns:1fr; }
+}
+
+/* ✅ 手机端把两张卡做“小一点”，给“最近的小快乐”腾空间 */
+@media (max-width:520px){
+  .stats-grid{ gap:10px; margin-top:12px; }
+  .stat-card{ padding:12px; }
+  .stat-card h3{ font-size:14px; margin:0 0 8px; }
+  .stat-card .big{ font-size:28px; margin:4px 0; }
+  .stat-card .sub{ margin:0 0 10px; font-size:12px; }
+  .btn{ padding:10px 12px; border-radius:12px; }
 }
 
 .stat-card{
@@ -158,7 +180,11 @@ body{
 .input:focus, .record-input:focus{ border-color:rgba(70,178,86,.6); }
 
 /* ---------- Record page layout ---------- */
-.record-wrap{ display:grid; gap:12px; }
+.record-wrap{
+  display:grid;
+  gap:12px;
+  position: relative; /* 让建议框可以相对输入区域定位 */
+}
 
 .mood-title{
   margin:6px 0 2px;
@@ -172,8 +198,19 @@ body{
   gap:10px;
   margin-top:8px;
 }
-@media (max-width:420px){
-  .mood-grid{ grid-template-columns:repeat(2, 1fr); }
+
+/* ✅ 关键：移动端也保持 4 列，并把按钮做小 */
+@media (max-width:520px){
+  .mood-grid{
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+  .mood-btn{
+    padding:10px 6px;
+    font-size:13px;
+    border-radius:14px;
+    gap:6px;
+  }
 }
 
 .mood-btn{
@@ -230,12 +267,17 @@ body{
   min-width:0;
   flex:1;
 }
+
+/* ✅ 默认显示两行，移动端观感更好（不再只露 2 个字） */
 .item-text{
-  min-width:0;
   overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  line-height:1.35;
+  word-break:break-word;
 }
+
 .item-right{
   display:flex;
   flex-direction:column;
@@ -257,6 +299,7 @@ body{
   font-size:14px;
   line-height:1;
   white-space:nowrap;
+  flex:0 0 auto;
 }
 .mood-pill .mood-ico{ font-size:16px; }
 .mood-pill .mood-txt{ font-weight:800; }
@@ -267,147 +310,46 @@ body{
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
 
-/* ---------- Tag suggest (appearance only; position is controlled by JS) ---------- */
+/* ===== Tag suggest dropdown (for #tag) ===== */
+/* 你现在 main.js 里会把它改成 fixed 并计算位置；这里保留兜底样式 */
 .tag-suggest{
+  margin-top:6px;
   display:none; /* JS 会切换成 flex */
-  gap:8px;
   flex-wrap:wrap;
+  gap:8px;
+
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:14px;
+  padding:10px;
+  box-shadow:0 10px 24px rgba(0,0,0,.08);
+  z-index:99999;
 }
-.tag-suggest .tag-suggest-item,
+
 .tag-suggest button{
   border:1px solid rgba(0,0,0,.08);
   background: rgba(244,249,244,.9);
-  border-radius:999px;
   padding:8px 12px;
+  border-radius:999px;
   cursor:pointer;
   font-size:14px;
   white-space:nowrap;
 }
-.tag-suggest .tag-suggest-item:hover,
 .tag-suggest button:hover{
   background: rgba(70,178,86,.12);
   border-color: rgba(70,178,86,.25);
 }
 
-/* ---------- Modal (for full text) ---------- */
-.modal{ position: fixed; inset: 0; z-index: 10000; }
-.modal-backdrop{ position: absolute; inset:0; background: rgba(0,0,0,.35); }
-.modal-card{
-  position: absolute;
-  left: 12px; right: 12px; bottom: 12px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
-}
-.modal-title{ font-weight: 900; margin-bottom: 8px; }
-.modal-body{ white-space: pre-wrap; line-height: 1.55; margin-bottom: 12px; }
+/* ---------- Mobile spacing polish ---------- */
+@media (max-width:520px){
+  /* ✅ 顶部品牌与内容再拉开一点（你提到“每一页都挤”） */
+  header{ padding-top: 6px; }
+  .brand{ margin-bottom:18px; }
 
-/* ---------- Mobile enhancements ---------- */
-@media (max-width: 560px){
-  /* 1) 使用底部 Tab Bar：给内容留空间，隐藏 topnav（你会在 CSS 里看到 tabbar 的样式） */
-  body{ padding-bottom: 78px; }
-  .topnav{ display: none !important; }
+  /* 面板间距稍微紧凑一点，整体更像“App” */
+  .panel{ padding:14px; }
+  .panel + .panel{ margin-top:12px; }
 
-  /* 2) 首页两张卡：手机上改为纵向（更舒服） */
-  .stats-grid{ grid-template-columns: 1fr; }
-
-  /* 3) 列表：文本两行摘要，别只剩两字 */
-  .item-left{ min-width: 0; }
-  .item-text{
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-    white-space: normal;
-    word-break: break-word;
-  }
-
-  /* 4) 右侧控件别抢空间 */
-  .item-right{
-    min-width: 84px;
-    gap: 6px;
-  }
-  .item-time{
-    max-width: 84px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    opacity: .75;
-  }
-  .btn{ border-radius: 12px; }
-  .btn.danger{ border-radius: 12px; }
-
-  /* 5) 记录页：输入框变大、心情区更轻、更聚焦输入 */
-  #input-text.record-input{
-    min-height: 110px; /* 关键：让输入更像“写一句话” */
-    padding: 14px 14px;
-    font-size: 16px;
-    line-height: 1.5;
-  }
-
-  /* 心情：固定 2x2（不用太大） */
-  #mood-group.mood-grid{
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  #mood-group .mood-btn{
-    height: 48px;
-    padding: 10px 12px;
-    font-size: 14px;
-    border-radius: 14px;
-  }
-
-  /* 保存按钮：保持大但别压迫页面 */
-  #btn-save.primary-btn{
-    font-size: 18px;
-    padding: 14px 14px;
-    border-radius: 18px;
-  }
-
-  /* mood pill：手机上稍微紧凑一点 */
-  .mood-pill{
-    padding: 7px 10px;
-    font-size: 13px;
-  }
-  .mood-pill .mood-ico{ font-size: 15px; }
-}
-
-/* ---------- Bottom Tab Bar ---------- */
-.tabbar{
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  display: none; /* mobile media 内显示 */
-  gap: 6px;
-  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(255,255,255,.92);
-  border-top: 1px solid rgba(0,0,0,.06);
-  backdrop-filter: blur(10px);
-  z-index: 9999;
-}
-
-.tabbar-btn{
-  flex: 1;
-  border: 0;
-  background: transparent;
-  padding: 8px 6px;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #222;
-  cursor: pointer;
-}
-.tabbar-btn .ico{ font-size: 18px; line-height: 1; }
-.tabbar-btn .txt{ font-size: 12px; }
-
-.tabbar-btn.active{
-  background: rgba(70,178,86,.16);
-  color: #1a6f3a;
-}
-
-@media (max-width: 560px){
-  .tabbar{ display: flex; }
+  /* 标题别太高 */
+  .section-title{ font-size:17px; margin-bottom:8px; }
 }
