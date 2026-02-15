@@ -86,14 +86,14 @@
           <h2 class="section-title">✨ 记录微光</h2>
 
           <div class="record-wrap">
-            <!-- 输入 -->
-            <input
+            <!-- ✅ 输入改为 textarea（2-3倍高），main.js 会配合改 Enter 逻辑 -->
+            <textarea
               id="input-text"
               class="record-input"
-              type="text"
               placeholder="比如：今天我完成了一个小目标 / 我把一件事推进了一步"
               autocomplete="off"
-            />
+              rows="4"
+            ></textarea>
 
             <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
 
