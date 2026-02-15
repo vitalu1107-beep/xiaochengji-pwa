@@ -13,7 +13,6 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="./style.css" />
-
 </head>
 
 <body>
@@ -29,7 +28,7 @@
           </div>
         </div>
 
-        <!-- 顶部导航（横排） -->
+        <!-- 顶部导航（桌面保留；移动端在 CSS 隐藏） -->
         <nav class="topnav" aria-label="主导航">
           <button id="tab-home" class="active" type="button" data-target="page-home">首页</button>
           <button id="tab-today" type="button" data-target="page-today">记录微光</button>
@@ -97,7 +96,7 @@
             />
 
             <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
-            
+
             <!-- 选择心情 -->
             <div class="mood-title" id="mood-title">选择心情</div>
 
@@ -108,7 +107,7 @@
               <button class="mood-btn" type="button" data-mood="lazy">☁️ 慵懒</button>
             </div>
 
-            <!-- ✅ 保存按钮放在心情下面 -->
+            <!-- 保存按钮 -->
             <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
           </div>
         </section>
@@ -205,36 +204,37 @@
     </div>
   </div>
 
+  <!-- ========== 底部 Tab Bar（移动端使用） ========== -->
+  <nav class="tabbar" id="tabbar" aria-label="底部导航">
+    <button class="tabbar-btn active" type="button" data-target="page-home" aria-label="首页">
+      <span class="ico">🏠</span><span class="txt">首页</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-today" aria-label="记录微光">
+      <span class="ico">✍️</span><span class="txt">记录</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-wall" aria-label="成就墙">
+      <span class="ico">🧱</span><span class="txt">成就墙</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-random" aria-label="随机回顾">
+      <span class="ico">🎲</span><span class="txt">回顾</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-settings" aria-label="设置">
+      <span class="ico">⚙️</span><span class="txt">设置</span>
+    </button>
+  </nav>
+
+  <!-- ========== Modal：点列表看全文（main.js 会控制显示/隐藏） ========== -->
+  <div id="modal" class="modal" style="display:none;" aria-hidden="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <button class="btn" type="button" data-close="1">关闭</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
-  <script src="./main.js"></script>
-
-  <!-- ✅ 兜底导航切页（如果你的 main.js 已经实现了，也不会冲突；不需要可删） -->
-  <script>
-    (function () {
-      const tabs = Array.from(document.querySelectorAll(".topnav button"));
-      const pages = ["page-home","page-today","page-wall","page-random","page-settings"]
-        .map(id => document.getElementById(id))
-        .filter(Boolean);
-
-      function show(id){
-        pages.forEach(p => p.style.display = (p.id === id ? "" : "none"));
-        tabs.forEach(t => t.classList.toggle("active", t.dataset.target === id));
-      }
-
-      tabs.forEach(btn => {
-        btn.addEventListener("click", () => show(btn.dataset.target));
-      });
-
-      // 让首页两个按钮也能切页
-      document.querySelectorAll('[data-target]').forEach(el => {
-        if (el.closest(".topnav")) return;
-        el.addEventListener("click", () => {
-          const t = el.getAttribute("data-target");
-          if (t) show(t);
-        });
-      });
-    })();
-  </script>
+  <script src="./main.js" defer></script>
 
   <!-- Service Worker -->
   <script>
