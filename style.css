@@ -283,3 +283,39 @@ body{
 .tag-suggest button:hover{
   background:#f2f2f2;
 }
+
+/* ===== Tag suggest dropdown (for #tag) ===== */
+.record-wrap{
+  position: relative; /* 让建议框可以相对输入区域定位 */
+}
+
+.tag-suggest{
+  display: none;                 /* JS 会切换成 flex */
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 70px;                     /* 大概在输入框下面；不准就微调 */
+  z-index: 999;                  /* 关键：压在最上层 */
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  padding: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+
+.tag-suggest button{
+  border: 1px solid rgba(0,0,0,.08);
+  background: rgba(244,249,244,.9);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.tag-suggest button:hover{
+  background: rgba(70,178,86,.12);
+  border-color: rgba(70,178,86,.25);
+}
