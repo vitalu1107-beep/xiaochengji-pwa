@@ -2,9 +2,13 @@
  * - Offline cache (App Shell + runtime cache)
  * - Correct scope for /xiaochengji-pwa/
  * - Update strategy: skipWaiting + clientsClaim
+ *
+ * ✅ 本版改动重点：
+ * 1) 导航改为：Cache First + 后台更新（SWR）=> 桌面启动更快
+ * 2) APP_SHELL 增加 icon-180（iOS）+ 可选 maskable
  */
 
-const VERSION = "v2026-02-15-13";
+const VERSION = "v2026-02-15-14"; // ✅ 改动后请 +1，触发清缓存
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const RUNTIME_CACHE = `smallwins-runtime-${VERSION}`;
 
@@ -20,6 +24,10 @@ const APP_SHELL = [
   `${BASE_PATH}manifest.json`,
   `${BASE_PATH}icons/icon-192.png`,
   `${BASE_PATH}icons/icon-512.png`,
+  // ✅ iOS 桌面图标建议用 180
+  `${BASE_PATH}icons/icon-180.png`,
+  // ✅ 如果你做了 maskable 图标就取消注释
+  // `${BASE_PATH}icons/icon-512-maskable.png`,
 ];
 
 // --- Install: precache app shell ---
@@ -33,14 +41,12 @@ self.addEventListener("install", (event) => {
           try {
             const req = new Request(url, { cache: "reload" });
             const res = await fetch(req);
-            if (res && res.ok) await cache.put(req, res);
+            if (res && res.ok) await cache.put(req, res.clone());
           } catch (e) {
-            // 某个资源没拉到也别让安装失败（尤其是首次偶发网络问题）
             console.warn("[SW] precache failed:", url, e);
           }
         })
       );
-      // 让新 SW 立刻进入 waiting -> active
       await self.skipWaiting();
     })()
   );
@@ -81,16 +87,17 @@ function isUnderBasePath(requestUrl) {
 }
 
 // --- Fetch strategy ---
-// 1) HTML 导航：Network First（保证更新），失败回退缓存 index.html
-// 2) 静态资源：Stale-While-Revalidate（秒开 + 后台更新）
-// 3) 其他请求：Network First，失败才用缓存兜底
+// ✅ 改动：
+// 1) HTML 导航：Cache First + 后台更新（SWR）=> 启动秒开
+// 2) 静态资源：SWR（保持你原来逻辑）
+// 3) 其他请求：Network First（保持你原来逻辑）
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
   // 只处理 GET
   if (req.method !== "GET") return;
 
-  // 只处理同源、且在 /xiaochengji-pwa/ 目录下的请求（避免污染别的站点资源）
+  // 只处理同源、且在 /xiaochengji-pwa/ 目录下的请求
   if (!isSameOrigin(req.url) || !isUnderBasePath(req.url)) return;
 
   const accept = req.headers.get("accept") || "";
@@ -99,23 +106,32 @@ self.addEventListener("fetch", (event) => {
   // ✅ 1) 页面导航（用户直接打开、刷新、从桌面启动）
   const isNav =
     req.mode === "navigate" ||
-    (accept.includes("text/html") && !url.pathname.endsWith(".css") && !url.pathname.endsWith(".js"));
+    (accept.includes("text/html") &&
+      !url.pathname.endsWith(".css") &&
+      !url.pathname.endsWith(".js"));
 
   if (isNav) {
     event.respondWith(
       (async () => {
-        try {
-          // Network First：优先拿最新
-          const fresh = await fetch(req);
-          const cache = await caches.open(RUNTIME_CACHE);
-          cache.put(req, fresh.clone());
-          return fresh;
-        } catch (e) {
-          // 离线：回退到缓存的 index.html（App Shell）
-          const cache = await caches.open(CACHE_NAME);
-          const cachedIndex = await cache.match(`${BASE_PATH}index.html`);
-          return cachedIndex || new Response("离线中，且未找到缓存。", { status: 503 });
-        }
+        const shellCache = await caches.open(CACHE_NAME);
+        const runtimeCache = await caches.open(RUNTIME_CACHE);
+
+        // ✅ 先给缓存（秒开）
+        const cached =
+          (await runtimeCache.match(req)) ||
+          (await shellCache.match(req)) ||
+          (await shellCache.match(`${BASE_PATH}index.html`));
+
+        // ✅ 后台更新（不阻塞首屏）
+        const updatePromise = fetch(new Request(req.url, { cache: "no-store" }))
+          .then((res) => {
+            if (res && res.ok) runtimeCache.put(req, res.clone());
+            return res;
+          })
+          .catch(() => null);
+
+        // 有缓存就立刻返回；没有缓存再等网络（首次访问）
+        return cached || (await updatePromise) || new Response("离线中，且未找到缓存。", { status: 503 });
       })()
     );
     return;
@@ -146,7 +162,6 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => null);
 
-        // 先返回缓存，后台更新
         return cached || (await fetchPromise) || new Response("离线中，资源不可用。", { status: 503 });
       })()
     );
