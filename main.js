@@ -86,10 +86,9 @@
     lazy:    { icon: "☁️", label: "慵懒" },
   };
 
-  // ---------- Elements (new index.html) ----------
+  // ---------- Elements ----------
   const homeDateEl = $("#home-date");
   const homeGreetingEl = $("#home-greeting");
-  const homeQuoteEl = $("#home-quote");
   const statStreakEl = $("#stat-streak");
   const statStreakSubEl = $("#stat-streak-sub");
   const statHappyEl = $("#stat-happy");
@@ -125,13 +124,42 @@
   const exportBtn = $("#btn-export");
   const clearAllBtn = $("#btn-clear-all");
 
+  // Modal (全文查看)
+  const modalEl = $("#modal");
+  const modalTitleEl = $("#modal-title");
+  const modalBodyEl = $("#modal-body");
+
   // ---------- State ----------
   let records = loadRecords();
   let selectedMood = null;
   let currentRandomId = null;
 
-  // ---------- Tabs navigation ----------
-  const tabs = $$(".topnav button");
+  // ---------- Modal ----------
+  function openModal(title, body) {
+    if (!modalEl) return;
+    if (modalTitleEl) modalTitleEl.textContent = title || "";
+    if (modalBodyEl) modalBodyEl.textContent = body || "";
+    modalEl.style.display = "";
+    modalEl.setAttribute("aria-hidden", "false");
+  }
+  function closeModal() {
+    if (!modalEl) return;
+    modalEl.style.display = "none";
+    modalEl.setAttribute("aria-hidden", "true");
+  }
+
+  if (modalEl) {
+    modalEl.addEventListener("click", (e) => {
+      const t = e.target;
+      if (t && t.getAttribute && t.getAttribute("data-close") === "1") closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+  }
+
+  // ---------- Tabs navigation (Top + Bottom tabbar) ----------
+  const tabs = $$(".topnav button, .tabbar-btn");
   const pages = ["page-home", "page-today", "page-wall", "page-random", "page-settings"]
     .map((id) => document.getElementById(id))
     .filter(Boolean);
@@ -139,6 +167,9 @@
   function showPage(id) {
     pages.forEach((p) => (p.style.display = p.id === id ? "" : "none"));
     tabs.forEach((t) => t.classList.toggle("active", t.dataset.target === id));
+
+    // 切页时把 tag suggest 收起来，避免浮在上层
+    hideTagSuggest();
 
     if (id === "page-home") renderHome();
     if (id === "page-today") renderToday();
@@ -149,8 +180,10 @@
 
   tabs.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.target)));
 
+  // 让所有 data-target（比如首页卡片按钮）也能切页
   $$("[data-target]").forEach((el) => {
     if (el.closest(".topnav")) return;
+    if (el.closest(".tabbar")) return;
     el.addEventListener("click", () => {
       const t = el.getAttribute("data-target");
       if (t) showPage(t);
@@ -199,7 +232,6 @@
 
         latest.forEach((r) => {
           const mood = MOODS[r.mood] || null;
-
           const div = document.createElement("div");
           div.className = "item";
           div.innerHTML = `
@@ -211,6 +243,7 @@
               <div class="item-time">${escapeHtml(r.timeText)}</div>
             </div>
           `;
+          div.addEventListener("click", () => openModal(r.timeText, r.text));
           recentListEl.appendChild(div);
         });
       }
@@ -257,20 +290,28 @@
         </div>
         <div class="item-right">
           <div class="item-time">${escapeHtml(r.timeText)}</div>
-          <button class="btn btn-danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
+          <button class="btn danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
         </div>
       `;
+
+      // 点卡片看全文（点删除不触发）
+      div.addEventListener("click", (e) => {
+        if (e.target.closest("[data-del]")) return;
+        openModal(r.timeText, r.text);
+      });
 
       if (todayListEl) todayListEl.appendChild(div);
     });
 
     $$("#today-list [data-del]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute("data-del");
         records = records.filter((x) => x.id !== id);
         saveRecords(records);
         renderToday();
         renderHome();
+        renderWall();
         toast("已删除");
       });
     });
@@ -300,9 +341,7 @@
     selectedMood = null;
     $$("#mood-group .mood-btn").forEach((b) => b.classList.remove("active"));
 
-    // 标签联想：保存后也同步（下一次输入立刻可用）
-    // 不需要额外处理，因为我们每次 input 都会从 records 取标签
-
+    hideTagSuggest();
     renderToday();
     renderHome();
     renderWall();
@@ -326,7 +365,7 @@
     const q = (wallSearchEl?.value || "").trim().toLowerCase();
     let list = [...records].sort((a, b) => b.ts - a.ts);
 
-    if (q) list = list.filter((r) => r.text.toLowerCase().includes(q));
+    if (q) list = list.filter((r) => (r.text || "").toLowerCase().includes(q));
 
     if (wallListEl) wallListEl.innerHTML = "";
 
@@ -343,18 +382,23 @@
       div.innerHTML = `
         <div class="item-left">
           ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
-          <div class="item-text" style="white-space:normal;">${escapeHtml(r.text)}</div>
+          <div class="item-text">${escapeHtml(r.text)}</div>
         </div>
         <div class="item-right">
           <div class="item-time">${escapeHtml(r.timeText)}</div>
-          <button class="btn btn-danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
+          <button class="btn danger" type="button" data-del="${escapeHtml(r.id)}">删除</button>
         </div>
       `;
+      div.addEventListener("click", (e) => {
+        if (e.target.closest("[data-del]")) return;
+        openModal(r.timeText, r.text);
+      });
       wallListEl.appendChild(div);
     });
 
     $$("#wall-list [data-del]").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         const id = btn.getAttribute("data-del");
         records = records.filter((x) => x.id !== id);
         saveRecords(records);
@@ -483,111 +527,101 @@
     });
   }
 
-  // ---------- 标签联想（修复版：使用 LS_KEY / records） ----------
+  // ---------- Tag Suggest ----------
+  function extractTagsFromText(text) {
+    const res = [];
+    const re = /[#＃]([^\s#＃]+)/g;
+    let m;
+    while ((m = re.exec(text || "")) !== null) res.push(m[1]);
+    return res;
+  }
+
+  function getAllTagsSorted() {
+    const counter = new Map();
+    records.forEach((r) => {
+      extractTagsFromText(r.text || "").forEach((t) => {
+        counter.set(t, (counter.get(t) || 0) + 1);
+      });
+    });
+    return [...counter.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag);
+  }
+
+  function hideTagSuggest() {
+    if (!tagSuggestEl) return;
+    tagSuggestEl.style.display = "none";
+    tagSuggestEl.innerHTML = "";
+  }
+
+  function showTagSuggest(tags, leftText, cursorPos) {
+    if (!tagSuggestEl || !inputTextEl) return;
+    if (!tags.length) return hideTagSuggest();
+
+    tagSuggestEl.innerHTML = "";
+    tags.slice(0, 12).forEach((tag) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "tag-suggest-item";
+      btn.textContent = "#" + tag;
+
+      btn.addEventListener("click", () => {
+        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
+        const right = inputTextEl.value.slice(cursorPos);
+        inputTextEl.value = newLeft + right;
+
+        const pos = newLeft.length;
+        inputTextEl.focus();
+        inputTextEl.setSelectionRange(pos, pos);
+
+        hideTagSuggest();
+      });
+
+      tagSuggestEl.appendChild(btn);
+    });
+
+    // 固定定位到输入框下方（避免被裁剪/盖住）
+    const rect = inputTextEl.getBoundingClientRect();
+    tagSuggestEl.style.position = "fixed";
+    tagSuggestEl.style.left = rect.left + "px";
+    tagSuggestEl.style.top = rect.bottom + 8 + "px";
+    tagSuggestEl.style.width = rect.width + "px";
+    tagSuggestEl.style.zIndex = "99999";
+    tagSuggestEl.style.display = "flex";
+  }
+
   function setupTagSuggest() {
     if (!inputTextEl || !tagSuggestEl) return;
 
-    // 1) 从记录里提取标签（#生活 #工作）
-    function extractTagsFromText(text) {
-      const res = [];
-      const re = /[#＃]([^\s#＃]+)/g; // #后面跟非空白非#的连续字符
-      let m;
-      while ((m = re.exec(text || "")) !== null) res.push(m[1]);
-      return res;
-    }
-
-    // 2) 汇总 + 频次排序（更好用：常用的排前面）
-    function getAllTagsSorted() {
-      const counter = new Map();
-      records.forEach((r) => {
-        extractTagsFromText(r.text || "").forEach((t) => {
-          counter.set(t, (counter.get(t) || 0) + 1);
-        });
-      });
-      return [...counter.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([tag]) => tag);
-    }
-
-    function hide() {
-      tagSuggestEl.style.display = "none";
-      tagSuggestEl.innerHTML = "";
-    }
-
-    function show(tags, leftText, cursorPos) {
-  if (!tags.length) return hide();
-
-  tagSuggestEl.innerHTML = "";
-  tags.slice(0, 12).forEach((tag) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "tag-suggest-item";
-    btn.textContent = "#" + tag;
-
-    btn.addEventListener("click", () => {
-      // 替换光标前最后一个 #xxx
-      const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
-      const right = inputTextEl.value.slice(cursorPos);
-      const next = newLeft + right;
-
-      inputTextEl.value = next;
-
-      const pos = newLeft.length;
-      inputTextEl.focus();
-      inputTextEl.setSelectionRange(pos, pos);
-
-      hide();
-    });
-
-    tagSuggestEl.appendChild(btn);
-  });
-
-  // ⭐⭐⭐ 关键修复：强制定位到输入框下方 ⭐⭐⭐
-  const rect = inputTextEl.getBoundingClientRect();
-  tagSuggestEl.style.position = "fixed";
-  tagSuggestEl.style.left = rect.left + "px";
-  tagSuggestEl.style.top = rect.bottom + 8 + "px";
-  tagSuggestEl.style.width = rect.width + "px";
-  tagSuggestEl.style.zIndex = "99999";
-  tagSuggestEl.style.background = "#fff";
-  tagSuggestEl.style.border = "1px solid rgba(0,0,0,.08)";
-  tagSuggestEl.style.borderRadius = "12px";
-  tagSuggestEl.style.boxShadow = "0 10px 30px rgba(0,0,0,.12)";
-  tagSuggestEl.style.padding = "10px";
-  tagSuggestEl.style.gap = "8px";
-  tagSuggestEl.style.flexWrap = "wrap";
-
-  tagSuggestEl.style.display = "flex";
-}
-
     inputTextEl.addEventListener("input", () => {
-      const value = inputTextEl.value;
+      const value = inputTextEl.value || "";
       const cursor = inputTextEl.selectionStart ?? value.length;
       const left = value.slice(0, cursor);
 
-      // 只在光标前最后 token 是 # 或 #xxx 时触发
-      const newLeft = leftText.replace(/#([^\s#]*)$/, "#" + tag + " ");
-      if (!m) return hide();
+      const m = left.match(/[#＃]([^\s#＃]*)$/);
+      if (!m) return hideTagSuggest();
 
-      const keyword = (m[1] || "").trim(); // 可能为空（只输入了#）
+      const keyword = (m[1] || "").trim();
       const all = getAllTagsSorted();
-
-      // keyword为空：输入# -> 全部；有值：输入#生 -> 过滤
       const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
 
-      show(filtered, left, cursor);
+      showTagSuggest(filtered, left, cursor);
     });
 
     // 点击空白处收起
     document.addEventListener("click", (e) => {
-      if (e.target === inputTextEl || tagSuggestEl.contains(e.target)) return;
-      hide();
+      if (e.target === inputTextEl || (tagSuggestEl && tagSuggestEl.contains(e.target))) return;
+      hideTagSuggest();
     });
 
-    // Esc 收起
+    // Esc 收起（这里不和 modal 冲突：modal 也会关，用户预期一致）
     inputTextEl.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") hide();
+      if (e.key === "Escape") hideTagSuggest();
     });
+
+    // 滚动/缩放时收起，避免浮层位置飘
+    window.addEventListener("scroll", hideTagSuggest, { passive: true });
+    window.addEventListener("resize", hideTagSuggest);
   }
 
   // ---------- Events ----------
@@ -597,6 +631,7 @@
 
   if (inputTextEl) {
     inputTextEl.addEventListener("keydown", (e) => {
+      // 输入框是 input[type=text]：Enter 直接保存
       if (e.key === "Enter") {
         e.preventDefault();
         saveRecord();
