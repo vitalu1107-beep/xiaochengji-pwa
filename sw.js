@@ -8,7 +8,7 @@
  * 2) APP_SHELL 增加 icon-180（iOS）+ 可选 maskable
  */
 
-const VERSION = "v2026-02-15-14"; // ✅ 改动后请 +1，触发清缓存
+const VERSION = "v2026-02-15-15"; // ✅ 改动后请 +1，触发清缓存
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const RUNTIME_CACHE = `smallwins-runtime-${VERSION}`;
 
