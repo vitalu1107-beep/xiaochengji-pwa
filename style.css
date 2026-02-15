@@ -391,3 +391,30 @@ main > section + section{ margin-top:14px; }
     display: none;
   }
 }
+
+/* ===== iOS PWA: 底部 TabBar 放大 + 适配安全区 ===== */
+.tabbar{
+  /* 让它更“像 App” */
+  height: 78px;                 /* 关键：整体变高 */
+  padding: 10px 12px
+           calc(10px + env(safe-area-inset-bottom)); /* 关键：适配刘海/小横条 */
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+.tabbar-btn{
+  padding: 8px 10px;            /* 点击区域变大 */
+  min-width: 64px;
+  border-radius: 14px;
+  gap: 6px;                     /* 图标和文字间距 */
+}
+
+.tabbar-btn .ico{
+  font-size: 22px;              /* 图标变大 */
+  line-height: 1;
+}
+
+.tabbar-btn .txt{
+  font-size: 13px;              /* 文字变大 */
+  font-weight: 700;
+  line-height: 1;
+}
