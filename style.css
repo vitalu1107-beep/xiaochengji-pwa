@@ -12,16 +12,18 @@
 
   --radius:18px;
 
-  /* 底部导航高度（如果你后面有底部 tabbar，可用它防遮挡） */
-  --bottom-nav-h: 84px;
+  /* ✅ 底部导航高度（移动端使用） */
+  --bottom-nav-h: 96px;
 }
 
 *{ box-sizing:border-box; }
+html, body{ height:100%; }
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
+  overflow-x:hidden; /* ✅ 防横向溢出导致“跑到屏幕外” */
 }
 
 .app{ width:100%; min-height:100vh; }
@@ -29,23 +31,29 @@ body{
   max-width:980px;
   margin:0 auto;
   padding:16px;
-  /* ✅ 避免底部 tabbar 遮住内容（没有 tabbar 也不影响） */
-  padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
+
+  /* ✅ 默认不强行加很大底部 padding（桌面不需要） */
+  padding-bottom: 16px;
+}
+
+/* ✅ 移动端：给内容区预留 tabbar 的空间，避免被遮挡 */
+@media (max-width:520px){
+  .container{
+    padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
+  }
 }
 
 /* ---------- Brand ---------- */
 header{
-  /* ✅ 顶部品牌区和下面内容的“呼吸感” */
-  padding-bottom: 8px;
+  padding-bottom: 10px;
 }
-
 .brand{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:12px;
   margin-top:10px;
-  margin-bottom:16px; /* ✅ 关键：与下面内容拉开距离 */
+  margin-bottom:16px;
 }
 .brand .logo{
   width:44px;
@@ -63,7 +71,7 @@ header{
   justify-content:center;
   flex-wrap:wrap;
   gap:10px;
-  margin:8px 0 18px; /* 稍微缩小顶部占用 */
+  margin:10px 0 18px;
 }
 .topnav button{
   appearance:none;
@@ -82,6 +90,14 @@ header{
   border-color:transparent;
 }
 
+/* ✅ 导航显示规则：移动端只要底部；桌面只要顶部 */
+@media (max-width:520px){
+  .topnav{ display:none; }
+}
+@media (min-width:521px){
+  .tabbar{ display:none; }
+}
+
 /* ---------- Panels / common ---------- */
 .panel{
   border-radius:var(--radius);
@@ -89,6 +105,7 @@ header{
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
   box-shadow:0 10px 30px rgba(0,0,0,.05);
+  max-width:100%;
 }
 .panel + .panel{ margin-top:14px; }
 
@@ -104,22 +121,27 @@ header{
 .muted{ color:var(--muted); }
 .small{ font-size:13px; }
 
+/* ✅ 首页：板块之间更松一点（只影响首页，不影响别页） */
+#page-home .panel{ margin-top:0; }
+#page-home .panel + .panel{ margin-top:16px; }
+#page-home .stats-grid{ margin-top:16px; margin-bottom:10px; }
+#page-home .section-title{ margin-bottom:12px; }
+
 /* ---------- Home stats cards ---------- */
 .stats-grid{
   display:grid;
-  grid-template-columns:1fr 1fr; /* ✅ 默认两列 */
+  grid-template-columns:1fr 1fr;
   gap:12px;
   margin-top:14px;
 }
 
-/* ✅ 手机也尽量保持两列；极小屏才单列 */
 @media (max-width:360px){
   .stats-grid{ grid-template-columns:1fr; }
 }
 
-/* ✅ 手机端把两张卡做“小一点”，给“最近的小快乐”腾空间 */
+/* ✅ 手机端：两卡更紧凑，但不挤 */
 @media (max-width:520px){
-  .stats-grid{ gap:10px; margin-top:12px; }
+  .stats-grid{ gap:12px; margin-top:14px; }
   .stat-card{ padding:12px; }
   .stat-card h3{ font-size:14px; margin:0 0 8px; }
   .stat-card .big{ font-size:28px; margin:4px 0; }
@@ -179,11 +201,20 @@ header{
 }
 .input:focus, .record-input:focus{ border-color:rgba(70,178,86,.6); }
 
+/* ✅ textarea（记录输入框）放大 2-3 倍 */
+.record-input{
+  min-height: 132px;  /* 大约 2-3 倍 input 高度 */
+  line-height: 1.5;
+  resize: none;
+  overflow: auto;
+}
+
 /* ---------- Record page layout ---------- */
 .record-wrap{
   display:grid;
   gap:12px;
-  position: relative; /* 让建议框可以相对输入区域定位 */
+  position: relative;
+  max-width:100%;
 }
 
 .mood-title{
@@ -199,12 +230,9 @@ header{
   margin-top:8px;
 }
 
-/* ✅ 关键：移动端也保持 4 列，并把按钮做小 */
+/* ✅ 关键：移动端也保持 4 列，但按钮别太挤 */
 @media (max-width:520px){
-  .mood-grid{
-    grid-template-columns:repeat(4, 1fr);
-    gap:8px;
-  }
+  .mood-grid{ gap:8px; }
   .mood-btn{
     padding:10px 6px;
     font-size:13px;
@@ -257,6 +285,7 @@ header{
   border-radius:14px;
   background:rgba(255,255,255,.75);
   border:1px solid rgba(0,0,0,.06);
+  max-width:100%;
 }
 .item + .item{ margin-top:10px; }
 
@@ -268,7 +297,6 @@ header{
   flex:1;
 }
 
-/* ✅ 默认显示两行，移动端观感更好（不再只露 2 个字） */
 .item-text{
   overflow:hidden;
   display:-webkit-box;
@@ -304,17 +332,15 @@ header{
 .mood-pill .mood-ico{ font-size:16px; }
 .mood-pill .mood-txt{ font-weight:800; }
 
-/* subtle variants */
 .mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
 .mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
 
-/* ===== Tag suggest dropdown (for #tag) ===== */
-/* 你现在 main.js 里会把它改成 fixed 并计算位置；这里保留兜底样式 */
+/* ---------- Tag suggest ---------- */
 .tag-suggest{
   margin-top:6px;
-  display:none; /* JS 会切换成 flex */
+  display:none;
   flex-wrap:wrap;
   gap:8px;
 
@@ -340,16 +366,109 @@ header{
   border-color: rgba(70,178,86,.25);
 }
 
+/* ---------- Bottom Tabbar (mobile) ---------- */
+.tabbar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255,255,255,.90);
+  border-top:1px solid rgba(0,0,0,.08);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+
+  display:flex;
+  align-items:stretch;
+  justify-content:space-around;
+}
+
+.tabbar-btn{
+  flex:1;
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  padding: 10px 6px 12px;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  color: rgba(28,36,28,.70);
+}
+
+.tabbar-btn .ico{
+  font-size:22px;  /* ✅ 图标放大 */
+  line-height:1;
+}
+.tabbar-btn .txt{
+  font-size:12px;  /* ✅ 文字可读 */
+  font-weight:700;
+  line-height:1;
+}
+
+.tabbar-btn.active{
+  color: var(--primary);
+}
+
+/* ---------- Modal ---------- */
+.modal{
+  position:fixed;
+  inset:0;
+  z-index: 10000;
+}
+.modal-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.35);
+}
+.modal-card{
+  position:relative;
+  width: min(92vw, 520px);
+  margin: 12vh auto 0;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+}
+.modal-title{
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+.modal-body{
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 12px;
+  max-height: 45vh;
+  overflow: auto;
+}
+
+/* ---------- Small helpers ---------- */
+.form-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.form-row .input{ flex:1; min-width: 200px; }
+
 /* ---------- Mobile spacing polish ---------- */
 @media (max-width:520px){
-  /* ✅ 顶部品牌与内容再拉开一点（你提到“每一页都挤”） */
   header{ padding-top: 6px; }
   .brand{ margin-bottom:18px; }
 
-  /* 面板间距稍微紧凑一点，整体更像“App” */
+  /* ✅ 所有页面板块之间别太挤 */
   .panel{ padding:14px; }
-  .panel + .panel{ margin-top:12px; }
+  .panel + .panel{ margin-top:14px; }
 
-  /* 标题别太高 */
-  .section-title{ font-size:17px; margin-bottom:8px; }
+  .section-title{ font-size:17px; margin-bottom:10px; }
+
+  /* ✅ 记录输入框在手机更舒服 */
+  .record-input{
+    min-height: 150px;
+    font-size:16px;
+  }
 }
