@@ -12,18 +12,20 @@
 
   --radius:18px;
 
-  /* ✅ 底部导航高度（移动端使用） */
-  --bottom-nav-h: 96px;
+  /* 底部导航高度（如果你后面有底部 tabbar，可用它防遮挡） */
+  --bottom-nav-h: 84px;
 }
 
 *{ box-sizing:border-box; }
 html, body{ height:100%; }
+
+/* ✅ 兜底：修复 iOS 小数像素导致的横向溢出 */
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  overflow-x:hidden; /* ✅ 防横向溢出导致“跑到屏幕外” */
+  overflow-x:hidden;
 }
 
 .app{ width:100%; min-height:100vh; }
@@ -31,22 +33,13 @@ body{
   max-width:980px;
   margin:0 auto;
   padding:16px;
-
-  /* ✅ 默认不强行加很大底部 padding（桌面不需要） */
-  padding-bottom: 16px;
-}
-
-/* ✅ 移动端：给内容区预留 tabbar 的空间，避免被遮挡 */
-@media (max-width:520px){
-  .container{
-    padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
-  }
+  padding-bottom: calc(16px + env(safe-area-inset-bottom) + var(--bottom-nav-h));
+  overflow-x: clip; /* 比 hidden 更“干净” */
 }
 
 /* ---------- Brand ---------- */
-header{
-  padding-bottom: 10px;
-}
+header{ padding-bottom: 8px; }
+
 .brand{
   display:flex;
   align-items:center;
@@ -71,7 +64,7 @@ header{
   justify-content:center;
   flex-wrap:wrap;
   gap:10px;
-  margin:10px 0 18px;
+  margin:8px 0 18px;
 }
 .topnav button{
   appearance:none;
@@ -90,14 +83,6 @@ header{
   border-color:transparent;
 }
 
-/* ✅ 导航显示规则：移动端只要底部；桌面只要顶部 */
-@media (max-width:520px){
-  .topnav{ display:none; }
-}
-@media (min-width:521px){
-  .tabbar{ display:none; }
-}
-
 /* ---------- Panels / common ---------- */
 .panel{
   border-radius:var(--radius);
@@ -105,7 +90,6 @@ header{
   background:var(--card);
   border:1px solid rgba(0,0,0,.06);
   box-shadow:0 10px 30px rgba(0,0,0,.05);
-  max-width:100%;
 }
 .panel + .panel{ margin-top:14px; }
 
@@ -121,12 +105,6 @@ header{
 .muted{ color:var(--muted); }
 .small{ font-size:13px; }
 
-/* ✅ 首页：板块之间更松一点（只影响首页，不影响别页） */
-#page-home .panel{ margin-top:0; }
-#page-home .panel + .panel{ margin-top:16px; }
-#page-home .stats-grid{ margin-top:16px; margin-bottom:10px; }
-#page-home .section-title{ margin-bottom:12px; }
-
 /* ---------- Home stats cards ---------- */
 .stats-grid{
   display:grid;
@@ -134,14 +112,11 @@ header{
   gap:12px;
   margin-top:14px;
 }
-
 @media (max-width:360px){
   .stats-grid{ grid-template-columns:1fr; }
 }
-
-/* ✅ 手机端：两卡更紧凑，但不挤 */
 @media (max-width:520px){
-  .stats-grid{ gap:12px; margin-top:14px; }
+  .stats-grid{ gap:10px; margin-top:12px; }
   .stat-card{ padding:12px; }
   .stat-card h3{ font-size:14px; margin:0 0 8px; }
   .stat-card .big{ font-size:28px; margin:4px 0; }
@@ -201,12 +176,11 @@ header{
 }
 .input:focus, .record-input:focus{ border-color:rgba(70,178,86,.6); }
 
-/* ✅ textarea（记录输入框）放大 2-3 倍 */
+/* ✅ textarea 视觉更像“卡片输入” */
 .record-input{
-  min-height: 132px;  /* 大约 2-3 倍 input 高度 */
-  line-height: 1.5;
   resize: none;
-  overflow: auto;
+  line-height: 1.45;
+  min-height: 140px; /* 约 2-3 倍输入高度 */
 }
 
 /* ---------- Record page layout ---------- */
@@ -214,7 +188,8 @@ header{
   display:grid;
   gap:12px;
   position: relative;
-  max-width:100%;
+  width: 100%;
+  min-width: 0;
 }
 
 .mood-title{
@@ -229,10 +204,11 @@ header{
   gap:10px;
   margin-top:8px;
 }
-
-/* ✅ 关键：移动端也保持 4 列，但按钮别太挤 */
 @media (max-width:520px){
-  .mood-grid{ gap:8px; }
+  .mood-grid{
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
   .mood-btn{
     padding:10px 6px;
     font-size:13px;
@@ -243,6 +219,7 @@ header{
 
 .mood-btn{
   width:100%;
+  min-width:0;
   padding:12px 10px;
   border-radius:16px;
   border:1px solid var(--border);
@@ -274,6 +251,25 @@ header{
 }
 .primary-btn:hover{ background:var(--primary2); }
 
+/* ---------- Wall search row ---------- */
+.search-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.search-row .input{
+  flex:1;
+  min-width:0;
+}
+.search-row .btn{
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+@media (max-width:520px){
+  .search-row{ gap:8px; }
+  .search-row .btn{ padding:10px 10px; }
+}
+
 /* ---------- Lists / items ---------- */
 .list{ margin-top:10px; }
 
@@ -285,7 +281,8 @@ header{
   border-radius:14px;
   background:rgba(255,255,255,.75);
   border:1px solid rgba(0,0,0,.06);
-  max-width:100%;
+  width:100%;
+  min-width:0;
 }
 .item + .item{ margin-top:10px; }
 
@@ -293,11 +290,31 @@ header{
   display:flex;
   align-items:center;
   gap:10px;
-  min-width:0;
+  min-width:0;      /* ✅ 关键：允许内部收缩，防横向溢出 */
   flex:1;
 }
+.item-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  flex:0 0 auto;
+  min-width:0;
+}
 
+.item-time{
+  color:var(--muted);
+  font-size:12px;
+  white-space:nowrap;
+  max-width: 36vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* ✅ 文本露出更多：默认两行（可改 3 行） */
 .item-text{
+  flex:1;
+  min-width:0;
   overflow:hidden;
   display:-webkit-box;
   -webkit-line-clamp:2;
@@ -306,38 +323,34 @@ header{
   word-break:break-word;
 }
 
-.item-right{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:8px;
-}
-.item-time{ color:var(--muted); font-size:12px; }
-
-/* mood pill */
+/* ---------- mood pill（瘦身版：让它跟正文差不多大，别挤占空间） ---------- */
 .mood-pill{
+  flex:0 0 auto;
   display:inline-flex;
   align-items:center;
   gap:6px;
-  padding:8px 12px;
+  padding:6px 8px;          /* ✅ 更小 */
   border-radius:999px;
   border:1px solid rgba(0,0,0,.06);
   background:#fff;
   color:var(--text);
-  font-size:14px;
+  font-size:13px;           /* ✅ 接近正文 */
   line-height:1;
   white-space:nowrap;
-  flex:0 0 auto;
+  max-width: 92px;          /* ✅ 限制占位 */
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.mood-pill .mood-ico{ font-size:16px; }
+.mood-pill .mood-ico{ font-size:14px; }   /* ✅ 图标别比文字大太多 */
 .mood-pill .mood-txt{ font-weight:800; }
 
+/* subtle variants */
 .mood-pill.calm    { background:#f3fbf3; border-color:#cfe8cf; }
 .mood-pill.happy   { background:#fff8e6; border-color:#f1e1b0; }
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
 
-/* ---------- Tag suggest ---------- */
+/* ----- Tag suggest dropdown (for #tag) ----- */
 .tag-suggest{
   margin-top:6px;
   display:none;
@@ -351,7 +364,6 @@ header{
   box-shadow:0 10px 24px rgba(0,0,0,.08);
   z-index:99999;
 }
-
 .tag-suggest button{
   border:1px solid rgba(0,0,0,.08);
   background: rgba(244,249,244,.9);
@@ -366,109 +378,96 @@ header{
   border-color: rgba(70,178,86,.25);
 }
 
-/* ---------- Bottom Tabbar (mobile) ---------- */
-.tabbar{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(255,255,255,.90);
-  border-top:1px solid rgba(0,0,0,.08);
-  backdrop-filter: blur(12px);
-  z-index: 9999;
+/* ---------- Mobile spacing polish ---------- */
+@media (max-width:520px){
+  header{ padding-top: 6px; }
+  .brand{ margin-bottom:18px; }
 
-  display:flex;
-  align-items:stretch;
-  justify-content:space-around;
-}
+  .panel{ padding:14px; }
+  .panel + .panel{ margin-top:12px; }
 
-.tabbar-btn{
-  flex:1;
-  border:none;
-  background:transparent;
-  cursor:pointer;
-  padding: 10px 6px 12px;
+  .section-title{ font-size:17px; margin-bottom:8px; }
 
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
+  .item{ padding:12px; }
+  .mood-pill{ max-width: 84px; font-size:12.5px; }
+  .mood-pill .mood-ico{ font-size:13px; }
 
-  color: rgba(28,36,28,.70);
-}
-
-.tabbar-btn .ico{
-  font-size:22px;  /* ✅ 图标放大 */
-  line-height:1;
-}
-.tabbar-btn .txt{
-  font-size:12px;  /* ✅ 文字可读 */
-  font-weight:700;
-  line-height:1;
-}
-
-.tabbar-btn.active{
-  color: var(--primary);
+  /* 防止极小屏溢出 */
+  .item-right .btn{ padding:10px 10px; }
 }
 
 /* ---------- Modal ---------- */
 .modal{
   position:fixed;
   inset:0;
-  z-index: 10000;
+  z-index:999999;
 }
 .modal-backdrop{
   position:absolute;
   inset:0;
-  background: rgba(0,0,0,.35);
+  background:rgba(0,0,0,.35);
 }
 .modal-card{
-  position:relative;
-  width: min(92vw, 520px);
-  margin: 12vh auto 0;
-  background: #fff;
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(560px, 92vw);
+  border-radius:18px;
+  background:#fff;
+  padding:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
 }
 .modal-title{
-  font-weight: 900;
-  margin-bottom: 10px;
+  font-weight:900;
+  margin-bottom:8px;
 }
 .modal-body{
-  white-space: pre-wrap;
-  line-height: 1.6;
-  color: var(--text);
-  margin-bottom: 12px;
-  max-height: 45vh;
-  overflow: auto;
+  white-space:pre-wrap;
+  line-height:1.5;
+  margin-bottom:12px;
+  max-height:50vh;
+  overflow:auto;
 }
 
-/* ---------- Small helpers ---------- */
-.form-row{
+/* ---------- Bottom Tabbar ---------- */
+.tabbar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.88);
+  border-top:1px solid rgba(0,0,0,.06);
+  backdrop-filter:saturate(140%) blur(12px);
   display:flex;
-  gap:10px;
-  flex-wrap:wrap;
+  gap:8px;
+  justify-content:space-between;
+  z-index:9999;
 }
-.form-row .input{ flex:1; min-width: 200px; }
+.tabbar-btn{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding:8px 6px;
+  border-radius:14px;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  color:var(--text);
+}
+.tabbar-btn .ico{ font-size:22px; line-height:1; }
+.tabbar-btn .txt{ font-size:12px; font-weight:800; color:rgba(28,36,28,.75); }
+.tabbar-btn.active{
+  background:rgba(70,178,86,.14);
+}
+.tabbar-btn.active .txt{
+  color:var(--primary);
+}
 
-/* ---------- Mobile spacing polish ---------- */
-@media (max-width:520px){
-  header{ padding-top: 6px; }
-  .brand{ margin-bottom:18px; }
-
-  /* ✅ 所有页面板块之间别太挤 */
-  .panel{ padding:14px; }
-  .panel + .panel{ margin-top:14px; }
-
-  .section-title{ font-size:17px; margin-bottom:10px; }
-
-  /* ✅ 记录输入框在手机更舒服 */
-  .record-input{
-    min-height: 150px;
-    font-size:16px;
-  }
+/* ✅ 移动端隐藏 topnav，避免顶部+底部重复 */
+@media (max-width:720px){
+  .topnav{ display:none; }
 }
