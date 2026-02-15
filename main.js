@@ -490,7 +490,7 @@
     // 1) 从记录里提取标签（#生活 #工作）
     function extractTagsFromText(text) {
       const res = [];
-      const re = /#([^\s#]+)/g; // #后面跟非空白非#的连续字符
+      const re = /[#＃]([^\s#＃]+)/g; // #后面跟非空白非#的连续字符
       let m;
       while ((m = re.exec(text || "")) !== null) res.push(m[1]);
       return res;
@@ -515,36 +515,50 @@
     }
 
     function show(tags, leftText, cursorPos) {
-      if (!tags.length) return hide();
+  if (!tags.length) return hide();
 
-      tagSuggestEl.innerHTML = "";
-      tags.slice(0, 12).forEach((tag) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tag-suggest-item";
-        btn.textContent = "#" + tag;
+  tagSuggestEl.innerHTML = "";
+  tags.slice(0, 12).forEach((tag) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "tag-suggest-item";
+    btn.textContent = "#" + tag;
 
-        btn.addEventListener("click", () => {
-          // 替换“光标前的最后一个 #xxx”
-          const newLeft = leftText.replace(/#([^\s#]*)$/, "#" + tag + " ");
-          const right = inputTextEl.value.slice(cursorPos);
-          const next = newLeft + right;
+    btn.addEventListener("click", () => {
+      // 替换光标前最后一个 #xxx
+      const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
+      const right = inputTextEl.value.slice(cursorPos);
+      const next = newLeft + right;
 
-          inputTextEl.value = next;
+      inputTextEl.value = next;
 
-          // 光标放到插入的标签后面
-          const pos = newLeft.length;
-          inputTextEl.focus();
-          inputTextEl.setSelectionRange(pos, pos);
+      const pos = newLeft.length;
+      inputTextEl.focus();
+      inputTextEl.setSelectionRange(pos, pos);
 
-          hide();
-        });
+      hide();
+    });
 
-        tagSuggestEl.appendChild(btn);
-      });
+    tagSuggestEl.appendChild(btn);
+  });
 
-      tagSuggestEl.style.display = "flex";
-    }
+  // ⭐⭐⭐ 关键修复：强制定位到输入框下方 ⭐⭐⭐
+  const rect = inputTextEl.getBoundingClientRect();
+  tagSuggestEl.style.position = "fixed";
+  tagSuggestEl.style.left = rect.left + "px";
+  tagSuggestEl.style.top = rect.bottom + 8 + "px";
+  tagSuggestEl.style.width = rect.width + "px";
+  tagSuggestEl.style.zIndex = "99999";
+  tagSuggestEl.style.background = "#fff";
+  tagSuggestEl.style.border = "1px solid rgba(0,0,0,.08)";
+  tagSuggestEl.style.borderRadius = "12px";
+  tagSuggestEl.style.boxShadow = "0 10px 30px rgba(0,0,0,.12)";
+  tagSuggestEl.style.padding = "10px";
+  tagSuggestEl.style.gap = "8px";
+  tagSuggestEl.style.flexWrap = "wrap";
+
+  tagSuggestEl.style.display = "flex";
+}
 
     inputTextEl.addEventListener("input", () => {
       const value = inputTextEl.value;
@@ -552,7 +566,7 @@
       const left = value.slice(0, cursor);
 
       // 只在光标前最后 token 是 # 或 #xxx 时触发
-      const m = left.match(/#([^\s#]*)$/);
+      const newLeft = leftText.replace(/#([^\s#]*)$/, "#" + tag + " ");
       if (!m) return hide();
 
       const keyword = (m[1] || "").trim(); // 可能为空（只输入了#）
