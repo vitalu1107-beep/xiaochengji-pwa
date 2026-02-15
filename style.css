@@ -19,6 +19,7 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
+  padding-bottom: 0; /* 移动端会在 media 里加 */
 }
 
 .app{ width:100%; min-height:100vh; }
@@ -46,7 +47,7 @@ body{
 .brand h1{ font-size:22px; margin:0; }
 .brand p{ margin:4px 0 0; color:var(--muted); }
 
-/* ---------- Top nav ---------- */
+/* ---------- Top nav (desktop) ---------- */
 .topnav{
   display:flex;
   justify-content:center;
@@ -230,6 +231,7 @@ body{
   flex:1;
 }
 .item-text{
+  min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
@@ -265,57 +267,147 @@ body{
 .mood-pill.relaxed { background:#f1fbf6; border-color:#cfeedd; }
 .mood-pill.lazy    { background:#f6f7ff; border-color:#d9dcff; }
 
+/* ---------- Tag suggest (appearance only; position is controlled by JS) ---------- */
 .tag-suggest{
-  margin-top:6px;
-  display:flex;
-  flex-wrap:wrap;
+  display:none; /* JS 会切换成 flex */
   gap:8px;
+  flex-wrap:wrap;
 }
-
+.tag-suggest .tag-suggest-item,
 .tag-suggest button{
   border:1px solid rgba(0,0,0,.08);
-  background:#fff;
-  padding:6px 10px;
+  background: rgba(244,249,244,.9);
   border-radius:999px;
+  padding:8px 12px;
   cursor:pointer;
   font-size:14px;
+  white-space:nowrap;
 }
-.tag-suggest button:hover{
-  background:#f2f2f2;
-}
-
-/* ===== Tag suggest dropdown (for #tag) ===== */
-.record-wrap{
-  position: relative; /* 让建议框可以相对输入区域定位 */
-}
-
-.tag-suggest{
-  display: none;                 /* JS 会切换成 flex */
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 70px;                     /* 大概在输入框下面；不准就微调 */
-  z-index: 999;                  /* 关键：压在最上层 */
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
-  border-radius: 14px;
-  padding: 10px;
-  gap: 8px;
-  flex-wrap: wrap;
-  box-shadow: 0 10px 24px rgba(0,0,0,.08);
-}
-
-.tag-suggest button{
-  border: 1px solid rgba(0,0,0,.08);
-  background: rgba(244,249,244,.9);
-  border-radius: 999px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
+.tag-suggest .tag-suggest-item:hover,
 .tag-suggest button:hover{
   background: rgba(70,178,86,.12);
   border-color: rgba(70,178,86,.25);
+}
+
+/* ---------- Modal (for full text) ---------- */
+.modal{ position: fixed; inset: 0; z-index: 10000; }
+.modal-backdrop{ position: absolute; inset:0; background: rgba(0,0,0,.35); }
+.modal-card{
+  position: absolute;
+  left: 12px; right: 12px; bottom: 12px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.modal-title{ font-weight: 900; margin-bottom: 8px; }
+.modal-body{ white-space: pre-wrap; line-height: 1.55; margin-bottom: 12px; }
+
+/* ---------- Mobile enhancements ---------- */
+@media (max-width: 560px){
+  /* 1) 使用底部 Tab Bar：给内容留空间，隐藏 topnav（你会在 CSS 里看到 tabbar 的样式） */
+  body{ padding-bottom: 78px; }
+  .topnav{ display: none !important; }
+
+  /* 2) 首页两张卡：手机上改为纵向（更舒服） */
+  .stats-grid{ grid-template-columns: 1fr; }
+
+  /* 3) 列表：文本两行摘要，别只剩两字 */
+  .item-left{ min-width: 0; }
+  .item-text{
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* 4) 右侧控件别抢空间 */
+  .item-right{
+    min-width: 84px;
+    gap: 6px;
+  }
+  .item-time{
+    max-width: 84px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    opacity: .75;
+  }
+  .btn{ border-radius: 12px; }
+  .btn.danger{ border-radius: 12px; }
+
+  /* 5) 记录页：输入框变大、心情区更轻、更聚焦输入 */
+  #input-text.record-input{
+    min-height: 110px; /* 关键：让输入更像“写一句话” */
+    padding: 14px 14px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* 心情：固定 2x2（不用太大） */
+  #mood-group.mood-grid{
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  #mood-group .mood-btn{
+    height: 48px;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 14px;
+  }
+
+  /* 保存按钮：保持大但别压迫页面 */
+  #btn-save.primary-btn{
+    font-size: 18px;
+    padding: 14px 14px;
+    border-radius: 18px;
+  }
+
+  /* mood pill：手机上稍微紧凑一点 */
+  .mood-pill{
+    padding: 7px 10px;
+    font-size: 13px;
+  }
+  .mood-pill .mood-ico{ font-size: 15px; }
+}
+
+/* ---------- Bottom Tab Bar ---------- */
+.tabbar{
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: none; /* mobile media 内显示 */
+  gap: 6px;
+  padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.92);
+  border-top: 1px solid rgba(0,0,0,.06);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+}
+
+.tabbar-btn{
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 8px 6px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #222;
+  cursor: pointer;
+}
+.tabbar-btn .ico{ font-size: 18px; line-height: 1; }
+.tabbar-btn .txt{ font-size: 12px; }
+
+.tabbar-btn.active{
+  background: rgba(70,178,86,.16);
+  color: #1a6f3a;
+}
+
+@media (max-width: 560px){
+  .tabbar{ display: flex; }
 }
