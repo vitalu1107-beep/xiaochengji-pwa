@@ -40,13 +40,11 @@
 
       <!-- ========== 页面：首页 ========== -->
       <main id="page-home">
-        <!-- 问候 -->
         <section class="panel">
           <div class="muted" id="home-date">—</div>
           <div style="font-size:20px;font-weight:800;margin-top:6px;" id="home-greeting">晚上好，夏央</div>
         </section>
 
-        <!-- 今日能量 -->
         <section class="panel">
           <div class="muted small" style="margin-bottom:8px;">今日能量</div>
           <div id="home-quote" style="font-size:22px;font-weight:900;line-height:1.35;">
@@ -54,7 +52,6 @@
           </div>
         </section>
 
-        <!-- 两张卡：横排 -->
         <section class="stats-grid" aria-label="统计卡片">
           <div class="stat-card" id="card-achievement">
             <h3>🏆 成就记录</h3>
@@ -71,7 +68,6 @@
           </div>
         </section>
 
-        <!-- 最近的小快乐 -->
         <section class="panel">
           <h2 class="section-title">最近的小快乐</h2>
           <div id="recent-list" class="list">
@@ -86,7 +82,6 @@
           <h2 class="section-title">✨ 记录微光</h2>
 
           <div class="record-wrap">
-            <!-- ✅ 输入改为 textarea（2-3倍高），main.js 会配合改 Enter 逻辑 -->
             <textarea
               id="input-text"
               class="record-input"
@@ -97,7 +92,6 @@
 
             <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
 
-            <!-- 选择心情 -->
             <div class="mood-title" id="mood-title">选择心情</div>
 
             <div class="mood-grid" id="mood-group" role="group" aria-label="选择心情">
@@ -107,12 +101,10 @@
               <button class="mood-btn" type="button" data-mood="lazy">☁️ 慵懒</button>
             </div>
 
-            <!-- 保存按钮 -->
             <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
           </div>
         </section>
 
-        <!-- 今日列表 -->
         <section class="panel">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h2 class="section-title" style="margin:0;">📅 今天</h2>
@@ -129,20 +121,24 @@
         <section class="panel">
           <h2 class="section-title">🧱 成就墙（全览 + 搜索）</h2>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-            <button class="btn" type="button" data-filter="运动">#运动</button>
-            <button class="btn" type="button" data-filter="生活">#生活</button>
+          <!-- ✅ 方案 A：去掉固定标签行；搜索框 + 清空搜索 -->
+          <div class="search-row">
+            <input id="wall-search" class="input" type="text" placeholder="搜索：比如 #运动 / #工作 / 阅读 / 复盘" />
+            <button id="btn-wall-clear-search" class="btn" type="button">清空搜索</button>
           </div>
 
-          <input id="wall-search" class="input" type="text" placeholder="搜索：比如 运动 / 阅读 / 复盘" />
-
-          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-            <button id="btn-wall-clear" class="btn" type="button">清空</button>
-          </div>
+          <p class="muted small" style="margin:10px 0 0;">
+            小提示：输入 <b>#</b> 会出现你记录过的标签联想（比如 #工作）。
+          </p>
         </section>
 
         <section class="panel">
-          <h2 class="section-title">全部记录</h2>
+          <!-- ✅ 清空全部记录：放到“全部记录”标题行右侧（重操作） -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <h2 class="section-title" style="margin:0;">全部记录</h2>
+            <button id="btn-wall-clear-all" class="btn danger" type="button">清空全部</button>
+          </div>
+
           <div id="wall-list" class="list"></div>
           <div id="wall-empty" class="muted" style="text-align:center;padding:18px 0;">还没有记录～</div>
         </section>
@@ -179,7 +175,6 @@
 
           <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
 
-          <!-- 昵称 -->
           <div style="margin-top:6px;">
             <div style="font-weight:800;margin-bottom:8px;">昵称（用于首页问候语）</div>
             <div class="form-row">
@@ -193,7 +188,6 @@
 
           <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
 
-          <!-- 导出 / 清空 -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button id="btn-export" class="btn" type="button">导出为文本（复制）</button>
             <button id="btn-clear-all" class="btn danger" type="button">清空全部数据</button>
