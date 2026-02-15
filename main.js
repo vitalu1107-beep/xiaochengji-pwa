@@ -1,4 +1,4 @@
-/* ========= Small Wins · main.js (matches your new index.html) ========= */
+/* ========= Small Wins · main.js (matches your index.html) ========= */
 (() => {
   const LS_KEY = "smallwins_records_v1";
   const LS_NICK = "smallwins_nickname_v1";
@@ -80,10 +80,10 @@
 
   // ---------- Mood mapping ----------
   const MOODS = {
-    calm:    { icon: "🌙", label: "平静" },
-    happy:   { icon: "✨", label: "愉悦" },
+    calm: { icon: "🌙", label: "平静" },
+    happy: { icon: "✨", label: "愉悦" },
     relaxed: { icon: "🌱", label: "释然" },
-    lazy:    { icon: "☁️", label: "慵懒" },
+    lazy: { icon: "☁️", label: "慵懒" },
   };
 
   // ---------- Elements ----------
@@ -96,7 +96,7 @@
   const recentListEl = $("#recent-list");
   const recentEmptyEl = $("#recent-empty");
 
-  const inputTextEl = $("#input-text");
+  const inputTextEl = $("#input-text"); // textarea
   const tagSuggestEl = $("#tag-suggest");
   const moodGroupEl = $("#mood-group");
   const saveBtnEl = $("#btn-save");
@@ -168,8 +168,9 @@
     pages.forEach((p) => (p.style.display = p.id === id ? "" : "none"));
     tabs.forEach((t) => t.classList.toggle("active", t.dataset.target === id));
 
-    // 切页时把 tag suggest 收起来，避免浮在上层
+    // 切页时收起浮层
     hideTagSuggest();
+    closeModal();
 
     if (id === "page-home") renderHome();
     if (id === "page-today") renderToday();
@@ -294,7 +295,6 @@
         </div>
       `;
 
-      // 点卡片看全文（点删除不触发）
       div.addEventListener("click", (e) => {
         if (e.target.closest("[data-del]")) return;
         openModal(r.timeText, r.text);
@@ -580,12 +580,18 @@
       tagSuggestEl.appendChild(btn);
     });
 
-    // 固定定位到输入框下方（避免被裁剪/盖住）
+    // ✅ 固定定位到输入框下方，但做“防溢出”处理
     const rect = inputTextEl.getBoundingClientRect();
+
+    const margin = 16; // 屏幕左右安全边距
+    const maxW = Math.min(rect.width, window.innerWidth - margin * 2);
+    const left = Math.min(Math.max(rect.left, margin), window.innerWidth - margin - maxW);
+    const top = rect.bottom + 8;
+
     tagSuggestEl.style.position = "fixed";
-    tagSuggestEl.style.left = rect.left + "px";
-    tagSuggestEl.style.top = rect.bottom + 8 + "px";
-    tagSuggestEl.style.width = rect.width + "px";
+    tagSuggestEl.style.left = left + "px";
+    tagSuggestEl.style.top = top + "px";
+    tagSuggestEl.style.width = maxW + "px";
     tagSuggestEl.style.zIndex = "99999";
     tagSuggestEl.style.display = "flex";
   }
@@ -614,7 +620,7 @@
       hideTagSuggest();
     });
 
-    // Esc 收起（这里不和 modal 冲突：modal 也会关，用户预期一致）
+    // Esc 收起
     inputTextEl.addEventListener("keydown", (e) => {
       if (e.key === "Escape") hideTagSuggest();
     });
@@ -629,12 +635,19 @@
 
   if (saveBtnEl) saveBtnEl.addEventListener("click", saveRecord);
 
+  // ✅ textarea 回车策略：
+  // - Enter：换行
+  // - Ctrl/⌘ + Enter：保存
   if (inputTextEl) {
     inputTextEl.addEventListener("keydown", (e) => {
-      // 输入框是 input[type=text]：Enter 直接保存
-      if (e.key === "Enter") {
+      if (e.key !== "Enter") return;
+
+      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
+      if (isCmdOrCtrl) {
         e.preventDefault();
         saveRecord();
+      } else {
+        // Enter 默认换行，不拦截
       }
     });
   }
