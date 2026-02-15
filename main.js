@@ -80,10 +80,10 @@
 
   // ---------- Mood mapping ----------
   const MOODS = {
-    calm: { icon: "🌙", label: "平静" },
-    happy: { icon: "✨", label: "愉悦" },
+    calm:    { icon: "🌙", label: "平静" },
+    happy:   { icon: "✨", label: "愉悦" },
     relaxed: { icon: "🌱", label: "释然" },
-    lazy: { icon: "☁️", label: "慵懒" },
+    lazy:    { icon: "☁️", label: "慵懒" },
   };
 
   // ---------- Elements ----------
@@ -107,7 +107,8 @@
   const wallSearchEl = $("#wall-search");
   const wallListEl = $("#wall-list");
   const wallEmptyEl = $("#wall-empty");
-  const wallClearBtn = $("#btn-wall-clear");
+  const wallClearSearchBtn = $("#btn-wall-clear-search");
+  const wallClearAllBtn = $("#btn-wall-clear-all");
 
   const randomTextEl = $("#random-text");
   const randomTimeEl = $("#random-time");
@@ -124,7 +125,7 @@
   const exportBtn = $("#btn-export");
   const clearAllBtn = $("#btn-clear-all");
 
-  // Modal (全文查看)
+  // Modal
   const modalEl = $("#modal");
   const modalTitleEl = $("#modal-title");
   const modalBodyEl = $("#modal-body");
@@ -168,9 +169,7 @@
     pages.forEach((p) => (p.style.display = p.id === id ? "" : "none"));
     tabs.forEach((t) => t.classList.toggle("active", t.dataset.target === id));
 
-    // 切页时收起浮层
     hideTagSuggest();
-    closeModal();
 
     if (id === "page-home") renderHome();
     if (id === "page-today") renderToday();
@@ -181,7 +180,6 @@
 
   tabs.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.target)));
 
-  // 让所有 data-target（比如首页卡片按钮）也能切页
   $$("[data-target]").forEach((el) => {
     if (el.closest(".topnav")) return;
     if (el.closest(".tabbar")) return;
@@ -237,7 +235,9 @@
           div.className = "item";
           div.innerHTML = `
             <div class="item-left">
-              ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
+              ${mood ? `<span class="mood-pill ${r.mood}">
+                <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
+              </span>` : ""}
               <div class="item-text">${escapeHtml(r.text)}</div>
             </div>
             <div class="item-right">
@@ -286,7 +286,9 @@
 
       div.innerHTML = `
         <div class="item-left">
-          ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
+          ${mood ? `<span class="mood-pill ${r.mood}">
+            <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
+          </span>` : ""}
           <div class="item-text">${escapeHtml(r.text)}</div>
         </div>
         <div class="item-right">
@@ -381,7 +383,9 @@
       div.className = "item";
       div.innerHTML = `
         <div class="item-left">
-          ${mood ? `<span class="mood-pill ${r.mood}"><span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span></span>` : ""}
+          ${mood ? `<span class="mood-pill ${r.mood}">
+            <span class="mood-ico">${mood.icon}</span><span class="mood-txt">${mood.label}</span>
+          </span>` : ""}
           <div class="item-text">${escapeHtml(r.text)}</div>
         </div>
         <div class="item-right">
@@ -420,6 +424,14 @@
     renderWall();
     renderRandom();
     toast("已清空");
+  }
+
+  function clearWallSearchOnly() {
+    if (!wallSearchEl) return;
+    if (!wallSearchEl.value) return toast("搜索框已经是空的");
+    wallSearchEl.value = "";
+    renderWall();
+    toast("已清空搜索");
   }
 
   // ---------- Random ----------
@@ -527,7 +539,7 @@
     });
   }
 
-  // ---------- Tag Suggest ----------
+  // ---------- Tag Suggest (共享给记录页 & 成就墙搜索框) ----------
   function extractTagsFromText(text) {
     const res = [];
     const re = /[#＃]([^\s#＃]+)/g;
@@ -554,8 +566,13 @@
     tagSuggestEl.innerHTML = "";
   }
 
-  function showTagSuggest(tags, leftText, cursorPos) {
-    if (!tagSuggestEl || !inputTextEl) return;
+  // ✅ clamp：避免 iOS 小数像素造成 1px 溢出
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function showTagSuggestFor(anchorEl, tags, leftText, cursorPos, onPick) {
+    if (!tagSuggestEl || !anchorEl) return;
     if (!tags.length) return hideTagSuggest();
 
     tagSuggestEl.innerHTML = "";
@@ -566,42 +583,35 @@
       btn.textContent = "#" + tag;
 
       btn.addEventListener("click", () => {
-        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
-        const right = inputTextEl.value.slice(cursorPos);
-        inputTextEl.value = newLeft + right;
-
-        const pos = newLeft.length;
-        inputTextEl.focus();
-        inputTextEl.setSelectionRange(pos, pos);
-
+        onPick(tag, leftText, cursorPos);
         hideTagSuggest();
       });
 
       tagSuggestEl.appendChild(btn);
     });
 
-    // ✅ 固定定位到输入框下方，但做“防溢出”处理
-    const rect = inputTextEl.getBoundingClientRect();
+    const rect = anchorEl.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vw = vv ? vv.width : window.innerWidth;
 
-    const margin = 16; // 屏幕左右安全边距
-    const maxW = Math.min(rect.width, window.innerWidth - margin * 2);
-    const left = Math.min(Math.max(rect.left, margin), window.innerWidth - margin - maxW);
-    const top = rect.bottom + 8;
+    // 给左右留 8px 缓冲，避免 overflow
+    const left = clamp(rect.left, 8, Math.max(8, vw - 8));
+    const width = clamp(rect.width, 120, Math.max(120, vw - left - 8));
 
     tagSuggestEl.style.position = "fixed";
-    tagSuggestEl.style.left = left + "px";
-    tagSuggestEl.style.top = top + "px";
-    tagSuggestEl.style.width = maxW + "px";
+    tagSuggestEl.style.left = `${Math.floor(left)}px`;
+    tagSuggestEl.style.top = `${Math.floor(rect.bottom + 8)}px`;
+    tagSuggestEl.style.width = `${Math.floor(width)}px`;
     tagSuggestEl.style.zIndex = "99999";
     tagSuggestEl.style.display = "flex";
   }
 
-  function setupTagSuggest() {
-    if (!inputTextEl || !tagSuggestEl) return;
+  function setupTagSuggestForTextarea(textareaEl) {
+    if (!textareaEl || !tagSuggestEl) return;
 
-    inputTextEl.addEventListener("input", () => {
-      const value = inputTextEl.value || "";
-      const cursor = inputTextEl.selectionStart ?? value.length;
+    textareaEl.addEventListener("input", () => {
+      const value = textareaEl.value || "";
+      const cursor = textareaEl.selectionStart ?? value.length;
       const left = value.slice(0, cursor);
 
       const m = left.match(/[#＃]([^\s#＃]*)$/);
@@ -611,21 +621,55 @@
       const all = getAllTagsSorted();
       const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
 
-      showTagSuggest(filtered, left, cursor);
-    });
+      showTagSuggestFor(textareaEl, filtered, left, cursor, (tag, leftText, cursorPos) => {
+        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag + " ");
+        const right = textareaEl.value.slice(cursorPos);
+        textareaEl.value = newLeft + right;
 
-    // 点击空白处收起
+        const pos = newLeft.length;
+        textareaEl.focus();
+        textareaEl.setSelectionRange(pos, pos);
+      });
+    });
+  }
+
+  function setupTagSuggestForWallSearch(inputEl) {
+    if (!inputEl || !tagSuggestEl) return;
+
+    inputEl.addEventListener("input", () => {
+      const value = inputEl.value || "";
+      const cursor = inputEl.selectionStart ?? value.length;
+      const left = value.slice(0, cursor);
+
+      const m = left.match(/[#＃]([^\s#＃]*)$/);
+      if (!m) return hideTagSuggest();
+
+      const keyword = (m[1] || "").trim();
+      const all = getAllTagsSorted();
+      const filtered = keyword ? all.filter((t) => t.startsWith(keyword)) : all;
+
+      showTagSuggestFor(inputEl, filtered, left, cursor, (tag, leftText, cursorPos) => {
+        const newLeft = leftText.replace(/[#＃]([^\s#＃]*)$/, "#" + tag);
+        const right = inputEl.value.slice(cursorPos);
+        inputEl.value = newLeft + right;
+
+        const pos = newLeft.length;
+        inputEl.focus();
+        inputEl.setSelectionRange(pos, pos);
+
+        renderWall();
+      });
+    });
+  }
+
+  function setupGlobalHideSuggest() {
     document.addEventListener("click", (e) => {
-      if (e.target === inputTextEl || (tagSuggestEl && tagSuggestEl.contains(e.target))) return;
+      const t = e.target;
+      if (t === inputTextEl || t === wallSearchEl) return;
+      if (tagSuggestEl && tagSuggestEl.contains(t)) return;
       hideTagSuggest();
     });
 
-    // Esc 收起
-    inputTextEl.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") hideTagSuggest();
-    });
-
-    // 滚动/缩放时收起，避免浮层位置飘
     window.addEventListener("scroll", hideTagSuggest, { passive: true });
     window.addEventListener("resize", hideTagSuggest);
   }
@@ -635,19 +679,12 @@
 
   if (saveBtnEl) saveBtnEl.addEventListener("click", saveRecord);
 
-  // ✅ textarea 回车策略：
-  // - Enter：换行
-  // - Ctrl/⌘ + Enter：保存
+  // ✅ textarea：Enter 保存；Shift+Enter 换行
   if (inputTextEl) {
     inputTextEl.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-
-      const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      if (isCmdOrCtrl) {
+      if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         saveRecord();
-      } else {
-        // Enter 默认换行，不拦截
       }
     });
   }
@@ -655,16 +692,8 @@
   if (clearTodayBtn) clearTodayBtn.addEventListener("click", clearToday);
 
   if (wallSearchEl) wallSearchEl.addEventListener("input", renderWall);
-
-  $$("[data-filter]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const v = btn.getAttribute("data-filter") || "";
-      if (wallSearchEl) wallSearchEl.value = v;
-      renderWall();
-    });
-  });
-
-  if (wallClearBtn) wallClearBtn.addEventListener("click", clearWallAll);
+  if (wallClearSearchBtn) wallClearSearchBtn.addEventListener("click", clearWallSearchOnly);
+  if (wallClearAllBtn) wallClearAllBtn.addEventListener("click", clearWallAll);
 
   if (randomNextBtn) randomNextBtn.addEventListener("click", () => {
     currentRandomId = null;
@@ -692,7 +721,9 @@
     if (b.textContent.includes("去记录")) b.setAttribute("data-target", "page-today");
   });
 
-  setupTagSuggest();
+  setupTagSuggestForTextarea(inputTextEl);
+  setupTagSuggestForWallSearch(wallSearchEl);
+  setupGlobalHideSuggest();
 
   renderHome();
   renderToday();
