@@ -371,3 +371,23 @@ main > section + section{ margin-top:14px; }
   main > section + section{ margin-top:12px; }
   .section-title{ font-size:17px; margin-bottom:8px; }
 }
+
+/* ===============================
+   Responsive: Desktop vs Mobile
+   =============================== */
+
+/* 桌面端：默认不显示底部 Tabbar */
+.tabbar {
+  display: none;
+}
+
+/* 移动端 / PWA：显示 Tabbar，隐藏顶部导航 */
+@media (max-width: 767px) {
+  .tabbar {
+    display: flex;
+  }
+
+  .topnav {
+    display: none;
+  }
+}
