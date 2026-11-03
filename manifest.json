@@ -5,8 +5,8 @@
   "start_url": "/xiaochengji-pwa/",
   "scope": "/xiaochengji-pwa/",
   "display": "standalone",
-  "background_color": "#f4f9f4",
-  "theme_color": "#46B256",
+  "background_color": "#083d2f",
+  "theme_color": "#083d2f",
   "description": "记录每天的小小进步。",
   "icons": [
     {
