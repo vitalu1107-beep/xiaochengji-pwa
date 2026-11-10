@@ -3,174 +3,245 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#083d2f" />
-  <meta name="description" content="在森林里，收藏每天的小成就。" />
+  <meta name="theme-color" content="#46B256" />
   <title>小成就 · Small Wins</title>
+
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
-  <link rel="preload" href="./assets/home-hero.webp" as="image" />
-  <link rel="stylesheet" href="./style.css?v=forest-20261102d" />
-  <script src="./main.js?v=forest-20261102d" defer></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="./style.css?v=classic-20261109" />
 </head>
+
 <body>
   <div class="app">
-    <main id="page-home" class="page" aria-labelledby="home-heading">
-      <header class="hero hero-home">
-        <img class="hero-art" src="./assets/home-hero.webp" alt="阳光洒进森林，长毛三花猫坐在苔石上陪伴你" width="1200" height="724" fetchpriority="high" />
-        <div class="hero-copy">
-          <h1 id="home-heading">小成就 <span lang="en">Small Wins</span></h1>
-          <p id="home-date" class="home-date">—</p>
-          <p id="home-greeting" class="home-greeting">你好，夏央</p>
+    <div class="container">
+      <!-- 顶部品牌 -->
+      <header>
+        <div class="brand">
+          <img class="logo" src="./icons/icon-192.png" alt="logo" />
+          <div class="titles">
+            <h1>小成就 <span class="muted" style="font-size:14px;font-weight:600;margin-left:6px;">Small Wins</span></h1>
+            <p class="muted">记录每天的小小进步。</p>
+          </div>
         </div>
+
       </header>
-      <div class="page-content home-content">
-        <section class="energy" aria-labelledby="energy-heading">
-          <h2 id="energy-heading" class="eyebrow">今日能量</h2>
-          <p id="home-quote">你不需要很厉害才开始，<br />你需要开始才会变厉害。</p>
+
+      <!-- ========== 页面：首页 ========== -->
+      <main id="page-home">
+        <!-- 问候 -->
+        <section class="panel">
+          <div class="muted" id="home-date">—</div>
+          <div style="font-size:20px;font-weight:800;margin-top:6px;" id="home-greeting">晚上好，夏央</div>
         </section>
-        <section class="stats-grid fine-frame" aria-label="我的小成就">
+
+        <!-- 今日能量 -->
+        <section class="panel">
+          <div class="muted small" style="margin-bottom:8px;">今日能量</div>
+          <div id="home-quote" style="font-size:22px;font-weight:900;line-height:1.35;">
+            “你不需要很厉害才开始，你需要开始才会变厉害。”
+          </div>
+        </section>
+
+        <!-- 两张卡：横排 -->
+        <section class="stats-grid" aria-label="统计卡片">
           <div class="stat-card" id="card-achievement">
-            <h2><img class="icon" src="./assets/icons/trophy.svg" alt="" />成就记录</h2>
-            <p class="stat-value">连续 <strong id="stat-streak">0</strong> 天</p>
-            <button class="btn stat-btn" type="button" data-target="page-today">去记录</button>
+            <h3>🏆 成就记录</h3>
+            <div class="big" id="stat-streak">0</div>
+            <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
+            <button class="btn" type="button" data-target="page-today">去记录</button>
           </div>
+
           <div class="stat-card" id="card-happy">
-            <h2><img class="icon" src="./assets/icons/heart.svg" alt="" />小确幸墙</h2>
-            <p class="stat-value">累计 <strong id="stat-happy">0</strong> 件</p>
-            <button class="btn stat-btn" type="button" data-target="page-wall">去看看</button>
+            <h3>💗 小确幸墙</h3>
+            <div class="big" id="stat-happy">0</div>
+            <p class="sub muted" id="stat-happy-sub">记录 0 个瞬间</p>
+            <button class="btn" type="button" data-target="page-wall">去看看</button>
           </div>
         </section>
-        <section class="recent-section" aria-labelledby="recent-heading">
-          <h2 id="recent-heading" class="section-title ruled-title">最近的小快乐</h2>
-          <div id="recent-list" class="list"><p class="empty-state" id="recent-empty">还没有记录，慢慢收集生活里的小快乐吧。</p></div>
-        </section>
-      </div>
-    </main>
 
-    <main id="page-today" class="page" style="display:none;" aria-labelledby="record-heading">
-      <header class="hero hero-record">
-        <img class="hero-art" src="./assets/record-hero.webp" alt="森林里的三花猫安静趴在苔石上" width="1200" height="385" />
-        <h1 id="record-heading" class="page-title">记录</h1>
-      </header>
-      <div class="page-content record-content">
-        <section class="record-wrap" aria-label="写下小成就">
-          <label for="input-text" class="sr-only">今天，想记下哪件小事？</label>
-          <textarea id="input-text" class="record-input" placeholder="今天，想记下哪件小事？&#10;正文里也可以输入 #标签。" autocomplete="off" rows="8"></textarea>
-          <div id="tag-suggest" class="tag-suggest" aria-label="历史标签建议" style="display:none;"></div>
-          <div class="mood-title" id="mood-title">心情 <span>· 可选</span></div>
-          <div class="mood-grid" id="mood-group" role="group" aria-labelledby="mood-title">
-            <button class="mood-btn" type="button" data-mood="calm" aria-pressed="false">平静</button>
-            <button class="mood-btn" type="button" data-mood="happy" aria-pressed="false">愉悦</button>
-            <button class="mood-btn" type="button" data-mood="relaxed" aria-pressed="false">释然</button>
-            <button class="mood-btn" type="button" data-mood="lazy" aria-pressed="false">慵懒</button>
+        <!-- 最近的小快乐 -->
+        <section class="panel">
+          <h2 class="section-title">最近的小快乐</h2>
+          <div id="recent-list" class="list">
+            <div class="muted" id="recent-empty">还没有记录～先写下第一件小小进步吧 ✨</div>
           </div>
-          <button id="btn-save" class="btn primary-btn" type="button">封存这一刻</button>
         </section>
-        <section class="today-section" aria-labelledby="today-heading">
-          <div class="section-head"><h2 id="today-heading" class="section-title">今天</h2><button id="btn-clear-today" class="text-btn" type="button">清空今天</button></div>
-          <div id="today-list" class="list"></div><p id="today-empty" class="empty-state">今天还没有记录，留下一件值得记住的小事吧。</p>
-        </section>
-      </div>
-    </main>
+      </main>
 
-    <main id="page-wall" class="page" style="display:none;" aria-labelledby="wall-heading">
-      <header class="hero hero-wall">
-        <img class="hero-art" src="./assets/wall-hero.webp" alt="三花猫在森林的苔石之间散步" width="1200" height="538" />
-        <h1 id="wall-heading" class="page-title">成就墙</h1>
-      </header>
-      <div class="page-content wall-content">
-        <div class="wall-search-row">
-          <div class="search-field"><img class="icon" src="./assets/icons/magnifying-glass.svg" alt="" /><label for="wall-search" class="sr-only">搜索正文或标签</label><input id="wall-search" type="search" placeholder="搜索正文或 #标签" autocomplete="off" /></div>
-          <button id="btn-wall-clear-input" class="text-btn" type="button">清空搜索</button>
-        </div>
-        <section class="wall-panel fine-frame" aria-labelledby="wall-list-heading">
-          <div class="section-head"><h2 class="section-title" id="wall-list-heading">全部记录</h2><button id="btn-wall-clear" class="text-btn danger" type="button">清空全部</button></div>
-          <div id="wall-list" class="list"></div><p id="wall-empty" class="empty-state">还没有记录，慢慢收集你的第一个小成就吧。</p>
-        </section>
-      </div>
-    </main>
+      <!-- ========== 页面：记录微光 ========== -->
+      <main id="page-today" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">✨ 记录微光</h2>
 
-    <main id="page-random" class="page" style="display:none;" aria-labelledby="review-heading">
-      <header class="hero hero-review">
-        <img class="hero-art" src="./assets/review-hero.webp" alt="三花猫在林间溪水旁，抬头看穿过树叶的光" width="1200" height="661" />
-        <h1 id="review-heading" class="page-title">回顾</h1>
-      </header>
-      <div class="page-content review-content">
-        <section id="random-card" class="review-card fine-frame" aria-label="随机回顾一条小成就">
-          <p class="review-label muted">你抽到的是</p>
-          <p id="random-time" class="muted">还没有记录～</p>
-          <p id="random-text">—</p>
-          <p id="random-mood" class="muted"></p>
-        </section>
-        <div class="random-actions"><button id="btn-random-next" class="btn" type="button">再来一条</button></div>
-      </div>
-    </main>
+          <div class="record-wrap">
+            <textarea
+              id="input-text"
+              class="record-input"
+              placeholder="比如：今天我完成了一个小目标 / 我把一件事推进了一步"
+              autocomplete="off"
+              rows="4"
+            ></textarea>
 
-    <main id="page-settings" class="page" style="display:none;" aria-labelledby="settings-heading">
-      <header class="hero hero-settings">
-        <img class="hero-art" src="./assets/settings-hero.webp" alt="三花猫蜷在森林树根的小窝里睡觉" width="1200" height="507" />
-        <h1 id="settings-heading" class="page-title">设置</h1>
-      </header>
-      <div class="page-content settings-content">
-        <p class="privacy-note muted">记录仅保存在当前浏览器，不上传服务器。</p>
-        <section class="settings-panel fine-frame" aria-label="偏好与数据">
-          <div class="settings-group nickname-group">
-            <h2 class="section-title"><label for="nickname-input">昵称</label></h2>
-            <div class="form-row"><input id="nickname-input" class="nickname-input" type="text" placeholder="比如：夏央" autocomplete="nickname" maxlength="40" /><button id="btn-save-nickname" class="btn" type="button">保存昵称</button></div>
-            <p class="small muted nickname-caption">首页问候：<span id="nickname-preview">你好，夏央</span></p>
-          </div>
-          <div class="settings-group">
-            <button id="btn-install" class="settings-action" type="button"><img class="icon" src="./assets/icons/house.svg" alt="" /><span>添加到桌面</span><img class="icon chevron" src="./assets/icons/chevron-right.svg" alt="" /></button>
-            <p class="small muted" id="install-tip">如未弹出提示，请用浏览器“分享” → “添加到主屏幕”。</p>
-          </div>
-          <div class="settings-group">
-            <h2 class="section-title">数据</h2>
-            <button id="btn-export" class="settings-action" type="button"><img class="icon" src="./assets/icons/copy.svg" alt="" /><span>导出文本（复制）</span><img class="icon chevron" src="./assets/icons/chevron-right.svg" alt="" /></button>
+            <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
+
+            <!-- 选择心情 -->
+            <div class="mood-title" id="mood-title">选择心情</div>
+
+            <div class="mood-grid" id="mood-group" role="group" aria-label="选择心情">
+              <button class="mood-btn" type="button" data-mood="calm">🌙 平静</button>
+              <button class="mood-btn" type="button" data-mood="happy">✨ 愉悦</button>
+              <button class="mood-btn" type="button" data-mood="relaxed">🌱 释然</button>
+              <button class="mood-btn" type="button" data-mood="lazy">☁️ 慵懒</button>
+            </div>
+
+            <!-- 保存按钮 -->
+            <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
+
+            <div class="muted small hint">
+              小提示：长按某条记录可删除；点击可查看全文与时间。
+            </div>
           </div>
         </section>
-        <div class="settings-secondary">
-          <a id="legacy-link" class="settings-action" href="./legacy/"><img class="icon" src="./assets/icons/arrow-left.svg" alt="" /><span>切换至旧版界面</span><img class="icon chevron" src="./assets/icons/chevron-right.svg" alt="" /></a>
-          <p class="small muted">新旧界面使用同一份记录，随时可以切回来。</p>
-        </div>
-        <button id="btn-clear-all" class="settings-action danger clear-all" type="button"><span>清空全部记录</span><img class="icon chevron" src="./assets/icons/chevron-right.svg" alt="" /></button>
-      </div>
-    </main>
-    <noscript><p class="empty-state">请启用 JavaScript，以查看和保存你的记录。</p></noscript>
-  </div>
-  <nav class="tabbar" id="tabbar" aria-label="主导航">
-    <button class="tabbar-btn active" type="button" data-target="page-home" aria-current="page"><img class="icon icon-outline" src="./assets/icons/house.svg" alt="" /><img class="icon icon-selected" src="./assets/icons/house-fill.svg" alt="" /><span>首页</span></button>
-    <button class="tabbar-btn" type="button" data-target="page-today"><img class="icon icon-outline" src="./assets/icons/pencil-simple.svg" alt="" /><img class="icon icon-selected" src="./assets/icons/pencil-simple-fill.svg" alt="" /><span>记录</span></button>
-    <button class="tabbar-btn" type="button" data-target="page-wall"><img class="icon icon-outline" src="./assets/icons/trophy.svg" alt="" /><img class="icon icon-selected" src="./assets/icons/trophy-fill.svg" alt="" /><span>成就墙</span></button>
-    <button class="tabbar-btn" type="button" data-target="page-random"><img class="icon icon-outline" src="./assets/icons/book-open.svg" alt="" /><img class="icon icon-selected" src="./assets/icons/book-open-fill.svg" alt="" /><span>回顾</span></button>
-    <button class="tabbar-btn" type="button" data-target="page-settings"><img class="icon icon-outline" src="./assets/icons/gear.svg" alt="" /><img class="icon icon-selected" src="./assets/icons/gear-fill.svg" alt="" /><span>设置</span></button>
-  </nav>
-  <div id="modal" class="modal" style="display:none;" aria-hidden="true">
-    <div class="modal-backdrop" data-close="1"></div>
-    <div class="modal-card fine-frame" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-body" tabindex="-1">
-      <div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button id="modal-close" class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img class="icon" src="./assets/icons/x.svg" alt="" data-close="1" /></button></div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-actions"><button id="modal-delete" class="text-btn danger" type="button">删除这条记录</button><button id="modal-dismiss" class="btn" type="button" data-close="1">关闭</button></div>
+
+        <!-- 今日列表 -->
+        <section class="panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <h2 class="section-title" style="margin:0;">📅 今天</h2>
+            <button id="btn-clear-today" class="btn" type="button">清空今天</button>
+          </div>
+
+          <div id="today-list" class="list"></div>
+          <div id="today-empty" class="muted" style="text-align:center;padding:18px 0;">今天还没有记录～</div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：成就墙（全览+搜索） ========== -->
+      <main id="page-wall" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">🧱 成就墙（全览 + 搜索）</h2>
+
+          <div class="wall-search-row">
+            <input id="wall-search" class="input" type="text" placeholder="搜索：比如 #运动 / #工作 / 阅读 / 复盘" />
+            <button id="btn-wall-clear-input" class="btn" type="button">清空搜索</button>
+          </div>
+
+          <div class="muted small hint">
+            小提示：输入 # 会出现你记录过的标签联想（比如 #工作）。
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="wall-head">
+            <h2 class="section-title" style="margin:0;">全部记录</h2>
+            <button id="btn-wall-clear" class="btn danger" type="button">清空全部</button>
+          </div>
+
+          <div id="wall-list" class="list"></div>
+          <div id="wall-empty" class="muted" style="text-align:center;padding:18px 0;">还没有记录～</div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：随机回顾 ========== -->
+      <main id="page-random" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">🎲 随机回顾</h2>
+          <div id="random-card" class="panel" style="background:rgba(255,255,255,.65);">
+            <div class="muted" style="margin-bottom:8px;">你抽到的是：</div>
+            <div id="random-text" style="font-size:18px;font-weight:800;line-height:1.4;">—</div>
+            <div id="random-time" class="muted small" style="margin-top:10px;">—</div>
+
+            <!-- ✅ 只保留“再来一条”，做大并居中 -->
+            <div class="random-actions">
+              <button id="btn-random-next" class="btn btn-big" type="button">再来一条</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- ========== 页面：设置 ========== -->
+      <main id="page-settings" style="display:none;">
+        <section class="panel">
+          <h2 class="section-title">⚙️ 设置</h2>
+          <p class="muted small" style="margin-top:0;">
+            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
+          </p>
+
+          <div style="margin-top:14px;">
+            <button id="btn-install" class="btn" type="button">安装到手机（添加到桌面）</button>
+            <div class="small muted" id="install-tip" style="margin-top:8px;">✅ 可安装：点击上方按钮即可添加到桌面。</div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
+
+          <!-- 昵称 -->
+          <div style="margin-top:6px;">
+            <div style="font-weight:800;margin-bottom:8px;">昵称（用于首页问候语）</div>
+            <div class="form-row">
+              <input id="nickname-input" class="input" type="text" placeholder="比如：夏央" />
+              <button id="btn-save-nickname" class="btn" type="button">保存昵称</button>
+            </div>
+            <div class="muted small" style="margin-top:8px;">
+              保存后首页会显示：<span id="nickname-preview">晚上好，夏央</span>
+            </div>
+          </div>
+
+          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
+
+          <!-- 导出 / 清空 -->
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button id="btn-export" class="btn" type="button">导出为文本（复制）</button>
+            <button id="btn-clear-all" class="btn danger" type="button">清空全部数据</button>
+          </div>
+        </section>
+      </main>
+
     </div>
   </div>
-  <div id="update-notice" class="update-notice" role="status" hidden><span>新版已准备好</span><button id="btn-update" class="btn" type="button">刷新页面</button></div>
+
+  <!-- ========== 底部 Tab Bar（移动端使用） ========== -->
+  <nav class="tabbar" id="tabbar" aria-label="底部导航">
+    <button class="tabbar-btn active" type="button" data-target="page-home" aria-label="首页">
+      <span class="ico">🏠</span><span class="txt">首页</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-today" aria-label="记录微光">
+      <span class="ico">✍️</span><span class="txt">记录</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-wall" aria-label="成就墙">
+      <span class="ico">🧱</span><span class="txt">成就墙</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-random" aria-label="随机回顾">
+      <span class="ico">🎲</span><span class="txt">回顾</span>
+    </button>
+    <button class="tabbar-btn" type="button" data-target="page-settings" aria-label="设置">
+      <span class="ico">⚙️</span><span class="txt">设置</span>
+    </button>
+  </nav>
+
+  <!-- ========== Modal：点列表看全文（main.js 会控制显示/隐藏） ========== -->
+  <div id="modal" class="modal" style="display:none;" aria-hidden="true">
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <button class="btn" type="button" data-close="1">关闭</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./main.js?v=classic-20261109" defer></script>
+
+  <!-- Service Worker -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          const registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'});
-          registration.update().catch(() => {});
-          let hadController = Boolean(navigator.serviceWorker.controller);
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (hadController) document.getElementById('update-notice').hidden = false;
-            hadController = true;
-          });
-          document.getElementById('btn-update').addEventListener('click', () => {
-            const draft = document.getElementById('input-text').value.trim();
-            if (draft && !confirm('还有未封存的内容，刷新后会丢失。确定刷新吗？')) return;
-            location.reload();
-          });
-        } catch (error) { console.warn('离线缓存暂不可用', error); }
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
+          .then((registration) => registration.update().catch(() => {}))
+          .catch(() => {});
       });
     }
   </script>

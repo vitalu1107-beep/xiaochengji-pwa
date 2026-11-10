@@ -37,7 +37,7 @@ function app(initial=[],extra={}){
  document.querySelectorAll=s=>s==='.topnav button, .tabbar-btn'?tabs:s==='#mood-group .mood-btn'?moodButtons:s==='[data-target]'?tabs:document.body.querySelectorAll(s);
  document.addEventListener=(k,f)=>(document.listeners[k]??=[]).push(f);
  const store=new Map([[LS,typeof initial==='string'?initial:JSON.stringify(initial)],[NICK,'原昵称']]);
- let failWrite=false,failRead=false;const localStorage={getItem(k){if(failRead)throw new Error('blocked');return store.get(k)??null;},setItem(k,v){if(failWrite)throw new Error('quota');store.set(k,String(v));}};
+ let failWrite=Boolean(extra.failWrite),failRead=Boolean(extra.failRead);const localStorage={getItem(k){if(failRead)throw new Error('blocked');return store.get(k)??null;},setItem(k,v){if(failWrite)throw new Error('quota');store.set(k,String(v));}};
  const listeners={};const window={addEventListener:(k,f)=>(listeners[k]??=[]).push(f),scrollTo(){},PointerEvent:function(){}};
  const confirms=[],prompts=[],copied=[],timers=new Map(); let timerId=0;
  const context={document,window,localStorage,navigator:{clipboard:{writeText:async t=>copied.push(t)}},confirm:msg=>{confirms.push(msg);return extra.confirm??true;},prompt:(msg,text)=>{prompts.push({msg,text});},console,Date,Math,setTimeout:(f,ms)=>{timers.set(++timerId,{f,ms});return timerId;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:f=>f(),...extra.context};
@@ -45,18 +45,158 @@ function app(initial=[],extra={}){
  return{el:id=>elements.get(id),tabs,moodButtons,store,confirms,prompts,copied,document,context,timers,click:id=>elements.get(id).dispatch('click'),event:(k,e={})=>(listeners[k]||[]).forEach(f=>f(e)),failWrite:v=>failWrite=v,failRead:v=>failRead=v,read:()=>JSON.parse(store.get(LS))};
 }
 
-test('loads unchanged legacy schema and renders accessible record buttons with body before mood',()=>{const a=app([record('1')]);assert.equal(a.el('stat-happy').textContent,'1');const row=a.el('recent-list').children.find(x=>x.classList.contains('item'));assert.equal(row.tagName,'BUTTON');assert.match(row.textContent,/旧版 #生活.*平静/s);assert.equal(row.children[0].children[0].className,'item-text');});
-test('saving preserves schema, optional mood and existing nickname',()=>{const a=app([record('1')]);a.el('input-text').value=' 新的一步 #工作 ';a.click('btn-save');const saved=a.read().find(r=>r.text==='新的一步 #工作');assert.ok(saved);assert.deepEqual(Object.keys(saved).sort(),['dateKey','id','mood','text','timeText','ts']);assert.equal(saved.mood,null);assert.equal(a.store.get(NICK),'原昵称');assert.equal(a.el('input-text').value,'');});
-test('failed write retains draft and does not poison next successful save',()=>{const a=app([record('1')]);a.el('input-text').value='未写入';a.failWrite(true);assert.doesNotThrow(()=>a.click('btn-save'));assert.equal(a.el('input-text').value,'未写入');assert.equal(a.read().length,1);a.failWrite(false);a.el('input-text').value='真正写入';a.click('btn-save');assert.deepEqual(a.read().map(r=>r.text),['旧版 #生活','真正写入']);});
-test('malformed stored records remain untouched when trying to save',()=>{const a=app('{bad json');a.el('input-text').value='新记录';a.click('btn-save');assert.equal(a.store.get(LS),'{bad json');assert.equal(a.el('input-text').value,'新记录');});
-test('a newer tab or legacy-page write is merged before saving',()=>{const a=app([record('1')]);a.store.set(LS,JSON.stringify([record('1'),record('2','另一个页面') ]));a.el('input-text').value='当前页面';a.click('btn-save');assert.deepEqual(a.read().map(r=>r.text),['旧版 #生活','另一个页面','当前页面']);});
-test('storage event refreshes counters without erasing an unsaved draft',()=>{const a=app();a.el('input-text').value='草稿';a.store.set(LS,JSON.stringify([record('1')]));a.event('storage',{key:LS});assert.equal(a.el('stat-happy').textContent,'1');assert.equal(a.el('input-text').value,'草稿');});
-test('IME Enter never saves; ordinary Enter still saves and Shift Enter stays multiline',()=>{const a=app();a.el('input-text').value='输入法候选';a.el('input-text').dispatch('keydown',{key:'Enter',isComposing:true});assert.equal(a.read().length,0);a.el('input-text').dispatch('keydown',{key:'Enter',shiftKey:true});assert.equal(a.read().length,0);a.el('input-text').dispatch('keydown',{key:'Enter'});assert.equal(a.read().length,1);});
-test('clear today can be cancelled and does not alter yesterday',()=>{const a=app([record('1'),record('2','昨天',null,1)],{confirm:false});a.click('btn-clear-today');assert.equal(a.confirms.length,1);assert.equal(a.read().length,2);});
-test('search only matches body, handles empty results, clear restores the list',()=>{const a=app([record('1','工作ABC','happy'),record('2','生活','calm')]);a.el('wall-search').value='abc';a.el('wall-search').dispatch('input');assert.equal(a.el('wall-list').children.length,1);a.el('wall-search').value='愉悦';a.el('wall-search').dispatch('input');assert.equal(a.el('wall-list').children.length,0);assert.equal(a.el('wall-empty').style.display,'');a.click('btn-wall-clear-input');assert.equal(a.el('wall-list').children.length,2);});
-test('detail preserves full text and precise saved time; keyboard deletion confirms',()=>{const r=record('1','<b>全文</b>\n第二行');const a=app([r],{confirm:false});const row=a.el('wall-list').children[0];row.focus();row.dispatch('click');assert.equal(a.el('modal-title').textContent,r.timeText);assert.equal(a.el('modal-body').textContent,r.text);assert.equal(a.el('modal').getAttribute('aria-hidden'),'false');a.click('modal-delete');assert.equal(a.confirms.length,1);assert.equal(a.read().length,1);a.click('modal-close');assert.equal(a.el('modal').getAttribute('aria-hidden'),'true');assert.equal(a.document.activeElement,row);});
-test('long press does not trigger a detail click after a cancelled delete',()=>{const a=app([record('1')],{confirm:false});const row=a.el('wall-list').children[0];row.dispatch('pointerdown',{pointerType:'touch',clientX:10,clientY:10});const hold=[...a.timers.values()].find(t=>t.ms===520);assert.ok(hold);hold.f();row.dispatch('pointerup');row.dispatch('click');assert.equal(a.confirms.length,1);assert.notEqual(a.el('modal').getAttribute('aria-hidden'),'false');});
-test('fullwidth tag suggestions insert a historical tag into body',()=>{const a=app([record('1','旧事 ＃生活')]);a.el('input-text').value='今天 ＃生';a.el('input-text').selectionStart=5;a.el('input-text').dispatch('input');assert.equal(a.el('tag-suggest').children[0].textContent,'#生活');a.el('tag-suggest').children[0].dispatch('click');assert.equal(a.el('input-text').value,'今天 #生活 ');});
-test('random review keeps body/time/mood separate and current selection across reentry',()=>{const r=record('1','读完一本书','calm');const a=app([r]);assert.equal(a.el('random-text').textContent,r.text);assert.equal(a.el('random-time').textContent,r.timeText);assert.equal(a.el('random-mood').textContent,'平静');a.tabs[3].dispatch('click');assert.equal(a.el('random-text').textContent,r.text);assert.equal(a.tabs[3].getAttribute('aria-current'),'page');});
-test('export falls back to a selectable prompt when clipboard is absent',()=>{const a=app([record('1')],{context:{navigator:{}}});a.click('btn-export');assert.equal(a.prompts.length,1);assert.match(a.prompts[0].text,/旧版 #生活/);});
-test('nickname quota failure keeps saved greeting and unsubmitted input',()=>{const a=app();a.el('nickname-input').value='新昵称';a.failWrite(true);assert.doesNotThrow(()=>a.click('btn-save-nickname'));assert.equal(a.store.get(NICK),'原昵称');assert.equal(a.el('nickname-input').value,'新昵称');assert.match(a.el('home-greeting').textContent,/原昵称/);});
+
+// Exercise the retained legacy runtime with the same DOM/storage boundary used by runtime.test.cjs.
+function holdRecord(a, index = 0) {
+  const row = a.el('wall-list').children[index];
+  row.dispatch('pointerdown');
+  const hold = [...a.timers.values()].find(timer => timer.ms === 520);
+  assert.ok(hold);
+  hold.f();
+}
+
+test('legacy resumed snapshot appends without losing a newer forest record', () => {
+  const a = app([record('1', '原记录')]);
+  a.store.set(LS, JSON.stringify([record('1', '原记录'), record('2', '森林新增')]));
+  a.el('input-text').value = '旧版继续记录';
+  a.click('btn-save');
+  assert.deepEqual(a.read().map(r => r.text), ['原记录', '森林新增', '旧版继续记录']);
+});
+
+test('legacy single deletion preserves records added since this page was loaded', () => {
+  const a = app([record('1', '待删除')]);
+  a.store.set(LS, JSON.stringify([record('1', '待删除'), record('2', '森林新增')]));
+  holdRecord(a);
+  assert.deepEqual(a.read().map(r => r.text), ['森林新增']);
+});
+
+test('legacy clear today applies to latest records and preserves newer previous-day records', () => {
+  const a = app([record('1', '今天')]);
+  a.store.set(LS, JSON.stringify([record('1', '今天'), record('2', '另一页今天'), record('3', '另一页昨天', null, 1)]));
+  a.click('btn-clear-today');
+  assert.deepEqual(a.read().map(r => r.text), ['另一页昨天']);
+});
+
+for (const button of ['btn-wall-clear', 'btn-clear-all']) {
+  test('legacy ' + button + ' clears latest records even when its initial snapshot was empty', () => {
+    const a = app();
+    a.store.set(LS, JSON.stringify([record('1', '刚刚从新版写入')]));
+    a.click(button);
+    assert.deepEqual(a.read(), []);
+  });
+}
+
+for (const event of ['pageshow', 'storage', 'focus']) {
+  test('legacy ' + event + ' synchronizes the list without clearing the draft or mood', () => {
+    const a = app();
+    a.el('input-text').value = '还没封存的正文';
+    a.moodButtons[1].dispatch('click');
+    a.store.set(LS, JSON.stringify([record('1', '森林新增')]));
+    a.event(event, event === 'pageshow' ? {persisted:true} : {key:LS});
+    assert.equal(a.el('stat-happy').textContent, '1');
+    assert.equal(a.el('wall-list').children.length, 1);
+    assert.equal(a.el('input-text').value, '还没封存的正文');
+    assert.equal(a.moodButtons[1].classList.contains('active'), true);
+  });
+}
+
+for (const mutation of ['save', 'delete', 'today', 'wall', 'all']) {
+  test('legacy ' + mutation + ' does not replace malformed persisted data', () => {
+    const a = app([record('1')]);
+    a.store.set(LS, '{broken json');
+    a.el('input-text').value = '保留草稿';
+    assert.doesNotThrow(() => {
+      if (mutation === 'delete') holdRecord(a);
+      else a.click({save:'btn-save',today:'btn-clear-today',wall:'btn-wall-clear',all:'btn-clear-all'}[mutation]);
+    });
+    assert.equal(a.store.get(LS), '{broken json');
+    assert.equal(a.el('input-text').value, '保留草稿');
+    assert.match(a.document.querySelector('#__toast').textContent, /读取/);
+  });
+}
+
+test('legacy blocked reads cannot turn a previous snapshot into a new write', () => {
+  const a = app([record('1')]);
+  a.failRead(true);
+  a.el('input-text').value = '保留草稿';
+  assert.doesNotThrow(() => a.click('btn-save'));
+  assert.equal(a.read().length, 1);
+  assert.equal(a.el('input-text').value, '保留草稿');
+});
+
+test('legacy failed save keeps draft and does not leak its failed record into a later save', () => {
+  const a = app([record('1')]);
+  a.failWrite(true);
+  a.el('input-text').value = '失败草稿';
+  assert.doesNotThrow(() => a.click('btn-save'));
+  assert.equal(a.el('input-text').value, '失败草稿');
+  assert.equal(a.read().length, 1);
+  a.failWrite(false);
+  a.el('input-text').value = '成功记录';
+  a.click('btn-save');
+  assert.deepEqual(a.read().map(r => r.text), ['旧版 #生活', '成功记录']);
+});
+
+for (const mutation of ['delete', 'today', 'wall', 'all']) {
+  test('legacy failed ' + mutation + ' leaves persisted and rendered records intact', () => {
+    const a = app([record('1')]);
+    a.failWrite(true);
+    assert.doesNotThrow(() => {
+      if (mutation === 'delete') holdRecord(a);
+      else a.click({today:'btn-clear-today',wall:'btn-wall-clear',all:'btn-clear-all'}[mutation]);
+    });
+    assert.equal(a.read().length, 1);
+    assert.equal(a.el('stat-happy').textContent, '1');
+    assert.match(a.document.querySelector('#__toast').textContent, /失败/);
+  });
+}
+
+test('legacy startup tolerates inaccessible nickname and record storage', () => {
+  const a = app([], {failRead:true});
+  assert.match(a.el('home-greeting').textContent, /夏央/);
+  a.el('input-text').value = '保留草稿';
+  assert.doesNotThrow(() => a.click('btn-save'));
+  assert.equal(a.el('input-text').value, '保留草稿');
+});
+
+test('legacy failed nickname save keeps stored nickname and entered value', () => {
+  const a = app();
+  a.failWrite(true);
+  a.el('nickname-input').value = '未保存昵称';
+  assert.doesNotThrow(() => a.click('btn-save-nickname'));
+  assert.equal(a.store.get(NICK), '原昵称');
+  assert.equal(a.el('nickname-input').value, '未保存昵称');
+  assert.match(a.document.querySelector('#__toast').textContent, /失败/);
+});
+
+test('legacy lifecycle nickname sync preserves an unsubmitted nickname edit', () => {
+  const a = app();
+  a.el('nickname-input').value = '正在编辑';
+  a.store.set(NICK, '森林昵称');
+  a.event('storage', {key:NICK});
+  assert.match(a.el('home-greeting').textContent, /森林昵称/);
+  assert.equal(a.el('nickname-input').value, '正在编辑');
+});
+
+test('legacy composition Enter is ignored and normal Enter remains save', () => {
+  const a = app();
+  a.el('input-text').value = '输入法候选';
+  a.el('input-text').dispatch('keydown', {key:'Enter',isComposing:true});
+  assert.equal(a.read().length, 0);
+  a.el('input-text').dispatch('compositionstart');
+  a.el('input-text').dispatch('keydown', {key:'Enter'});
+  assert.equal(a.read().length, 0);
+  a.el('input-text').dispatch('compositionend');
+  a.el('input-text').dispatch('keydown', {key:'Enter',shiftKey:true});
+  assert.equal(a.read().length, 0);
+  a.el('input-text').dispatch('keydown', {key:'Enter'});
+  assert.equal(a.read().length, 1);
+});
+
+test('legacy export with no clipboard shows selectable latest records', () => {
+  const a = app([record('1')], {context:{navigator:{}}});
+  a.store.set(LS, JSON.stringify([record('1'), record('2', '森林新增')]));
+  a.click('btn-export');
+  assert.equal(a.prompts.length, 1);
+  assert.match(a.prompts[0].text, /森林新增/);
+});

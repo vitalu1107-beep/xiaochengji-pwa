@@ -1,18 +1,13 @@
-/* One complete cache per release; both UIs share origin-local data, never cached here. */
-const VERSION = 'forest-2026-11-02d';
+/* Classic UI rollback: cache app files only; records and nicknames stay in localStorage. */
+const VERSION = 'classic-2026-11-09';
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const BASE = self.registration.scope;
-const UI_VERSION = 'forest-20261102d';
+const UI_VERSION = 'classic-20261109';
 const absolute = path => new URL(path, BASE).href;
 const APP_SHELL = [
   'index.html', `style.css?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
   'manifest.json', 'offline.html',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',
-  'legacy/index.html', 'legacy/style.css', 'legacy/main.js',
-  'legacy/icons/icon-180.png', 'legacy/icons/icon-192.png', 'legacy/icons/icon-512.png',
-  ...['home', 'record', 'wall', 'review', 'settings'].map(page => `assets/${page}-hero.webp`),
-  ...['house','pencil-simple','trophy','book-open','gear','heart','magnifying-glass','chevron-right','copy','smiley','x','trash','arrow-left'].map(name => `assets/icons/${name}.svg`),
-  ...['house','pencil-simple','trophy','book-open','gear'].map(name => `assets/icons/${name}-fill.svg`),
 ].map(absolute);
 
 self.addEventListener('install', event => {
@@ -32,17 +27,21 @@ self.addEventListener('activate', event => {
 });
 
 async function navigation(request) {
+  const path = new URL(request.url).pathname;
+  const base = new URL(BASE).pathname;
+  // Retired /legacy/ bookmarks must resolve assets from the canonical app root.
+  if (path !== base && path !== new URL('index.html', BASE).pathname) {
+    return Response.redirect(BASE, 302);
+  }
   const cache = await caches.open(CACHE_NAME);
   const abort = new AbortController();
   const timeout = setTimeout(() => abort.abort(), 4000);
   try {
     const response = await fetch(new Request(request, {cache: 'no-store', signal: abort.signal}));
     if (response.ok) return response;
-  } catch { /* offline: use the correct interface shell */ }
+  } catch { /* Offline: restore the same classic interface from this release. */ }
   finally { clearTimeout(timeout); }
-  const path = new URL(request.url).pathname;
-  const legacy = path.startsWith(new URL('legacy/', BASE).pathname);
-  const shell = await cache.match(absolute(legacy ? 'legacy/index.html' : 'index.html'));
+  const shell = await cache.match(absolute('index.html'));
   return shell || new Response('暂时离线，首次打开请先连接网络。', {status: 503, headers:{'Content-Type':'text/plain;charset=utf-8'}});
 }
 async function resource(request) {

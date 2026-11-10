@@ -92,23 +92,27 @@ test('activation removes only obsolete Small Wins caches', async () => {
   assert.equal(w.claims, 1);
 });
 
-test('precache follows the registration scope and includes both interfaces and forest assets', async () => {
-  const w = worker({scope:'http://localhost:4173/product/'});
+test('rollback precaches the classic files under its actual registration scope', async () => {
+  const w = worker({scope:'http://localhost:4173/rollback-2026-11-09/'});
   await w.event('install');
-  assert.ok(w.requested.every(url => url.startsWith('http://localhost:4173/product/')));
-  for (const file of ['legacy/index.html','legacy/main.js','legacy/style.css','assets/home-hero.webp','assets/record-hero.webp','assets/wall-hero.webp','assets/review-hero.webp','assets/settings-hero.webp','assets/icons/house.svg']) {
+  assert.ok(w.requested.every(url => url.startsWith('http://localhost:4173/rollback-2026-11-09/')));
+  for (const file of ['index.html','style.css?v=classic-20261109','main.js?v=classic-20261109','manifest.json','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png']) {
     assert.ok(w.requested.some(url => url.endsWith(file)), file);
   }
-  assert.ok(w.requested.some(url => url.endsWith('main.js?v=forest-20261102d')));
+  assert.ok(w.requested.every(url => !url.includes('/assets/') && !url.includes('/legacy/')));
 });
 
-test('offline navigation chooses the legacy shell for legacy URLs and the new shell for the root', async () => {
+test('offline root restores the classic index and retired nested routes redirect to the correct asset root', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-forest-2026-11-02d');
-  await cache.put('index.html', new Response('new shell'));
-  await cache.put('legacy/index.html', new Response('old shell'));
-  assert.equal(await (await w.request('./', {navigation:true})).text(), 'new shell');
-  assert.equal(await (await w.request('legacy/', {navigation:true})).text(), 'old shell');
+  const cache = await w.caches.open('smallwins-cache-classic-2026-11-09');
+  await cache.put('index.html', new Response('classic shell'));
+  await cache.put('offline.html', new Response('obsolete DOM'));
+  assert.equal(await (await w.request('./', {navigation:true})).text(), 'classic shell');
+  const retired = await w.request('legacy/', {navigation:true});
+  assert.equal(retired.status, 302);
+  assert.equal(retired.headers.get('location'), 'https://example.test/xiaochengji-pwa/');
+  const obsolete = await w.request('offline.html', {navigation:true});
+  assert.equal(obsolete.status, 302);
 });
 
 test('a different app cache cannot become this app’s offline response', async () => {
@@ -120,10 +124,10 @@ test('a different app cache cannot become this app’s offline response', async 
 
 test('unknown script versions never silently receive the current cached script', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-forest-2026-11-02d');
-  await cache.put('main.js?v=forest-20261102d', new Response('current script'));
+  const cache = await w.caches.open('smallwins-cache-classic-2026-11-09');
+  await cache.put('main.js?v=classic-20261109', new Response('current script'));
   assert.equal((await w.request('main.js?v=future')).status, 503);
-  assert.equal(await (await w.request('main.js?v=forest-20261102d')).text(), 'current script');
+  assert.equal(await (await w.request('main.js?v=classic-20261109')).text(), 'current script');
 });
 
 test('requests outside this registration are left to the browser', async () => {
@@ -142,4 +146,14 @@ test('every precached resource exists in the release and versioned scripts match
     assert.ok(fs.statSync(require('node:path').join(root, file)).isFile(), file);
     if (parsed.search) assert.ok(html.includes('./' + file + parsed.search), file + ' version mismatch');
   }
+});
+
+test('activation removes the forest release cache after the complete classic install', async () => {
+  const w = worker();
+  await w.caches.open('smallwins-cache-forest-2026-11-02d');
+  await w.event('install');
+  assert.equal(w.skips, 1);
+  await w.event('activate');
+  assert.ok(w.deleted.includes('smallwins-cache-forest-2026-11-02d'));
+  assert.ok(w.buckets.has('smallwins-cache-classic-2026-11-09'));
 });
