@@ -13,7 +13,7 @@
   <link rel="icon" href="./icons/icon-192.png" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="./style.css?v=classic-20261109" />
+  <link rel="stylesheet" href="./style.css?v=classic-media-20261111" />
 </head>
 
 <body>
@@ -50,14 +50,14 @@
         <!-- 两张卡：横排 -->
         <section class="stats-grid" aria-label="统计卡片">
           <div class="stat-card" id="card-achievement">
-            <h3>🏆 成就记录</h3>
+            <h3>🏆 连续记录</h3>
             <div class="big" id="stat-streak">0</div>
             <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
             <button class="btn" type="button" data-target="page-today">去记录</button>
           </div>
 
           <div class="stat-card" id="card-happy">
-            <h3>💗 小确幸墙</h3>
+            <h3>💗 记录总数</h3>
             <div class="big" id="stat-happy">0</div>
             <p class="sub muted" id="stat-happy-sub">记录 0 个瞬间</p>
             <button class="btn" type="button" data-target="page-wall">去看看</button>
@@ -87,6 +87,13 @@
               rows="4"
             ></textarea>
 
+            <div class="record-media-tools">
+              <button id="btn-add-image" class="btn" type="button">添加图片</button>
+              <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+              <span class="muted small">最多 3 张，仅保存在当前设备</span>
+            </div>
+            <div id="image-preview" class="image-preview" aria-live="polite"></div>
+
             <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
 
             <!-- 选择心情 -->
@@ -100,7 +107,10 @@
             </div>
 
             <!-- 保存按钮 -->
-            <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
+            <div class="record-actions">
+              <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
+              <button id="btn-cancel-edit" class="btn" type="button" style="display:none;">取消编辑</button>
+            </div>
 
             <div class="muted small hint">
               小提示：长按某条记录可删除；点击可查看全文与时间。
@@ -112,7 +122,7 @@
         <section class="panel">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <h2 class="section-title" style="margin:0;">📅 今天</h2>
-            <button id="btn-clear-today" class="btn" type="button">清空今天</button>
+            <button id="btn-clear-today" class="btn secondary-danger" type="button">清空今天</button>
           </div>
 
           <div id="today-list" class="list"></div>
@@ -129,6 +139,12 @@
             <input id="wall-search" class="input" type="text" placeholder="搜索：比如 #运动 / #工作 / 阅读 / 复盘" />
             <button id="btn-wall-clear-input" class="btn" type="button">清空搜索</button>
           </div>
+
+          <div class="view-toggle" id="wall-view-toggle" role="group" aria-label="成就墙视图">
+            <button class="view-toggle-btn active" type="button" data-view="time">时间顺序</button>
+            <button class="view-toggle-btn" type="button" data-view="tag">标签筛选</button>
+          </div>
+          <div id="wall-tag-filters" class="tag-filters" aria-label="标签筛选"></div>
 
           <div class="muted small hint">
             小提示：输入 # 会出现你记录过的标签联想（比如 #工作）。
@@ -151,14 +167,15 @@
         <section class="panel">
           <h2 class="section-title">🎲 随机回顾</h2>
           <div id="random-card" class="panel" style="background:rgba(255,255,255,.65);">
+            <button id="btn-random-prev" class="review-arrow review-arrow-prev" type="button" aria-label="上一条">‹</button>
             <div class="muted" style="margin-bottom:8px;">你抽到的是：</div>
+            <div id="random-media" class="review-media"></div>
             <div id="random-text" style="font-size:18px;font-weight:800;line-height:1.4;">—</div>
             <div id="random-time" class="muted small" style="margin-top:10px;">—</div>
-
-            <!-- ✅ 只保留“再来一条”，做大并居中 -->
-            <div class="random-actions">
-              <button id="btn-random-next" class="btn btn-big" type="button">再来一条</button>
-            </div>
+            <div id="random-position" class="muted small review-position">—</div>
+            <button id="btn-random-next" class="review-arrow review-arrow-next" type="button" aria-label="下一条">›</button>
+            <div class="review-hint muted small">左右滑动切换</div>
+            <button id="btn-random-reshuffle" class="btn" type="button" style="display:none;">重新随机</button>
           </div>
         </section>
       </main>
@@ -195,8 +212,10 @@
           <!-- 导出 / 清空 -->
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button id="btn-export" class="btn" type="button">导出为文本（复制）</button>
+            <button id="btn-backup" class="btn" type="button">导出完整备份</button>
             <button id="btn-clear-all" class="btn danger" type="button">清空全部数据</button>
           </div>
+          <div id="storage-usage" class="muted small" style="margin-top:10px;">图片占用空间：读取中…</div>
         </section>
       </main>
 
@@ -228,12 +247,15 @@
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="modal-title" id="modal-title"></div>
       <div class="modal-body" id="modal-body"></div>
+      <div id="modal-media" class="modal-media"></div>
+      <button class="btn" id="modal-edit" type="button">编辑</button>
       <button class="btn" type="button" data-close="1">关闭</button>
     </div>
   </div>
 
   <!-- Scripts -->
-  <script src="./main.js?v=classic-20261109" defer></script>
+  <script src="./media-core.js?v=classic-media-20261111" defer></script>
+  <script src="./main.js?v=classic-media-20261111" defer></script>
 
   <!-- Service Worker -->
   <script>
