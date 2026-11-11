@@ -509,3 +509,35 @@ main > section + section{ margin-top:14px; }
   word-break:break-word;
   margin-bottom:14px;
 }
+
+/* ---------- Media, wall views, and review deck ---------- */
+.record-media-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.image-preview,.record-media,.modal-media,.review-media{display:flex;gap:8px;flex-wrap:wrap;}
+.image-preview:empty,.record-media:empty,.modal-media:empty,.review-media:empty{display:none;}
+.image-preview-item,.media-item{position:relative;width:76px;height:76px;overflow:hidden;border-radius:12px;background:rgba(255,255,255,.58);border:1px solid rgba(0,0,0,.08);}
+.image-preview-item img,.media-item img{display:block;width:100%;height:100%;object-fit:cover;}
+.image-remove{position:absolute;right:3px;top:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;line-height:1;cursor:pointer;}
+.record-actions{display:flex;gap:10px;align-items:center;}
+.record-actions .primary-btn{flex:1;}
+.view-toggle{display:flex;gap:8px;margin-top:12px;}
+.view-toggle-btn,.tag-filter{border:1px solid rgba(70,178,86,.28);background:rgba(255,255,255,.62);color:var(--text);border-radius:999px;padding:8px 12px;cursor:pointer;}
+.view-toggle-btn.active,.tag-filter.active{background:rgba(70,178,86,.16);border-color:rgba(70,178,86,.55);font-weight:800;}
+.tag-filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.random-card{position:relative;}
+.review-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border:1px solid rgba(0,0,0,.1);border-radius:50%;background:rgba(255,255,255,.82);font-size:28px;line-height:1;cursor:pointer;z-index:2;}
+.review-arrow-prev{left:8px;}.review-arrow-next{right:8px;}
+.review-position{text-align:center;margin-top:8px;}
+.review-hint{text-align:center;margin-top:12px;}
+.random-card .review-media{justify-content:center;margin-bottom:10px;}
+.random-card .review-media .media-item{width:120px;height:120px;}
+.modal-media{margin-bottom:14px;}
+.modal-media .media-item{width:96px;height:96px;}
+.item{align-items:flex-start;flex-wrap:wrap;}
+.item-left{flex:1 1 180px;}
+.record-media{flex:0 0 100%;padding-left:0;}
+.record-media .media-item{width:54px;height:54px;}
+@media (max-width:520px){
+  .record-actions{align-items:stretch;flex-direction:column;}
+  .record-actions .primary-btn{width:100%;}
+  .review-arrow{width:32px;height:32px;font-size:24px;}
+}
