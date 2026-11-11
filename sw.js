@@ -1,11 +1,11 @@
 /* Classic UI rollback: cache app files only; records and nicknames stay in localStorage. */
-const VERSION = 'classic-2026-11-09';
+const VERSION = 'classic-media-2026-11-11';
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const BASE = self.registration.scope;
-const UI_VERSION = 'classic-20261109';
+const UI_VERSION = 'classic-media-20261111';
 const absolute = path => new URL(path, BASE).href;
 const APP_SHELL = [
-  'index.html', `style.css?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
+  'index.html', `style.css?v=${UI_VERSION}`, `media-core.js?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
   'manifest.json', 'offline.html',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',
 ].map(absolute);
