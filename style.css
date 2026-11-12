@@ -85,7 +85,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .page-header + .page-content { margin-top: 0; }
 .record-composer { padding: 12px 0 28px; }
 .record-editor { position: relative; }
-.record-input { display: block; width: 100%; min-height: 184px; resize: vertical; padding: 56px 20px 20px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 22px; font-family: var(--display-font); font-size: 20px; line-height: 1.55; letter-spacing: -.025em; outline: none; }
+.record-input { display: block; width: 100%; height: 184px; min-height: 184px; max-height: 340px; resize: vertical; padding: 56px 20px 20px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 22px; font-family: var(--display-font); font-size: 20px; line-height: 1.55; letter-spacing: -.025em; outline: none; }
 .record-input::placeholder { color: #8e9b95; }
 .compose-tools { position: absolute; top: 13px; left: 13px; z-index: 3; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--sage-soft); color: #5c9275; cursor: pointer; font-size: 23px; font-weight: 350; line-height: 1; }
 .compose-tools[aria-expanded="true"] { background: var(--sage); border-color: var(--sage); }
