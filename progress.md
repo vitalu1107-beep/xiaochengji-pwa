@@ -15,3 +15,5 @@ Task 8: complete — Apple-like UI applied to all five pages, long-haired calico
 Task 9: complete — follow-up detail alignment: removed the extra home energy frame, applied the display serif hierarchy, reduced and fixed the record composer default height, moved image/tag actions into the editor's upper-left add-content menu, and replaced settings text save buttons with compact confirmation icons. Local responsive preview and regression suite passed; cache version bumped to `apple-ui-2026-11-12d`.
 
 Task 10: complete — fixed mobile random-review swiping with touchstart/touchend fallback, pointer capture/cancel handling, and `touch-action: pan-y`; local drag verification and regression suite passed. Cache version bumped to `apple-ui-2026-11-12e`.
+
+Task 11: complete — redesigned random review as a compact stacked-card deck with neighboring layers, drag-follow translation/rotation, thresholded commit, exit animation, and reset-on-cancel. Local visual verification and regression suite passed; cache version bumped to `apple-ui-2026-11-12f`.

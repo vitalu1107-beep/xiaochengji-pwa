@@ -139,7 +139,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .wall-item .item-chevron { position: absolute; right: 14px; bottom: 12px; width: 18px; height: 18px; }
 
 .review-content { padding-top: 20px; }
-.review-card { position: relative; min-height: 470px; padding: 42px 40px 48px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 26px; box-shadow: 0 12px 30px rgba(23, 58, 50, .045); touch-action: pan-y; user-select: none; }
+.review-stack { position: relative; min-height: 392px; margin: 0 -18px; padding: 0 18px; overflow: hidden; touch-action: pan-y; }
+.review-layer { position: absolute; top: 14px; bottom: 14px; width: calc(100% - 56px); border: 1px solid var(--line); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 24px rgba(23, 58, 50, .035); pointer-events: none; }
+.review-layer-prev { left: 0; transform: rotate(-4deg) scale(.96); transform-origin: center right; opacity: .76; }
+.review-layer-next { right: 0; transform: rotate(4deg) scale(.96); transform-origin: center left; opacity: .76; }
+.review-card { position: relative; z-index: 2; min-height: 392px; padding: 34px 36px 38px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 26px; box-shadow: 0 12px 30px rgba(23, 58, 50, .045); touch-action: pan-y; user-select: none; --swipe-x: 0px; --swipe-rotate: 0deg; transform: translate3d(var(--swipe-x), 0, 0) rotate(var(--swipe-rotate)); transition: transform 240ms cubic-bezier(.22,.8,.28,1); will-change: transform; }
+.review-card.is-dragging { transition: none; }
+.review-card.is-exiting-left { --swipe-x: 118%; --swipe-rotate: 10deg; transition-duration: 260ms; }
+.review-card.is-exiting-right { --swipe-x: -118%; --swipe-rotate: -10deg; transition-duration: 260ms; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
 .review-text { margin: 80px 0 0; font-family: var(--display-font); font-size: clamp(30px, 8vw, 42px); line-height: 1.35; letter-spacing: -.045em; font-weight: 600; }
 .review-mood { margin: 26px 0 0; font-size: 16px; }
@@ -148,7 +155,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-arrow { position: absolute; top: 50%; z-index: 1; width: 32px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; transform: translateY(-50%); }
 .review-arrow img { width: 22px; height: 22px; opacity: .62; filter: brightness(0) saturate(100%) invert(28%) sepia(10%) saturate(1077%) hue-rotate(113deg) brightness(91%) contrast(89%); }
 .review-arrow-prev { left: 5px; }.review-arrow-prev img { transform: rotate(180deg); }.review-arrow-next { right: 5px; }
-.review-footer { display: grid; justify-items: center; gap: 6px; padding-top: 22px; }
+.review-footer { display: grid; justify-items: center; gap: 6px; padding-top: 16px; }
 .review-position { font-size: 13px; }.review-hint, .review-shuffle { margin: 0; font-size: 14px; }.review-shuffle { color: #7b9a86; }
 
 .settings-content { padding-top: 0; }
@@ -179,4 +186,4 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .icon-btn img { width: 17px; height: 17px; }
 
 @media (min-width: 700px) { .page { min-height: auto; padding-bottom: 30px; }.tabbar { position: sticky; top: 0; bottom: auto; max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 0 0 18px 18px; }.home-header, .page-header { padding-top: 34px; } }
-@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-greeting { font-size: 28px; }.energy-hero { min-height: 360px; padding-left: 20px; padding-right: 20px; }.energy-quote { font-size: 31px; }.mascot-hero { width: 132px; height: 132px; }.wall-grid { grid-template-columns: 1fr; }.review-card { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 31px; } }
+@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-greeting { font-size: 28px; }.energy-hero { min-height: 360px; padding-left: 20px; padding-right: 20px; }.energy-quote { font-size: 31px; }.mascot-hero { width: 132px; height: 132px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 31px; } }
