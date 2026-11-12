@@ -3,269 +3,67 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#46B256" />
+  <meta name="theme-color" content="#F7F8F4" />
+  <meta name="description" content="记录每天值得记住的小成就。" />
   <title>小成就 · Small Wins</title>
-
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
-  <link rel="apple-touch-icon" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="./style.css?v=classic-media-20261111" />
+  <link rel="preload" href="./assets/calico-mascot.png" as="image" />
+  <link rel="stylesheet" href="./style.css?v=apple-ui-20261112b" />
 </head>
-
 <body>
   <div class="app">
-    <div class="container">
-      <!-- 顶部品牌 -->
-      <header>
-        <div class="brand">
-          <img class="logo" src="./icons/icon-192.png" alt="logo" />
-          <div class="titles">
-            <h1>小成就 <span class="muted" style="font-size:14px;font-weight:600;margin-left:6px;">Small Wins</span></h1>
-            <p class="muted">记录每天的小小进步。</p>
-          </div>
+    <main id="page-home" class="page page-home" aria-labelledby="home-heading">
+      <header class="home-header">
+        <div class="brand-lockup">
+          <img class="mascot mascot-brand" src="./assets/calico-mascot.png" alt="长毛三花猫" />
+          <div><h1 id="home-heading">小成就</h1><p>Small Wins</p></div>
         </div>
-
+        <div class="home-greeting-block"><p id="home-greeting" class="home-greeting">晚上好，夏央</p><p id="home-date" class="home-date">2026年11月12日</p></div>
       </header>
+      <div class="page-content home-content">
+        <section class="energy-hero" aria-labelledby="energy-heading"><p id="energy-heading" class="eyebrow">今日能量</p><p id="home-quote" class="energy-quote">把一件小事，做得刚刚好。</p><img class="mascot mascot-hero" src="./assets/calico-mascot.png" alt="长毛三花猫坐在柔和的山丘旁" /></section>
+        <section class="stats-line" aria-label="我的小成就"><div class="stat-inline"><span>连续记录</span><strong id="stat-streak">0</strong><span>天</span></div><span class="stat-divider" aria-hidden="true"></span><div class="stat-inline"><span>累计</span><strong id="stat-happy">0</strong><span>件</span></div><span id="stat-streak-sub" class="sr-only">已坚持 0 天</span><span id="stat-happy-sub" class="sr-only">记录 0 个瞬间</span></section>
+        <section class="recent-section" aria-labelledby="recent-heading"><div class="section-head section-head-simple"><h2 id="recent-heading" class="section-title">最近的小成就</h2></div><div id="recent-list" class="list recent-list"><p class="empty-state" id="recent-empty">还没有记录，先写下第一件小成就。</p></div></section>
+      </div>
+    </main>
 
-      <!-- ========== 页面：首页 ========== -->
-      <main id="page-home">
-        <!-- 问候 -->
-        <section class="panel">
-          <div class="muted" id="home-date">—</div>
-          <div style="font-size:20px;font-weight:800;margin-top:6px;" id="home-greeting">晚上好，夏央</div>
+    <main id="page-today" class="page" style="display:none;" aria-labelledby="record-heading">
+      <header class="page-header"><h1 id="record-heading" class="page-title">记录</h1><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <div class="page-content record-content">
+        <section class="record-composer" aria-label="写下小成就">
+          <label for="input-text" class="sr-only">今天，想记下哪件小事？</label><textarea id="input-text" class="record-input" placeholder="今天，想记下哪件小事？" autocomplete="off" rows="7"></textarea>
+          <div id="tag-suggest" class="tag-suggest" aria-label="历史标签建议" style="display:none;"></div>
+          <div class="attachment-row"><button id="btn-add-image" class="attachment-add" type="button" aria-label="添加图片"><span aria-hidden="true">＋</span><small>添加图片</small></button><input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden /><div id="image-preview" class="image-preview" aria-live="polite"></div></div>
+          <div class="mood-title" id="mood-title">心情 <span>（可选）</span></div>
+          <div class="mood-grid" id="mood-group" role="group" aria-labelledby="mood-title"><button class="mood-btn" type="button" data-mood="calm" aria-pressed="false">平静</button><button class="mood-btn" type="button" data-mood="happy" aria-pressed="false">愉悦</button><button class="mood-btn" type="button" data-mood="relaxed" aria-pressed="false">释然</button><button class="mood-btn" type="button" data-mood="lazy" aria-pressed="false">慵懒</button></div>
+          <div class="record-actions"><button id="btn-save" class="primary-btn" type="button">封存这一刻</button><button id="btn-cancel-edit" class="btn secondary-btn" type="button" style="display:none;">取消编辑</button></div>
         </section>
+        <section class="today-section" aria-labelledby="today-heading"><div class="section-head"><h2 id="today-heading" class="section-title">今天</h2><button id="btn-clear-today" class="text-btn" type="button">清空今天</button></div><div id="today-list" class="list"></div><p id="today-empty" class="empty-state">今天还没有记录。</p></section>
+      </div>
+    </main>
 
-        <!-- 今日能量 -->
-        <section class="panel">
-          <div class="muted small" style="margin-bottom:8px;">今日能量</div>
-          <div id="home-quote" style="font-size:22px;font-weight:900;line-height:1.35;">
-            “你不需要很厉害才开始，你需要开始才会变厉害。”
-          </div>
-        </section>
+    <main id="page-wall" class="page" style="display:none;" aria-labelledby="wall-heading">
+      <header class="page-header"><div><h1 id="wall-heading" class="page-title">成就墙</h1><p class="page-subtitle"><span id="wall-count">你的每一点进步</span></p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <div class="page-content wall-content"><div class="wall-search-row"><label class="search-field"><img class="search-icon" src="./assets/icons/magnifying-glass.svg" alt="" /><span class="sr-only">搜索正文或标签</span><input id="wall-search" class="input" type="search" placeholder="搜索成就或标签" autocomplete="off" /></label><button id="btn-wall-clear-input" class="text-btn" type="button">清空</button></div><div class="view-toggle" id="wall-view-toggle" role="group" aria-label="成就墙视图"><button class="view-toggle-btn active" type="button" data-view="time">按时间</button><button class="view-toggle-btn" type="button" data-view="tag">按标签</button></div><div id="wall-tag-filters" class="tag-filters" aria-label="标签筛选"></div><section class="wall-section" aria-labelledby="wall-list-heading"><div class="section-head"><h2 id="wall-list-heading" class="section-title">全部记录</h2><button id="btn-wall-clear" class="text-btn danger" type="button">清空全部</button></div><div id="wall-list" class="wall-grid"></div><p id="wall-empty" class="empty-state">还没有记录。</p></section></div>
+    </main>
 
-        <!-- 两张卡：横排 -->
-        <section class="stats-grid" aria-label="统计卡片">
-          <div class="stat-card" id="card-achievement">
-            <h3>🏆 连续记录</h3>
-            <div class="big" id="stat-streak">0</div>
-            <p class="sub muted" id="stat-streak-sub">已坚持 0 天</p>
-            <button class="btn" type="button" data-target="page-today">去记录</button>
-          </div>
+    <main id="page-random" class="page" style="display:none;" aria-labelledby="review-heading">
+      <header class="page-header"><div><h1 id="review-heading" class="page-title">回顾</h1><p class="page-subtitle">随机一条</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <div class="page-content review-content"><section id="random-card" class="review-card" aria-label="随机回顾一条小成就"><button id="btn-random-prev" class="review-arrow review-arrow-prev" type="button" aria-label="上一条"><img src="./assets/icons/chevron-right.svg" alt="" /></button><p class="review-date" id="random-time">还没有记录</p><div id="random-media" class="review-media"></div><p id="random-text" class="review-text">—</p><p id="random-mood" class="review-mood muted"></p><button id="btn-random-next" class="review-arrow review-arrow-next" type="button" aria-label="下一条"><img src="./assets/icons/chevron-right.svg" alt="" /></button></section><div class="review-footer"><div id="random-position" class="review-position muted">0 / 0</div><p class="review-hint muted">左右滑动查看</p><p class="review-shuffle muted">已随机打乱</p><button id="btn-random-reshuffle" class="text-btn" type="button" style="display:none;">重新随机</button></div></div>
+    </main>
 
-          <div class="stat-card" id="card-happy">
-            <h3>💗 记录总数</h3>
-            <div class="big" id="stat-happy">0</div>
-            <p class="sub muted" id="stat-happy-sub">记录 0 个瞬间</p>
-            <button class="btn" type="button" data-target="page-wall">去看看</button>
-          </div>
-        </section>
-
-        <!-- 最近的小快乐 -->
-        <section class="panel">
-          <h2 class="section-title">最近的小快乐</h2>
-          <div id="recent-list" class="list">
-            <div class="muted" id="recent-empty">还没有记录～先写下第一件小小进步吧 ✨</div>
-          </div>
-        </section>
-      </main>
-
-      <!-- ========== 页面：记录微光 ========== -->
-      <main id="page-today" style="display:none;">
-        <section class="panel">
-          <h2 class="section-title">✨ 记录微光</h2>
-
-          <div class="record-wrap">
-            <textarea
-              id="input-text"
-              class="record-input"
-              placeholder="比如：今天我完成了一个小目标 / 我把一件事推进了一步"
-              autocomplete="off"
-              rows="4"
-            ></textarea>
-
-            <div class="record-media-tools">
-              <button id="btn-add-image" class="btn" type="button">添加图片</button>
-              <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
-              <span class="muted small">最多 3 张，仅保存在当前设备</span>
-            </div>
-            <div id="image-preview" class="image-preview" aria-live="polite"></div>
-
-            <div id="tag-suggest" class="tag-suggest" style="display:none;"></div>
-
-            <!-- 选择心情 -->
-            <div class="mood-title" id="mood-title">选择心情</div>
-
-            <div class="mood-grid" id="mood-group" role="group" aria-label="选择心情">
-              <button class="mood-btn" type="button" data-mood="calm">🌙 平静</button>
-              <button class="mood-btn" type="button" data-mood="happy">✨ 愉悦</button>
-              <button class="mood-btn" type="button" data-mood="relaxed">🌱 释然</button>
-              <button class="mood-btn" type="button" data-mood="lazy">☁️ 慵懒</button>
-            </div>
-
-            <!-- 保存按钮 -->
-            <div class="record-actions">
-              <button id="btn-save" class="primary-btn" type="button">封存这一刻</button>
-              <button id="btn-cancel-edit" class="btn" type="button" style="display:none;">取消编辑</button>
-            </div>
-
-            <div class="muted small hint">
-              小提示：长按某条记录可删除；点击可查看全文与时间。
-            </div>
-          </div>
-        </section>
-
-        <!-- 今日列表 -->
-        <section class="panel">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-            <h2 class="section-title" style="margin:0;">📅 今天</h2>
-            <button id="btn-clear-today" class="btn secondary-danger" type="button">清空今天</button>
-          </div>
-
-          <div id="today-list" class="list"></div>
-          <div id="today-empty" class="muted" style="text-align:center;padding:18px 0;">今天还没有记录～</div>
-        </section>
-      </main>
-
-      <!-- ========== 页面：成就墙（全览+搜索） ========== -->
-      <main id="page-wall" style="display:none;">
-        <section class="panel">
-          <h2 class="section-title">🧱 成就墙（全览 + 搜索）</h2>
-
-          <div class="wall-search-row">
-            <input id="wall-search" class="input" type="text" placeholder="搜索：比如 #运动 / #工作 / 阅读 / 复盘" />
-            <button id="btn-wall-clear-input" class="btn" type="button">清空搜索</button>
-          </div>
-
-          <div class="view-toggle" id="wall-view-toggle" role="group" aria-label="成就墙视图">
-            <button class="view-toggle-btn active" type="button" data-view="time">时间顺序</button>
-            <button class="view-toggle-btn" type="button" data-view="tag">标签筛选</button>
-          </div>
-          <div id="wall-tag-filters" class="tag-filters" aria-label="标签筛选"></div>
-
-          <div class="muted small hint">
-            小提示：输入 # 会出现你记录过的标签联想（比如 #工作）。
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="wall-head">
-            <h2 class="section-title" style="margin:0;">全部记录</h2>
-            <button id="btn-wall-clear" class="btn danger" type="button">清空全部</button>
-          </div>
-
-          <div id="wall-list" class="list"></div>
-          <div id="wall-empty" class="muted" style="text-align:center;padding:18px 0;">还没有记录～</div>
-        </section>
-      </main>
-
-      <!-- ========== 页面：随机回顾 ========== -->
-      <main id="page-random" style="display:none;">
-        <section class="panel">
-          <h2 class="section-title">🎲 随机回顾</h2>
-          <div id="random-card" class="panel" style="background:rgba(255,255,255,.65);">
-            <button id="btn-random-prev" class="review-arrow review-arrow-prev" type="button" aria-label="上一条">‹</button>
-            <div class="muted" style="margin-bottom:8px;">你抽到的是：</div>
-            <div id="random-media" class="review-media"></div>
-            <div id="random-text" style="font-size:18px;font-weight:800;line-height:1.4;">—</div>
-            <div id="random-time" class="muted small" style="margin-top:10px;">—</div>
-            <div id="random-position" class="muted small review-position">—</div>
-            <button id="btn-random-next" class="review-arrow review-arrow-next" type="button" aria-label="下一条">›</button>
-            <div class="review-hint muted small">左右滑动切换</div>
-            <button id="btn-random-reshuffle" class="btn" type="button" style="display:none;">重新随机</button>
-          </div>
-        </section>
-      </main>
-
-      <!-- ========== 页面：设置 ========== -->
-      <main id="page-settings" style="display:none;">
-        <section class="panel">
-          <h2 class="section-title">⚙️ 设置</h2>
-          <p class="muted small" style="margin-top:0;">
-            这是一个离线友好的 PWA 原型。数据保存在本地浏览器（localStorage），不会上传服务器。
-          </p>
-
-          <div style="margin-top:14px;">
-            <button id="btn-install" class="btn" type="button">安装到手机（添加到桌面）</button>
-            <div class="small muted" id="install-tip" style="margin-top:8px;">✅ 可安装：点击上方按钮即可添加到桌面。</div>
-          </div>
-
-          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
-
-          <!-- 昵称 -->
-          <div style="margin-top:6px;">
-            <div style="font-weight:800;margin-bottom:8px;">昵称（用于首页问候语）</div>
-            <div class="form-row">
-              <input id="nickname-input" class="input" type="text" placeholder="比如：夏央" />
-              <button id="btn-save-nickname" class="btn" type="button">保存昵称</button>
-            </div>
-            <div class="muted small" style="margin-top:8px;">
-              保存后首页会显示：<span id="nickname-preview">晚上好，夏央</span>
-            </div>
-          </div>
-
-          <hr style="border:none;border-top:1px solid rgba(0,0,0,.06);margin:14px 0;" />
-
-          <!-- 导出 / 清空 -->
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button id="btn-export" class="btn" type="button">导出为文本（复制）</button>
-            <button id="btn-backup" class="btn" type="button">导出完整备份</button>
-            <button id="btn-clear-all" class="btn danger" type="button">清空全部数据</button>
-          </div>
-          <div id="storage-usage" class="muted small" style="margin-top:10px;">图片占用空间：读取中…</div>
-        </section>
-      </main>
-
-    </div>
+    <main id="page-settings" class="page" style="display:none;" aria-labelledby="settings-heading">
+      <header class="page-header"><div><h1 id="settings-heading" class="page-title">设置</h1><p class="page-subtitle">让小成就更像你的空间</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <div class="page-content settings-content"><p class="privacy-note muted">记录仅保存在当前浏览器，不上传服务器。</p><section class="settings-grouped" aria-label="个性化设置"><h2 class="settings-label">个性化</h2><div class="settings-list"><div class="settings-row settings-row-edit"><label for="nickname-input">昵称</label><div class="settings-row-control"><input id="nickname-input" type="text" placeholder="夏央" autocomplete="nickname" maxlength="40" /><button id="btn-save-nickname" class="text-btn" type="button">保存</button></div></div><div class="settings-row settings-row-edit"><label for="energy-input">今日能量</label><div class="settings-row-control"><input id="energy-input" type="text" maxlength="80" placeholder="写一句给自己的话" /><button id="btn-save-energy" class="text-btn" type="button">保存</button></div></div></div><p class="settings-preview muted">首页问候：<span id="nickname-preview">晚上好，夏央</span></p><p class="settings-preview muted">首页能量：<span id="energy-preview">把一件小事，做得刚刚好。</span></p></section><section class="settings-grouped" aria-label="数据设置"><h2 class="settings-label">数据</h2><div class="settings-list"><button id="btn-install" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/house.svg" alt="" /><span>添加到桌面</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button><div id="install-tip" class="settings-tip muted">可从浏览器分享菜单添加到主屏幕。</div><button id="btn-export" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/copy.svg" alt="" /><span>导出文本（复制）</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button><button id="btn-backup" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/copy.svg" alt="" /><span>导出完整备份</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button></div><p id="storage-usage" class="settings-tip muted">图片占用空间：读取中…</p></section><button id="btn-clear-all" class="settings-action danger clear-all" type="button"><span>清空全部记录</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button></div>
+    </main>
   </div>
 
-  <!-- ========== 底部 Tab Bar（移动端使用） ========== -->
-  <nav class="tabbar" id="tabbar" aria-label="底部导航">
-    <button class="tabbar-btn active" type="button" data-target="page-home" aria-label="首页">
-      <span class="ico">🏠</span><span class="txt">首页</span>
-    </button>
-    <button class="tabbar-btn" type="button" data-target="page-today" aria-label="记录微光">
-      <span class="ico">✍️</span><span class="txt">记录</span>
-    </button>
-    <button class="tabbar-btn" type="button" data-target="page-wall" aria-label="成就墙">
-      <span class="ico">🧱</span><span class="txt">成就墙</span>
-    </button>
-    <button class="tabbar-btn" type="button" data-target="page-random" aria-label="随机回顾">
-      <span class="ico">🎲</span><span class="txt">回顾</span>
-    </button>
-    <button class="tabbar-btn" type="button" data-target="page-settings" aria-label="设置">
-      <span class="ico">⚙️</span><span class="txt">设置</span>
-    </button>
-  </nav>
+  <nav class="tabbar" id="tabbar" aria-label="主导航"><button class="tabbar-btn active" type="button" data-target="page-home"><img class="tab-icon-img" src="./assets/icons/house.svg" alt="" /><span>首页</span></button><button class="tabbar-btn" type="button" data-target="page-today"><img class="tab-icon-img" src="./assets/icons/pencil-simple.svg" alt="" /><span>记录</span></button><button class="tabbar-btn" type="button" data-target="page-wall"><img class="tab-icon-img" src="./assets/icons/trophy.svg" alt="" /><span>成就墙</span></button><button class="tabbar-btn" type="button" data-target="page-random"><img class="tab-icon-img" src="./assets/icons/book-open.svg" alt="" /><span>回顾</span></button><button class="tabbar-btn" type="button" data-target="page-settings"><img class="tab-icon-img" src="./assets/icons/gear.svg" alt="" /><span>设置</span></button></nav>
 
-  <!-- ========== Modal：点列表看全文（main.js 会控制显示/隐藏） ========== -->
-  <div id="modal" class="modal" style="display:none;" aria-hidden="true">
-    <div class="modal-backdrop" data-close="1"></div>
-    <div class="modal-card" role="dialog" aria-modal="true">
-      <div class="modal-title" id="modal-title"></div>
-      <div class="modal-body" id="modal-body"></div>
-      <div id="modal-media" class="modal-media"></div>
-      <button class="btn" id="modal-edit" type="button">编辑</button>
-      <button class="btn" type="button" data-close="1">关闭</button>
-    </div>
-  </div>
-
-  <!-- Scripts -->
-  <script src="./media-core.js?v=classic-media-20261111" defer></script>
-  <script src="./main.js?v=classic-media-20261111" defer></script>
-
-  <!-- Service Worker -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
-          .then((registration) => registration.update().catch(() => {}))
-          .catch(() => {});
-      });
-    }
-  </script>
+  <div id="modal" class="modal" style="display:none;" aria-hidden="true"><div class="modal-backdrop" data-close="1"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img src="./assets/icons/x.svg" alt="" /></button></div><div class="modal-body" id="modal-body"></div><div id="modal-media" class="modal-media"></div><div class="modal-actions"><button class="btn" id="modal-edit" type="button">编辑</button><button class="btn secondary-btn" type="button" data-close="1">关闭</button></div></div></div>
+  <script src="./media-core.js?v=apple-ui-20261112b" defer></script><script src="./main.js?v=apple-ui-20261112b" defer></script>
+  <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((registration) => registration.update().catch(() => {})).catch(() => {})); }</script>
 </body>
 </html>
