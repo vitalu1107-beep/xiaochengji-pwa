@@ -145,8 +145,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-layer-next { right: 0; transform: rotate(4deg) scale(.96); transform-origin: center left; opacity: .76; }
 .review-card { position: relative; z-index: 2; min-height: 392px; padding: 34px 36px 38px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 26px; box-shadow: 0 12px 30px rgba(23, 58, 50, .045); touch-action: pan-y; user-select: none; --swipe-x: 0px; --swipe-rotate: 0deg; --swipe-scale: 1; --swipe-opacity: 1; --swipe-progress: 0; transform: translate3d(var(--swipe-x), 0, 0) rotate(var(--swipe-rotate)) scale(var(--swipe-scale)); opacity: var(--swipe-opacity); transition: transform 460ms cubic-bezier(.22,.8,.28,1), opacity 460ms cubic-bezier(.22,.8,.28,1), box-shadow 460ms cubic-bezier(.22,.8,.28,1); will-change: transform, opacity; }
 .review-card.is-dragging { transition: none; }
-.review-card.is-exiting-left { --swipe-x: 118%; --swipe-rotate: 10deg; --swipe-scale: .96; --swipe-opacity: 0; transition-duration: 460ms; }
-.review-card.is-exiting-right { --swipe-x: -118%; --swipe-rotate: -10deg; --swipe-scale: .96; --swipe-opacity: 0; transition-duration: 460ms; }
+.review-card.is-exiting-left { --swipe-x: -118%; --swipe-rotate: -10deg; --swipe-scale: .96; --swipe-opacity: 0; transition-duration: 460ms; }
+.review-card.is-exiting-right { --swipe-x: 118%; --swipe-rotate: 10deg; --swipe-scale: .96; --swipe-opacity: 0; transition-duration: 460ms; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
 .review-text { margin: 80px 0 0; font-family: var(--display-font); font-size: clamp(30px, 8vw, 42px); line-height: 1.35; letter-spacing: -.045em; font-weight: 600; }
 .review-mood { margin: 26px 0 0; font-size: 16px; }

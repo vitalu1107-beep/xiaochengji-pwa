@@ -19,3 +19,5 @@ Task 10: complete — fixed mobile random-review swiping with touchstart/touchen
 Task 11: complete — redesigned random review as a compact stacked-card deck with neighboring layers, drag-follow translation/rotation, thresholded commit, exit animation, and reset-on-cancel. Local visual verification and regression suite passed; cache version bumped to `apple-ui-2026-11-12f`.
 
 Task 12: complete — strengthened the random-review swipe feedback: the outgoing card now visibly follows the drag with rotation, scale, and opacity changes, stays on screen long enough to read as a page-turn, and no longer gets clipped by the stack container. Local mobile drag verification and 44-test regression suite passed; cache version bumped to `apple-ui-2026-11-12g`.
+
+Task 13: complete — corrected the exit target so left and right swipes leave in the same direction as the gesture; added a contract test and bumped the cache version to `apple-ui-2026-11-12h`.
