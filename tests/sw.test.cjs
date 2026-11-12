@@ -92,22 +92,22 @@ test('activation removes only obsolete Small Wins caches', async () => {
   assert.equal(w.claims, 1);
 });
 
-test('rollback precaches the classic files under its actual registration scope', async () => {
-  const w = worker({scope:'http://localhost:4173/rollback-2026-11-09/'});
+test('apple UI precaches the app files under its actual registration scope', async () => {
+  const w = worker({scope:'http://localhost:4173/xiaochengji-pwa/'});
   await w.event('install');
-  assert.ok(w.requested.every(url => url.startsWith('http://localhost:4173/rollback-2026-11-09/')));
-  for (const file of ['index.html','style.css?v=classic-20261109','main.js?v=classic-20261109','manifest.json','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png']) {
+  assert.ok(w.requested.every(url => url.startsWith('http://localhost:4173/xiaochengji-pwa/')));
+  for (const file of ['index.html','style.css?v=apple-ui-20261112b','media-core.js?v=apple-ui-20261112b','main.js?v=apple-ui-20261112b','manifest.json','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png','assets/calico-mascot.svg']) {
     assert.ok(w.requested.some(url => url.endsWith(file)), file);
   }
-  assert.ok(w.requested.every(url => !url.includes('/assets/') && !url.includes('/legacy/')));
+  assert.ok(w.requested.every(url => !url.includes('/legacy/')));
 });
 
-test('offline root restores the classic index and retired nested routes redirect to the correct asset root', async () => {
+test('offline root restores the Apple UI index and retired nested routes redirect to the correct asset root', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-classic-2026-11-09');
-  await cache.put('index.html', new Response('classic shell'));
+  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-12b');
+  await cache.put('index.html', new Response('apple shell'));
   await cache.put('offline.html', new Response('obsolete DOM'));
-  assert.equal(await (await w.request('./', {navigation:true})).text(), 'classic shell');
+  assert.equal(await (await w.request('./', {navigation:true})).text(), 'apple shell');
   const retired = await w.request('legacy/', {navigation:true});
   assert.equal(retired.status, 302);
   assert.equal(retired.headers.get('location'), 'https://example.test/xiaochengji-pwa/');
@@ -124,10 +124,10 @@ test('a different app cache cannot become this app’s offline response', async 
 
 test('unknown script versions never silently receive the current cached script', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-classic-2026-11-09');
-  await cache.put('main.js?v=classic-20261109', new Response('current script'));
+  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-12b');
+  await cache.put('main.js?v=apple-ui-20261112b', new Response('current script'));
   assert.equal((await w.request('main.js?v=future')).status, 503);
-  assert.equal(await (await w.request('main.js?v=classic-20261109')).text(), 'current script');
+  assert.equal(await (await w.request('main.js?v=apple-ui-20261112b')).text(), 'current script');
 });
 
 test('requests outside this registration are left to the browser', async () => {
@@ -148,12 +148,12 @@ test('every precached resource exists in the release and versioned scripts match
   }
 });
 
-test('activation removes the forest release cache after the complete classic install', async () => {
+test('activation removes the previous release cache after the complete media install', async () => {
   const w = worker();
   await w.caches.open('smallwins-cache-forest-2026-11-02d');
   await w.event('install');
   assert.equal(w.skips, 1);
   await w.event('activate');
   assert.ok(w.deleted.includes('smallwins-cache-forest-2026-11-02d'));
-  assert.ok(w.buckets.has('smallwins-cache-classic-2026-11-09'));
+  assert.ok(w.buckets.has('smallwins-cache-apple-ui-2026-11-12b'));
 });

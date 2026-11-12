@@ -1,7 +1,9 @@
-/* Small Wins · classic runtime with local media, wall views, and review deck. */
+/* Small Wins · Apple-like runtime with local media, wall views, and review deck. */
 (() => {
   const LS_KEY = "smallwins_records_v1";
   const LS_NICK = "smallwins_nickname_v1";
+  const LS_ENERGY = "smallwins_energy_v1";
+  const DEFAULT_ENERGY = "把一件小事，做得刚刚好。";
   const MEDIA = (typeof globalThis !== "undefined" && globalThis.SmallWinsMedia) || {
     MAX_IMAGES_PER_RECORD: 3,
     extractTags(text) {
@@ -44,13 +46,13 @@
   let currentRandomId = null;
   let completedReviewCycle = false;
 
-  const MOODS = { calm: { icon: "🌙", label: "平静" }, happy: { icon: "✨", label: "愉悦" }, relaxed: { icon: "🌱", label: "释然" }, lazy: { icon: "☁️", label: "慵懒" } };
+  const MOODS = { calm: { label: "平静" }, happy: { label: "愉悦" }, relaxed: { label: "释然" }, lazy: { label: "慵懒" } };
 
-  const homeDateEl = $("#home-date"); const homeGreetingEl = $("#home-greeting"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
+  const homeDateEl = $("#home-date"); const homeGreetingEl = $("#home-greeting"); const homeQuoteEl = $("#home-quote"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
   const inputTextEl = $("#input-text"); const tagSuggestEl = $("#tag-suggest"); const moodGroupEl = $("#mood-group"); const saveBtnEl = $("#btn-save"); const cancelEditBtn = $("#btn-cancel-edit"); const imageInputEl = $("#image-input"); const addImageBtn = $("#btn-add-image"); const imagePreviewEl = $("#image-preview"); const todayListEl = $("#today-list"); const todayEmptyEl = $("#today-empty"); const clearTodayBtn = $("#btn-clear-today");
   const wallSearchEl = $("#wall-search"); const wallListEl = $("#wall-list"); const wallEmptyEl = $("#wall-empty"); const wallClearBtn = $("#btn-wall-clear"); const wallClearInputBtn = $("#btn-wall-clear-input"); const wallTagFiltersEl = $("#wall-tag-filters");
-  const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomPrevBtn = $("#btn-random-prev"); const randomNextBtn = $("#btn-random-next"); const randomReshuffleBtn = $("#btn-random-reshuffle");
-  const installBtn = $("#btn-install"); const installTip = $("#install-tip"); const nicknameInput = $("#nickname-input"); const nicknamePreview = $("#nickname-preview"); const saveNickBtn = $("#btn-save-nickname"); const exportBtn = $("#btn-export"); const backupBtn = $("#btn-backup"); const clearAllBtn = $("#btn-clear-all"); const storageUsageEl = $("#storage-usage");
+  const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMoodEl = $("#random-mood"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomPrevBtn = $("#btn-random-prev"); const randomNextBtn = $("#btn-random-next"); const randomReshuffleBtn = $("#btn-random-reshuffle");
+  const installBtn = $("#btn-install"); const installTip = $("#install-tip"); const nicknameInput = $("#nickname-input"); const nicknamePreview = $("#nickname-preview"); const saveNickBtn = $("#btn-save-nickname"); const energyInput = $("#energy-input"); const energyPreview = $("#energy-preview"); const saveEnergyBtn = $("#btn-save-energy"); const exportBtn = $("#btn-export"); const backupBtn = $("#btn-backup"); const clearAllBtn = $("#btn-clear-all"); const storageUsageEl = $("#storage-usage");
   const modalEl = $("#modal"); const modalTitleEl = $("#modal-title"); const modalBodyEl = $("#modal-body"); const modalMediaEl = $("#modal-media"); const modalEditBtn = $("#modal-edit");
   const mediaStore = MEDIA.createIndexedDbMediaStore(typeof indexedDB !== "undefined" ? indexedDB : null);
 
@@ -68,6 +70,8 @@
   function changeRecords(update) { const latest = loadRecords(); if (!latest) { toast("暂时无法读取本地记录，原数据未改动。请检查浏览器存储。"); return false; } const next = update(latest).map((record) => MEDIA.normalizeRecord(record)); try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { toast("保存失败，本地存储可能已满或被禁用。请保留输入后重试。"); return false; } records = next; ensureReviewDeck(); return true; }
   function getNickname() { try { return localStorage.getItem(LS_NICK) || "夏央"; } catch { return lastNickname; } }
   function setNickname(value) { try { localStorage.setItem(LS_NICK, value); } catch { toast("昵称保存失败，请检查浏览器本地存储。"); return false; } lastNickname = value; return true; }
+  function getEnergy() { try { return localStorage.getItem(LS_ENERGY) || DEFAULT_ENERGY; } catch { return DEFAULT_ENERGY; } }
+  function setEnergy(value) { const next = String(value || "").trim().slice(0, 80); if (!next) { toast("今日能量不能为空"); return false; } try { localStorage.setItem(LS_ENERGY, next); } catch { toast("今日能量保存失败，请检查浏览器本地存储。"); return false; } return true; }
   function calcStreak(list) { const dates = new Set(list.map((record) => record.dateKey)); const today = new Date(); let day = new Date(today.getFullYear(), today.getMonth(), today.getDate()); let streak = 0; while (dates.has(toDateKey(day))) { streak += 1; day.setDate(day.getDate() - 1); } return streak; }
   function cleanupMedia(ids) { if (ids?.length) void mediaStore.deleteMany(ids).catch(() => {}); }
 
@@ -78,7 +82,7 @@
   async function beginEdit(record) { if (!record) return; editingRecordId = record.id; selectedMood = record.mood || null; pendingImages = []; if (inputTextEl) inputTextEl.value = record.text || ""; $$("#mood-group .mood-btn").forEach((button) => button.classList.toggle("active", button.dataset.mood === selectedMood)); for (const id of record.mediaIds || []) { const blob = await mediaStore.get(id).catch(() => null); if (blob) pendingImages.push({ id, blob, existing: true, name: "已添加图片" }); } if (saveBtnEl) saveBtnEl.textContent = "保存修改"; if (cancelEditBtn) cancelEditBtn.style.display = ""; renderPendingImages(); showPage("page-today"); closeModal(); }
   function openModal(record) { if (!modalEl || !record) return; if (modalTitleEl) modalTitleEl.textContent = record.timeText || "记录详情"; if (modalBodyEl) modalBodyEl.textContent = record.text || ""; if (modalMediaEl) { modalMediaEl.innerHTML = ""; void hydrateMedia(modalMediaEl, record); } if (modalEditBtn) modalEditBtn.onclick = () => beginEdit(record); modalEl.style.display = ""; modalEl.setAttribute("aria-hidden", "false"); }
   function closeModal() { if (modalEl) { modalEl.style.display = "none"; modalEl.setAttribute("aria-hidden", "true"); } }
-  function appendRecordMedia(row, record) { if (!record.mediaIds?.length) return; const media = document.createElement("div"); media.className = "record-media"; row.appendChild(media); void hydrateMedia(media, record); }
+  function appendRecordMedia(row, record, className = "record-media") { if (!record.mediaIds?.length) return; const media = document.createElement("div"); media.className = className; row.appendChild(media); void hydrateMedia(media, record); }
 
   function bindLongPressDelete(element, record) {
     if (!element || !record) return; let timer = null; let moved = false;
@@ -86,10 +90,47 @@
     const cancel = () => { clearTimeout(timer); timer = null; };
     element.addEventListener("pointerdown", start, { passive: true }); element.addEventListener("pointerup", cancel, { passive: true }); element.addEventListener("pointercancel", cancel, { passive: true }); element.addEventListener("pointermove", () => { moved = true; cancel(); }, { passive: true }); element.addEventListener("touchstart", start, { passive: true }); element.addEventListener("touchend", cancel, { passive: true }); element.addEventListener("touchcancel", cancel, { passive: true }); element.addEventListener("touchmove", () => { moved = true; cancel(); }, { passive: true }); element.addEventListener("click", () => { if (!moved) openModal(record); });
   }
-  function createRecordRow(record) { const row = document.createElement("div"); row.className = "item"; row.dataset.recordId = record.id; const left = document.createElement("div"); left.className = "item-left"; const mood = MOODS[record.mood]; if (mood) { const pill = document.createElement("span"); pill.className = `mood-pill ${record.mood}`; pill.textContent = `${mood.icon} ${mood.label}`; left.appendChild(pill); } const text = document.createElement("div"); text.className = "item-text"; text.textContent = record.text; left.appendChild(text); row.appendChild(left); appendRecordMedia(row, record); bindLongPressDelete(row, record); return row; }
+  function createRecordRow(record, variant = "list") {
+    const row = document.createElement("div");
+    row.className = `item ${variant === "wall" ? "wall-item" : variant === "home" ? "home-item" : ""}`;
+    row.dataset.recordId = record.id;
+    const left = document.createElement("div");
+    left.className = "item-left";
+    const copy = document.createElement("div");
+    copy.className = "item-copy";
+    const text = document.createElement("div");
+    text.className = "item-text";
+    text.textContent = record.text;
+    copy.appendChild(text);
+    const meta = document.createElement("div");
+    meta.className = "item-meta";
+    const tags = (record.tags || MEDIA.extractTags(record.text)).slice(0, 1);
+    if (tags[0]) { const tag = document.createElement("span"); tag.textContent = `#${tags[0]}`; meta.appendChild(tag); }
+    const mood = MOODS[record.mood];
+    if (mood) { const moodEl = document.createElement("span"); moodEl.textContent = mood.label; meta.appendChild(moodEl); }
+    if (variant !== "wall") { const date = document.createElement("span"); date.textContent = record.dateKey === toDateKey(new Date()) ? "今天" : record.dateKey; meta.appendChild(date); }
+    if (meta.childElementCount) copy.appendChild(meta);
+    left.appendChild(copy);
 
-  function renderHome() { const now = new Date(); const nickname = getNickname(); if (homeDateEl) homeDateEl.textContent = formatDateCN(now); const greeting = `${greetingByHour(now.getHours())}，${nickname}`; if (homeGreetingEl) homeGreetingEl.textContent = greeting; if (nicknamePreview) nicknamePreview.textContent = greeting; const streak = calcStreak(records); if (statStreakEl) statStreakEl.textContent = String(streak); if (statStreakSubEl) statStreakSubEl.textContent = `已坚持 ${streak} 天`; if (statHappyEl) statHappyEl.textContent = String(records.length); if (statHappySubEl) statHappySubEl.textContent = `记录 ${records.length} 个瞬间`; if (!recentListEl) return; recentListEl.querySelectorAll(".item").forEach((node) => node.remove()); const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2); if (recentEmptyEl) recentEmptyEl.style.display = latest.length ? "none" : ""; latest.forEach((record) => recentListEl.appendChild(createRecordRow(record))); }
-  function renderToday() { if (!todayListEl) return; todayListEl.innerHTML = ""; const key = toDateKey(new Date()); const today = records.filter((record) => record.dateKey === key).sort((a, b) => b.ts - a.ts); if (todayEmptyEl) todayEmptyEl.style.display = today.length ? "none" : ""; today.forEach((record) => todayListEl.appendChild(createRecordRow(record))); }
+    if (variant === "wall") {
+      if (record.mediaIds?.length) appendRecordMedia(row, record, "wall-thumb");
+      row.appendChild(left);
+    } else {
+      if (record.mediaIds?.length) appendRecordMedia(row, record, "item-thumb");
+      row.appendChild(left);
+    }
+    const chevron = document.createElement("img");
+    chevron.className = "item-chevron";
+    chevron.src = "./assets/icons/chevron-right.svg";
+    chevron.alt = "";
+    chevron.setAttribute("aria-hidden", "true");
+    row.appendChild(chevron);
+    bindLongPressDelete(row, record);
+    return row;
+  }
+
+  function renderHome() { const now = new Date(); const nickname = getNickname(); if (homeDateEl) homeDateEl.textContent = formatDateCN(now); const greeting = `${greetingByHour(now.getHours())}，${nickname}`; if (homeGreetingEl) homeGreetingEl.textContent = greeting; if (homeQuoteEl) homeQuoteEl.textContent = getEnergy(); if (nicknamePreview) nicknamePreview.textContent = greeting; if (energyPreview) energyPreview.textContent = getEnergy(); const streak = calcStreak(records); if (statStreakEl) statStreakEl.textContent = String(streak); if (statStreakSubEl) statStreakSubEl.textContent = `已坚持 ${streak} 天`; if (statHappyEl) statHappyEl.textContent = String(records.length); if (statHappySubEl) statHappySubEl.textContent = `记录 ${records.length} 个瞬间`; if (!recentListEl) return; recentListEl.querySelectorAll(".item").forEach((node) => node.remove()); const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2); if (recentEmptyEl) recentEmptyEl.style.display = latest.length ? "none" : ""; latest.forEach((record) => recentListEl.appendChild(createRecordRow(record, "home"))); }
+  function renderToday() { if (!todayListEl) return; todayListEl.innerHTML = ""; const key = toDateKey(new Date()); const today = records.filter((record) => record.dateKey === key).sort((a, b) => b.ts - a.ts); if (todayEmptyEl) todayEmptyEl.style.display = today.length ? "none" : ""; today.forEach((record) => todayListEl.appendChild(createRecordRow(record, "today"))); }
 
   async function prepareImage(source) { if (!source || typeof createImageBitmap !== "function") return source; try { const bitmap = await createImageBitmap(source); const max = 1600; const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height)); if (scale === 1) { bitmap.close?.(); return source; } const canvas = document.createElement("canvas"); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale); canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close?.(); return await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", .86)); } catch { return source; } }
   function buildRecord(text, existing) { const now = new Date(); const dateKey = toDateKey(now); return { ...(existing || {}), id: existing?.id || `${Date.now()}_${Math.random().toString(16).slice(2)}`, text, mood: selectedMood || null, dateKey: existing?.dateKey || dateKey, ts: existing?.ts || now.getTime(), timeText: existing?.timeText || `${dateKey} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`, tags: MEDIA.extractTags(text), mediaIds: pendingImages.filter((item) => item.id).map((item) => item.id) }; }
@@ -100,17 +141,17 @@
 
   function getAllTags() { const map = new Map(); records.forEach((record) => (record.tags || MEDIA.extractTags(record.text)).forEach((tag) => map.set(tag, (map.get(tag) || 0) + 1))); return [...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([tag]) => tag); }
   function renderTagFilters() { if (!wallTagFiltersEl) return; wallTagFiltersEl.innerHTML = ""; const all = getAllTags(); if (!all.length) { wallTagFiltersEl.style.display = "none"; return; } wallTagFiltersEl.style.display = wallView === "tag" ? "flex" : "none"; const add = (label, value) => { const button = document.createElement("button"); button.type = "button"; button.className = `tag-filter ${activeWallTag === value ? "active" : ""}`; button.textContent = label; button.addEventListener("click", () => { activeWallTag = value; renderWall(); }); wallTagFiltersEl.appendChild(button); }; add("全部", ""); all.forEach((tag) => add(`#${tag}`, tag)); }
-  function renderWall() { if (!wallListEl) return; const query = (wallSearchEl?.value || "").trim().toLowerCase(); let list = [...records].sort((a, b) => b.ts - a.ts); if (query) list = list.filter((record) => `${record.text} ${(record.tags || []).join(" ")}`.toLowerCase().includes(query.replace(/^#/, ""))); if (wallView === "tag" && activeWallTag) list = list.filter((record) => (record.tags || []).includes(activeWallTag)); wallListEl.innerHTML = ""; if (wallEmptyEl) wallEmptyEl.style.display = list.length ? "none" : ""; list.forEach((record) => wallListEl.appendChild(createRecordRow(record))); renderTagFilters(); }
+  function renderWall() { if (!wallListEl) return; const query = (wallSearchEl?.value || "").trim().toLowerCase(); let list = [...records].sort((a, b) => b.ts - a.ts); if (query) list = list.filter((record) => `${record.text} ${(record.tags || []).join(" ")}`.toLowerCase().includes(query.replace(/^#/, ""))); if (wallView === "tag" && activeWallTag) list = list.filter((record) => (record.tags || []).includes(activeWallTag)); wallListEl.innerHTML = ""; if (wallEmptyEl) wallEmptyEl.style.display = list.length ? "none" : ""; list.forEach((record) => wallListEl.appendChild(createRecordRow(record, "wall"))); renderTagFilters(); }
   function clearWallAll() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。请检查浏览器存储。"); if (!records.length) return toast("没有数据可清空"); if (!confirm("确定清空全部记录吗？")) return; const ids = records.flatMap((record) => record.mediaIds || []); if (!changeRecords(() => [])) return; cleanupMedia(ids); renderHome(); renderToday(); renderWall(); renderRandom(); toast("已清空"); }
 
   function ensureReviewDeck() { const signature = records.map((record) => record.id).sort().join("|"); if (signature !== reviewSignature) { reviewSignature = signature; reviewDeck = MEDIA.createReviewDeck(records.map((record) => record.id)); currentRandomId = null; completedReviewCycle = false; } }
-  function showRandomRecord(record) { if (!record) { if (randomTextEl) randomTextEl.textContent = "—"; if (randomTimeEl) randomTimeEl.textContent = "还没有记录～"; if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; if (randomMediaEl) randomMediaEl.innerHTML = ""; return; } const mood = MOODS[record.mood]; if (randomTextEl) randomTextEl.textContent = `${mood ? `${mood.icon} ${mood.label} · ` : ""}${record.text}`; if (randomTimeEl) randomTimeEl.textContent = record.timeText; if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; if (randomMediaEl) { randomMediaEl.innerHTML = ""; void hydrateMedia(randomMediaEl, record); } }
+  function showRandomRecord(record) { if (!record) { if (randomTextEl) randomTextEl.textContent = "—"; if (randomTimeEl) randomTimeEl.textContent = "还没有记录"; if (randomMoodEl) randomMoodEl.textContent = ""; if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; if (randomMediaEl) randomMediaEl.innerHTML = ""; return; } const mood = MOODS[record.mood]; if (randomTextEl) randomTextEl.textContent = record.text; if (randomMoodEl) randomMoodEl.textContent = `${(record.tags || []).slice(0, 1).map((tag) => `#${tag}`).join(" · ")}${mood ? `${(record.tags || []).length ? " · " : ""}${mood.label}` : ""}`; if (randomTimeEl) randomTimeEl.textContent = record.timeText; if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; if (randomMediaEl) { randomMediaEl.innerHTML = ""; void hydrateMedia(randomMediaEl, record); } }
   function stepRandom(direction) { ensureReviewDeck(); if (!records.length) return showRandomRecord(null); let id; if (direction < 0) id = reviewDeck.previous() || reviewDeck.current() || reviewDeck.next(); else { if (reviewDeck.position() === reviewDeck.size()) completedReviewCycle = true; id = reviewDeck.next(); } currentRandomId = id; showRandomRecord(records.find((record) => record.id === id)); if (randomReshuffleBtn) randomReshuffleBtn.style.display = completedReviewCycle ? "" : "none"; }
   function renderRandom() { ensureReviewDeck(); if (!currentRandomId || !records.some((record) => record.id === currentRandomId)) stepRandom(1); else showRandomRecord(records.find((record) => record.id === currentRandomId)); }
 
-  function renderSettings() { const nickname = getNickname(); lastNickname = nickname; if (nicknameInput) nicknameInput.value = nickname; if (nicknamePreview) nicknamePreview.textContent = `${greetingByHour(new Date().getHours())}，${nickname}`; refreshStorageUsage(); }
+  function renderSettings() { const nickname = getNickname(); lastNickname = nickname; if (nicknameInput && nicknameInput.value !== nickname) nicknameInput.value = nickname; if (energyInput && energyInput.value !== getEnergy()) energyInput.value = getEnergy(); if (nicknamePreview) nicknamePreview.textContent = `${greetingByHour(new Date().getHours())}，${nickname}`; if (energyPreview) energyPreview.textContent = getEnergy(); refreshStorageUsage(); }
   async function refreshStorageUsage() { if (!storageUsageEl) return; try { const estimate = await mediaStore.estimate(); storageUsageEl.textContent = `图片占用空间：${estimate.usage ? `${(estimate.usage / 1024 / 1024).toFixed(1)} MB` : "0 MB"}`; } catch { storageUsageEl.textContent = "图片占用空间：暂不可用"; } }
-  function exportText() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。"); if (!records.length) return toast("还没有可导出的记录"); const text = [...records].sort((a, b) => a.ts - b.ts).map((record) => `${record.timeText}  ${MOODS[record.mood] ? `${MOODS[record.mood].icon}${MOODS[record.mood].label} ` : ""}${record.text}`).join("\n"); const fallback = () => prompt("复制下面内容：", text); if (!navigator.clipboard?.writeText) return fallback(); Promise.resolve(navigator.clipboard.writeText(text)).then(() => toast("已复制到剪贴板")).catch(fallback); }
+  function exportText() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。"); if (!records.length) return toast("还没有可导出的记录"); const text = [...records].sort((a, b) => a.ts - b.ts).map((record) => `${record.timeText}  ${MOODS[record.mood] ? `${MOODS[record.mood].label} ` : ""}${record.text}`).join("\n"); const fallback = () => prompt("复制下面内容：", text); if (!navigator.clipboard?.writeText) return fallback(); Promise.resolve(navigator.clipboard.writeText(text)).then(() => toast("已复制到剪贴板")).catch(fallback); }
   const blobToDataUrl = (blob) => new Promise((resolve, reject) => { if (typeof FileReader === "undefined") return resolve(null); const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); });
   async function exportBackup() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。"); const media = {}; for (const record of records) for (const id of record.mediaIds || []) { const blob = await mediaStore.get(id).catch(() => null); if (blob) media[id] = { type: blob.type, dataUrl: await blobToDataUrl(blob) }; } const json = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), records, media }, null, 2); if (typeof Blob === "undefined" || typeof URL === "undefined" || !URL.createObjectURL) return prompt("复制下面的完整备份 JSON：", json); const url = URL.createObjectURL(new Blob([json], { type: "application/json" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `small-wins-backup-${toDateKey(new Date())}.json`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); toast("完整备份已下载"); }
   function clearAll() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。"); if (!records.length) return toast("没有数据可清空"); if (!confirm("确定清空全部数据吗？此操作不可撤销。")) return; const ids = records.flatMap((record) => record.mediaIds || []); if (!changeRecords(() => [])) return; cleanupMedia(ids); renderHome(); renderToday(); renderWall(); renderRandom(); toast("已清空全部数据"); }
@@ -134,10 +175,12 @@
   randomPrevBtn?.addEventListener("click", () => stepRandom(-1)); randomNextBtn?.addEventListener("click", () => stepRandom(1)); randomReshuffleBtn?.addEventListener("click", () => { reviewDeck.reset(); currentRandomId = null; completedReviewCycle = false; renderRandom(); });
   document.addEventListener("keydown", (event) => { if (document.getElementById("page-random")?.style.display !== "none" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); stepRandom(event.key === "ArrowLeft" ? -1 : 1); } if (event.key === "Escape") closeModal(); });
   if (randomCardEl) { let startX = null; randomCardEl.addEventListener("pointerdown", (event) => { startX = event.clientX; }); randomCardEl.addEventListener("pointerup", (event) => { if (startX == null) return; const delta = event.clientX - startX; startX = null; if (Math.abs(delta) > 45) stepRandom(delta < 0 ? 1 : -1); }); }
-  saveNickBtn?.addEventListener("click", () => { const value = (nicknameInput?.value || "").trim(); if (!value) return toast("昵称不能为空"); if (setNickname(value)) { renderHome(); renderSettings(); toast("昵称已保存"); } }); exportBtn?.addEventListener("click", exportText); backupBtn?.addEventListener("click", exportBackup); clearAllBtn?.addEventListener("click", clearAll);
+  saveNickBtn?.addEventListener("click", () => { const value = (nicknameInput?.value || "").trim(); if (!value) return toast("昵称不能为空"); if (setNickname(value)) { renderHome(); renderSettings(); toast("昵称已保存"); } });
+  saveEnergyBtn?.addEventListener("click", () => { const value = (energyInput?.value || "").trim(); if (setEnergy(value)) { renderHome(); renderSettings(); toast("今日能量已保存"); } });
+  exportBtn?.addEventListener("click", exportText); backupBtn?.addEventListener("click", exportBackup); clearAllBtn?.addEventListener("click", clearAll);
   modalEl?.addEventListener("click", (event) => { if (event.target?.getAttribute?.("data-close") === "1") closeModal(); });
 
-  function refreshFromOtherPage(event) { if (event?.key && event.key !== LS_KEY && event.key !== LS_NICK) return; if (refreshRecords()) { renderToday(); renderWall(); renderRandom(); renderHome(); } const nickname = getNickname(); if (nicknameInput && nicknameInput.value === lastNickname) nicknameInput.value = nickname; lastNickname = nickname; }
+  function refreshFromOtherPage(event) { if (event?.key && event.key !== LS_KEY && event.key !== LS_NICK && event.key !== LS_ENERGY) return; if (refreshRecords()) { renderToday(); renderWall(); renderRandom(); renderHome(); } const nickname = getNickname(); if (nicknameInput && nicknameInput.value === lastNickname) nicknameInput.value = nickname; if (energyInput && energyInput.value === getEnergy()) energyInput.value = getEnergy(); lastNickname = nickname; if (energyPreview) energyPreview.textContent = getEnergy(); }
   window.addEventListener("pageshow", refreshFromOtherPage); window.addEventListener("storage", refreshFromOtherPage); window.addEventListener("focus", refreshFromOtherPage); document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshFromOtherPage(); });
   setupTagSuggest();
   const initial = loadRecords(); records = initial || []; ensureReviewDeck(); renderHome(); renderToday(); renderWall(); renderRandom(); renderSettings(); if (!initial) toast("暂时无法读取本地记录，原数据未改动。");
