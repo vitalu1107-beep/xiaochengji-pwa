@@ -12,4 +12,4 @@ Task 7: complete — service-worker cache version and app shell include media-co
 
 Task 8: complete — Apple-like UI applied to all five pages, long-haired calico mascot uses a transparent cutout, and the home energy message is editable from Settings. Design QA passed; cache version bumped to `apple-ui-2026-11-12b`.
 
-Task 9: complete — follow-up detail alignment: removed the extra home energy frame, applied the display serif hierarchy, reduced the record composer height, moved image/tag actions into the editor's upper-left add-content menu, and replaced settings text save buttons with compact confirmation icons. Local responsive preview and regression suite passed; cache version bumped to `apple-ui-2026-11-12c`.
+Task 9: complete — follow-up detail alignment: removed the extra home energy frame, applied the display serif hierarchy, reduced and fixed the record composer default height, moved image/tag actions into the editor's upper-left add-content menu, and replaced settings text save buttons with compact confirmation icons. Local responsive preview and regression suite passed; cache version bumped to `apple-ui-2026-11-12d`.
