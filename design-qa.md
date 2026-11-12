@@ -1,0 +1,28 @@
+# 小成就 Apple-like UI 设计验收
+
+## 视觉真值
+
+本轮以五张已确认的移动端视觉稿作为页面级参考：
+
+- 首页：`/Users/luqian/.codex/generated_images/01a18c87-c8f0-73f0-b089-548997792890/exec-4719afe3-9ba7-456a-8970-390fa4fbc9db.png`
+- 记录：`/Users/luqian/.codex/generated_images/01a18c87-c8f0-73f0-b089-548997792890/exec-dd07e1e0-45ed-44c8-a4e3-b3ed240c8245.png`
+- 成就墙：`/Users/luqian/.codex/generated_images/01a18c87-c8f0-73f0-b089-548997792890/exec-d5f89842-b109-4364-9c9f-89e472ae1ac7.png`
+- 回顾：`/Users/luqian/.codex/generated_images/01a18c87-c8f0-73f0-b089-548997792890/exec-43da2002-e5d5-4993-a441-7dfe9ecd98dd.png`
+- 设置：`/Users/luqian/.codex/generated_images/01a18c87-c8f0-73f0-b089-548997792890/exec-09676414-1c9c-4214-b2c8-568ac4db411a.png`
+
+## 实现验收
+
+- 本地地址：`http://127.0.0.1:4173/feature-media-2026-11-11/`
+- 验证环境：Chrome / Codex in-app browser；响应式居中 520px 内容壳，覆盖桌面浏览器和移动端 CSS 断点。
+- 页面状态：空态、已有记录、图片附件入口、按时间/标签切换、随机回顾、设置页昵称与今日能量编辑。
+- 视觉检查：统一米白背景、深绿文字、低对比线框、留白优先、底部标签栏；五页使用同一套长毛三花猫透明素材。
+- 交互检查：底部导航、记录保存/编辑入口、图片添加入口、成就墙搜索与视图切换、回顾左右箭头与滑动、今日能量保存均可操作。
+- 回归检查：`node --test tests/*.test.cjs`，41 项通过，0 项失败。
+
+## 发现与处理
+
+- 初版猫咪素材带浅色方形底；已替换为透明背景 PNG，并同步更新 Service Worker cache 版本 `apple-ui-2026-11-12b`。
+- 旧版本的本地记录、图片媒体、标签、随机打乱和导出能力均保留；新增的今日能量使用独立的 `smallwins_energy_v1` 本地键。
+- 未发现会阻塞主要任务的 P0/P1/P2 视觉或交互问题。
+
+final result: passed
