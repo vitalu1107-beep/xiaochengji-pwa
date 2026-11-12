@@ -9,7 +9,7 @@
   <link rel="manifest" href="./manifest.json" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
-  <link rel="preload" href="./assets/calico-mascot.png" as="image" />
+  <link rel="preload" href="./assets/calico-mascot.svg" as="image" />
   <link rel="stylesheet" href="./style.css?v=apple-ui-20261112b" />
 </head>
 <body>
@@ -17,20 +17,20 @@
     <main id="page-home" class="page page-home" aria-labelledby="home-heading">
       <header class="home-header">
         <div class="brand-lockup">
-          <img class="mascot mascot-brand" src="./assets/calico-mascot.png" alt="长毛三花猫" />
+          <img class="mascot mascot-brand" src="./assets/calico-mascot.svg" alt="长毛三花猫" />
           <div><h1 id="home-heading">小成就</h1><p>Small Wins</p></div>
         </div>
         <div class="home-greeting-block"><p id="home-greeting" class="home-greeting">晚上好，夏央</p><p id="home-date" class="home-date">2026年11月12日</p></div>
       </header>
       <div class="page-content home-content">
-        <section class="energy-hero" aria-labelledby="energy-heading"><p id="energy-heading" class="eyebrow">今日能量</p><p id="home-quote" class="energy-quote">把一件小事，做得刚刚好。</p><img class="mascot mascot-hero" src="./assets/calico-mascot.png" alt="长毛三花猫坐在柔和的山丘旁" /></section>
+        <section class="energy-hero" aria-labelledby="energy-heading"><p id="energy-heading" class="eyebrow">今日能量</p><p id="home-quote" class="energy-quote">把一件小事，做得刚刚好。</p><img class="mascot mascot-hero" src="./assets/calico-mascot.svg" alt="长毛三花猫坐在柔和的山丘旁" /></section>
         <section class="stats-line" aria-label="我的小成就"><div class="stat-inline"><span>连续记录</span><strong id="stat-streak">0</strong><span>天</span></div><span class="stat-divider" aria-hidden="true"></span><div class="stat-inline"><span>累计</span><strong id="stat-happy">0</strong><span>件</span></div><span id="stat-streak-sub" class="sr-only">已坚持 0 天</span><span id="stat-happy-sub" class="sr-only">记录 0 个瞬间</span></section>
         <section class="recent-section" aria-labelledby="recent-heading"><div class="section-head section-head-simple"><h2 id="recent-heading" class="section-title">最近的小成就</h2></div><div id="recent-list" class="list recent-list"><p class="empty-state" id="recent-empty">还没有记录，先写下第一件小成就。</p></div></section>
       </div>
     </main>
 
     <main id="page-today" class="page" style="display:none;" aria-labelledby="record-heading">
-      <header class="page-header"><h1 id="record-heading" class="page-title">记录</h1><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <header class="page-header"><h1 id="record-heading" class="page-title">记录</h1><img class="mascot mascot-page" src="./assets/calico-mascot.svg" alt="长毛三花猫" /></header>
       <div class="page-content record-content">
         <section class="record-composer" aria-label="写下小成就">
           <label for="input-text" class="sr-only">今天，想记下哪件小事？</label><textarea id="input-text" class="record-input" placeholder="今天，想记下哪件小事？" autocomplete="off" rows="7"></textarea>
@@ -45,17 +45,17 @@
     </main>
 
     <main id="page-wall" class="page" style="display:none;" aria-labelledby="wall-heading">
-      <header class="page-header"><div><h1 id="wall-heading" class="page-title">成就墙</h1><p class="page-subtitle"><span id="wall-count">你的每一点进步</span></p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <header class="page-header"><div><h1 id="wall-heading" class="page-title">成就墙</h1><p class="page-subtitle"><span id="wall-count">你的每一点进步</span></p></div><img class="mascot mascot-page" src="./assets/calico-mascot.svg" alt="长毛三花猫" /></header>
       <div class="page-content wall-content"><div class="wall-search-row"><label class="search-field"><img class="search-icon" src="./assets/icons/magnifying-glass.svg" alt="" /><span class="sr-only">搜索正文或标签</span><input id="wall-search" class="input" type="search" placeholder="搜索成就或标签" autocomplete="off" /></label><button id="btn-wall-clear-input" class="text-btn" type="button">清空</button></div><div class="view-toggle" id="wall-view-toggle" role="group" aria-label="成就墙视图"><button class="view-toggle-btn active" type="button" data-view="time">按时间</button><button class="view-toggle-btn" type="button" data-view="tag">按标签</button></div><div id="wall-tag-filters" class="tag-filters" aria-label="标签筛选"></div><section class="wall-section" aria-labelledby="wall-list-heading"><div class="section-head"><h2 id="wall-list-heading" class="section-title">全部记录</h2><button id="btn-wall-clear" class="text-btn danger" type="button">清空全部</button></div><div id="wall-list" class="wall-grid"></div><p id="wall-empty" class="empty-state">还没有记录。</p></section></div>
     </main>
 
     <main id="page-random" class="page" style="display:none;" aria-labelledby="review-heading">
-      <header class="page-header"><div><h1 id="review-heading" class="page-title">回顾</h1><p class="page-subtitle">随机一条</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <header class="page-header"><div><h1 id="review-heading" class="page-title">回顾</h1><p class="page-subtitle">随机一条</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.svg" alt="长毛三花猫" /></header>
       <div class="page-content review-content"><section id="random-card" class="review-card" aria-label="随机回顾一条小成就"><button id="btn-random-prev" class="review-arrow review-arrow-prev" type="button" aria-label="上一条"><img src="./assets/icons/chevron-right.svg" alt="" /></button><p class="review-date" id="random-time">还没有记录</p><div id="random-media" class="review-media"></div><p id="random-text" class="review-text">—</p><p id="random-mood" class="review-mood muted"></p><button id="btn-random-next" class="review-arrow review-arrow-next" type="button" aria-label="下一条"><img src="./assets/icons/chevron-right.svg" alt="" /></button></section><div class="review-footer"><div id="random-position" class="review-position muted">0 / 0</div><p class="review-hint muted">左右滑动查看</p><p class="review-shuffle muted">已随机打乱</p><button id="btn-random-reshuffle" class="text-btn" type="button" style="display:none;">重新随机</button></div></div>
     </main>
 
     <main id="page-settings" class="page" style="display:none;" aria-labelledby="settings-heading">
-      <header class="page-header"><div><h1 id="settings-heading" class="page-title">设置</h1><p class="page-subtitle">让小成就更像你的空间</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.png" alt="长毛三花猫" /></header>
+      <header class="page-header"><div><h1 id="settings-heading" class="page-title">设置</h1><p class="page-subtitle">让小成就更像你的空间</p></div><img class="mascot mascot-page" src="./assets/calico-mascot.svg" alt="长毛三花猫" /></header>
       <div class="page-content settings-content"><p class="privacy-note muted">记录仅保存在当前浏览器，不上传服务器。</p><section class="settings-grouped" aria-label="个性化设置"><h2 class="settings-label">个性化</h2><div class="settings-list"><div class="settings-row settings-row-edit"><label for="nickname-input">昵称</label><div class="settings-row-control"><input id="nickname-input" type="text" placeholder="夏央" autocomplete="nickname" maxlength="40" /><button id="btn-save-nickname" class="text-btn" type="button">保存</button></div></div><div class="settings-row settings-row-edit"><label for="energy-input">今日能量</label><div class="settings-row-control"><input id="energy-input" type="text" maxlength="80" placeholder="写一句给自己的话" /><button id="btn-save-energy" class="text-btn" type="button">保存</button></div></div></div><p class="settings-preview muted">首页问候：<span id="nickname-preview">晚上好，夏央</span></p><p class="settings-preview muted">首页能量：<span id="energy-preview">把一件小事，做得刚刚好。</span></p></section><section class="settings-grouped" aria-label="数据设置"><h2 class="settings-label">数据</h2><div class="settings-list"><button id="btn-install" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/house.svg" alt="" /><span>添加到桌面</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button><div id="install-tip" class="settings-tip muted">可从浏览器分享菜单添加到主屏幕。</div><button id="btn-export" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/copy.svg" alt="" /><span>导出文本（复制）</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button><button id="btn-backup" class="settings-action" type="button"><img class="settings-icon" src="./assets/icons/copy.svg" alt="" /><span>导出完整备份</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button></div><p id="storage-usage" class="settings-tip muted">图片占用空间：读取中…</p></section><button id="btn-clear-all" class="settings-action danger clear-all" type="button"><span>清空全部记录</span><img class="chevron-img" src="./assets/icons/chevron-right.svg" alt="" /></button></div>
     </main>
   </div>
