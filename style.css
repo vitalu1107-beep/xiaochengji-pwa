@@ -139,7 +139,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .wall-item .item-chevron { position: absolute; right: 14px; bottom: 12px; width: 18px; height: 18px; }
 
 .review-content { padding-top: 20px; }
-.review-card { position: relative; min-height: 470px; padding: 42px 40px 48px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 26px; box-shadow: 0 12px 30px rgba(23, 58, 50, .045); }
+.review-card { position: relative; min-height: 470px; padding: 42px 40px 48px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 26px; box-shadow: 0 12px 30px rgba(23, 58, 50, .045); touch-action: pan-y; user-select: none; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
 .review-text { margin: 80px 0 0; font-family: var(--display-font); font-size: clamp(30px, 8vw, 42px); line-height: 1.35; letter-spacing: -.045em; font-weight: 600; }
 .review-mood { margin: 26px 0 0; font-size: 16px; }
