@@ -42,11 +42,10 @@ test('review swipe keeps the outgoing card visibly moving', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /\.review-content[^}]*overflow:\s*hidden/);
   assert.match(css, /--swipe-progress/);
-  assert.match(css, /\.review-card\.is-exiting-left[^}]*transition-duration:\s*460ms/);
-  assert.match(css, /\.review-card\.is-exiting-left[^}]*--swipe-x:\s*-118%/);
-  assert.match(css, /\.review-card\.is-exiting-right[^}]*--swipe-x:\s*118%/);
+  assert.match(css, /\.review-card\.is-flipping-left[^}]*--page-rotation:\s*-180deg/);
+  assert.match(css, /\.review-card\.is-flipping-right[^}]*--page-rotation:\s*180deg/);
   assert.match(main, /--swipe-progress/);
-  assert.match(main, /setTimeout\(completeExit, 520\)/);
+  assert.match(main, /setTimeout\(completeRandomStep, 560\)/);
 });
 
 test('record enter inserts a newline instead of saving automatically', () => {
@@ -109,10 +108,40 @@ test('home record and wall mascot events map to real controls', () => {
 });
 
 test('review and settings mascot events follow action outcome', () => {
-  assert.match(main, /function animateRandomStep\(direction\)[\s\S]*triggerMascot\("review",\s*direction > 0 \? "swipe-left" : "swipe-right"\)/);
-  assert.match(main, /reviewPendingDirection = delta < 0 \? 1 : -1;[\s\S]*triggerMascot\("review",\s*reviewPendingDirection > 0 \? "swipe-left" : "swipe-right"\)/);
+  assert.match(main, /function beginRandomStep\(direction\)[\s\S]*triggerMascot\("review",\s*direction > 0 \? "swipe-left" : "swipe-right"\)/);
+  assert.match(main, /beginRandomStep\(delta < 0 \? 1 : -1\)/);
   assert.match(main, /if \(setNickname\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
   assert.match(main, /if \(setEnergy\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
   assert.match(main, /setNickname\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
   assert.match(main, /setEnergy\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
+});
+
+test('home energy mark keeps the mascot beside the leaf and stays compact on mobile', () => {
+  assert.match(html, /<button id="energy-mark"[^>]*class="energy-mark"/);
+  assert.match(html, /id="mascot-home"[^>]*data-mascot-page="home"/);
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*64px/);
+  assert.match(css, /\.mascot-inline\s*\{[^}]*left:\s*0/);
+  assert.match(css, /\.energy-mark::before\s*\{[^}]*left:\s*34px/);
+  assert.match(css, /\.energy-hero\s*\{[^}]*min-height:\s*224px/);
+  assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(22px,\s*6vw,\s*30px\)/);
+});
+
+test('home energy mark has an obvious native tap interaction', () => {
+  assert.match(main, /const celebrateHome = \(\) => \{[\s\S]*triggerMascot\("home",\s*"celebrate"\)/);
+  assert.match(main, /energyMarkEl\?\.addEventListener\("click", celebrateHome\)/);
+  assert.match(main, /energyMarkEl\?\.addEventListener\("keydown"/);
+});
+
+test('review page uses a real 3D page-turn with a back face', () => {
+  assert.match(html, /class="[^"]*review-card-front/);
+  assert.match(html, /class="[^"]*review-card-back/);
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /\.review-stack\s*\{[^}]*perspective:\s*900px/);
+  assert.match(css, /\.review-card\s*\{[^}]*transform-style:\s*preserve-3d/);
+  assert.match(css, /\.review-card-back\s*\{[^}]*backface-visibility:\s*hidden/);
+  assert.match(css, /\.review-card-back\s*\{[^}]*pointer-events:\s*none/);
+  assert.match(css, /\.review-card\.is-flipping-left[^}]*--page-rotation:\s*-180deg/);
+  assert.match(css, /\.review-card\.is-flipping-right[^}]*--page-rotation:\s*180deg/);
+  assert.match(main, /reviewPendingDirection[\s\S]*is-flipping-(left|right)/);
 });

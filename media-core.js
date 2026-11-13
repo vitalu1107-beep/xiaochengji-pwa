@@ -69,6 +69,7 @@
         return order[index] ?? null;
       },
       current() { return order[index] ?? null; },
+      peek(direction = 1) { return order[index + direction] ?? order[index] ?? order[0] ?? null; },
       position() { return index < 0 ? 0 : index + 1; },
       size() { return order.length; },
       reset() { previousLast = null; reshuffle(); },
