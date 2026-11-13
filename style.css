@@ -45,9 +45,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .page-title { margin: 0; font-family: var(--display-font); font-size: 40px; line-height: 1; letter-spacing: -.055em; font-weight: 600; }
 .page-subtitle { margin: 10px 0 0; color: var(--muted); font-size: 15px; }
 .mascot { display: block; object-fit: contain; mix-blend-mode: multiply; }
-.mascot-brand { width: 42px; height: 42px; object-position: center; }
 .mascot-page { width: 76px; height: 76px; margin-top: -8px; }
-.mascot-hero { position: absolute; right: 16px; bottom: 8px; width: 150px; height: 150px; opacity: .98; }
+.mascot-interactive { transform-origin: center bottom; transition: transform 360ms cubic-bezier(.22,.8,.28,1), opacity 240ms ease, filter 360ms ease; will-change: transform; }
+.mascot-inline { position: absolute; z-index: 1; left: 6px; top: -1px; width: 29px; height: 29px; opacity: .94; }
+.mascot-state-enter { transform: translate3d(0, -3px, 0) rotate(-4deg) scale(1.04); }
+.mascot-state-peek { transform: translate3d(3px, -2px, 0) rotate(4deg) scale(1.03); }
+.mascot-state-listen { transform: translate3d(0, -2px, 0) rotate(-2deg) scale(1.02); filter: saturate(1.08); }
+.mascot-state-point { transform: translate3d(4px, 0, 0) rotate(6deg) scale(1.03); }
+.mascot-state-celebrate { transform: translate3d(0, -5px, 0) rotate(-5deg) scale(1.06); filter: saturate(1.12); }
+.mascot-state-swipe-left { transform: translate3d(-6px, 0, 0) rotate(-8deg) scale(1.02); }
+.mascot-state-swipe-right { transform: translate3d(6px, 0, 0) rotate(8deg) scale(1.02); }
+.mascot-state-empty { transform: translate3d(0, 2px, 0) scale(.97); opacity: .72; }
 
 .energy-hero { position: relative; min-height: 360px; overflow: hidden; padding: 28px 24px 126px; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
 .energy-label-row { display: flex; align-items: center; gap: 12px; }
@@ -58,7 +66,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .eyebrow { margin: 0; color: #6f9e83; font-size: 18px; font-weight: 680; letter-spacing: .02em; }
 .energy-quote { max-width: 350px; margin: 34px 0 0; font-family: var(--display-font); font-size: clamp(31px, 8.4vw, 44px); line-height: 1.34; letter-spacing: -.045em; font-weight: 600; }
 .energy-hero::after { content: ""; position: absolute; right: -44px; bottom: -88px; width: 330px; height: 150px; border-radius: 50% 50% 0 0; background: #edf3e9; transform: rotate(-5deg); z-index: -0; }
-.energy-hero .mascot-hero { z-index: 1; }
 
 .stats-line { display: flex; align-items: center; justify-content: space-around; gap: 12px; padding: 28px 0 24px; border-bottom: 1px solid var(--line); }
 .stat-inline { display: inline-flex; align-items: baseline; gap: 7px; color: var(--muted); white-space: nowrap; }
@@ -185,5 +192,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .item-chevron, .search-icon, .review-arrow img, .settings-icon, .chevron-img, .icon-btn img { filter: brightness(0) saturate(100%) invert(28%) sepia(10%) saturate(1077%) hue-rotate(113deg) brightness(91%) contrast(89%); }
 .icon-btn img { width: 17px; height: 17px; }
 
+@media (prefers-reduced-motion: reduce) {
+  .mascot-interactive { transition: opacity 100ms linear; }
+  .mascot-interactive[class*="mascot-state-"] { transform: none; animation: none; }
+}
 @media (min-width: 700px) { .page { min-height: auto; padding-bottom: 30px; }.tabbar { position: sticky; top: 0; bottom: auto; max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 0 0 18px 18px; }.home-header, .page-header { padding-top: 34px; } }
-@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-greeting { font-size: 28px; }.energy-hero { min-height: 360px; padding-left: 20px; padding-right: 20px; }.energy-quote { font-size: 31px; }.mascot-hero { width: 132px; height: 132px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 31px; } }
+@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-greeting { font-size: 28px; }.energy-hero { min-height: 360px; padding-left: 20px; padding-right: 20px; }.energy-quote { font-size: 31px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 31px; } }
