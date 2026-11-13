@@ -21,3 +21,5 @@ Task 11: complete — redesigned random review as a compact stacked-card deck wi
 Task 12: complete — strengthened the random-review swipe feedback: the outgoing card now visibly follows the drag with rotation, scale, and opacity changes, stays on screen long enough to read as a page-turn, and no longer gets clipped by the stack container. Local mobile drag verification and 44-test regression suite passed; cache version bumped to `apple-ui-2026-11-12g`.
 
 Task 13: complete — corrected the exit target so left and right swipes leave in the same direction as the gesture; added a contract test and bumped the cache version to `apple-ui-2026-11-12h`.
+
+Task 14: complete — added native mascot interaction hooks and one-shot state controller across all five pages, with reduced-motion fallback, cooldowns, and no new storage/API surface. Local visual verification passed on home, record, wall, and stacked review drag; full regression passed 49/49. Cache version bumped to `apple-ui-2026-11-12i` with h retained as rollback baseline.
