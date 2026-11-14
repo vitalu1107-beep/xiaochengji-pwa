@@ -110,21 +110,19 @@ test('home record and wall mascot events map to real controls', () => {
 test('review and settings mascot events follow action outcome', () => {
   assert.match(main, /function beginRandomStep\(direction\)[\s\S]*triggerMascot\("review",\s*direction > 0 \? "swipe-left" : "swipe-right"\)/);
   assert.match(main, /beginRandomStep\(delta < 0 \? 1 : -1\)/);
-  assert.match(main, /if \(setNickname\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
-  assert.match(main, /if \(setEnergy\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
-  assert.match(main, /setNickname\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
-  assert.match(main, /setEnergy\(value\)\) \{[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
+  assert.match(main, /function commitNicknameSetting\(\)[\s\S]*setNickname\(value\)[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
+  assert.match(main, /function commitEnergySetting\(\)[\s\S]*setEnergy\(value\)[\s\S]*triggerMascot\("settings",\s*"celebrate"\)/);
 });
 
 test('home energy mark keeps the mascot beside the leaf and stays compact on mobile', () => {
   assert.match(html, /<button id="energy-mark"[^>]*class="energy-mark"/);
   assert.match(html, /id="mascot-home"[^>]*data-mascot-page="home"/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*64px/);
-  assert.match(css, /\.mascot-inline\s*\{[^}]*left:\s*0/);
-  assert.match(css, /\.energy-mark::before\s*\{[^}]*left:\s*34px/);
-  assert.match(css, /\.energy-hero\s*\{[^}]*min-height:\s*224px/);
-  assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(22px,\s*6vw,\s*30px\)/);
+  assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*96px/);
+  assert.match(css, /\.mascot-inline\s*\{[^}]*left:\s*10px/);
+  assert.match(css, /\.energy-mark::before\s*\{[^}]*left:\s*-8px/);
+  assert.match(css, /\.energy-hero\s*\{[^}]*min-height:\s*282px/);
+  assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(25px,\s*6\.5vw,\s*34px\)/);
 });
 
 test('home energy mark has an obvious native tap interaction', () => {
@@ -144,4 +142,34 @@ test('review page uses a real 3D page-turn with a back face', () => {
   assert.match(css, /\.review-card\.is-flipping-left[^}]*--page-rotation:\s*-180deg/);
   assert.match(css, /\.review-card\.is-flipping-right[^}]*--page-rotation:\s*180deg/);
   assert.match(main, /reviewPendingDirection[\s\S]*is-flipping-(left|right)/);
+});
+
+test('achievement detail keeps one close affordance and enters edit from the content', () => {
+  assert.match(html, /id="modal"[\s\S]*aria-label="关闭详情"/);
+  assert.doesNotMatch(html, /id="modal-edit"/);
+  assert.doesNotMatch(html, /class="modal-actions"/);
+  assert.match(main, /function openModal\(record\)[\s\S]*modalBodyEl[\s\S]*beginEdit\(record\)/);
+});
+
+test('record composer uses a more inviting small-win prompt', () => {
+  assert.match(html, /placeholder="今天，哪一刻值得为自己点个赞？"/);
+});
+
+test('settings fields save inline without redundant check buttons', () => {
+  assert.doesNotMatch(html, /id="btn-save-nickname"/);
+  assert.doesNotMatch(html, /id="btn-save-energy"/);
+  assert.match(main, /function commitNicknameSetting\(\)/);
+  assert.match(main, /function commitEnergySetting\(\)/);
+  assert.match(main, /function bindSettingField\(input, commit\)[\s\S]*input\?\.addEventListener\("blur", commit\)/);
+  assert.match(main, /bindSettingField\(nicknameInput, commitNicknameSetting\)/);
+  assert.match(main, /bindSettingField\(energyInput, commitEnergySetting\)/);
+});
+
+test('home uses a layered warm hero instead of a flat text sheet', () => {
+  assert.match(html, /class="energy-scene"/);
+  assert.match(html, /class="energy-leaf"/);
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /\.energy-hero\s*\{[^}]*border-radius:\s*28px/);
+  assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*96px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*background:\s*var\(--surface\)/);
 });
