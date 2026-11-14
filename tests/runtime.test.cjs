@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const LS = 'smallwins_records_v1';
 const NICK = 'smallwins_nickname_v1';
+const ENERGY = 'smallwins_energy_v1';
 class Element {
   constructor(tag='div', doc) { this.tagName=tag.toUpperCase(); this.ownerDocument=doc; this.children=[]; this.listeners={}; this.style={}; this.dataset={}; this.attributes={}; this.value=''; this._text=''; this._html=''; this.className=''; this.isConnected=true; this.disabled=false;
     this.classList={ contains:x=>this.className.split(' ').includes(x), add:x=>{if(!this.classList.contains(x))this.className += ' '+x;}, remove:x=>{this.className=this.className.split(' ').filter(v=>v!==x).join(' ');}, toggle:(x,v)=>{v=v??!this.classList.contains(x); this.classList[v?'add':'remove'](x); return v;} };
@@ -27,7 +28,7 @@ function app(initial=[],extra={}){
  const elements=new Map(); const document={listeners:{},activeElement:null};
  document.body=new Element('body',document);
  document.createElement=tag=>new Element(tag,document); document.getElementById=id=>elements.get(id)||null;
- const ids=['home-date','home-greeting','stat-streak','stat-happy','recent-list','recent-empty','input-text','tag-suggest','mood-group','btn-save','today-list','today-empty','btn-clear-today','wall-search','wall-list','wall-empty','btn-wall-clear','btn-wall-clear-input','random-text','random-time','random-mood','btn-random-next','btn-install','install-tip','nickname-input','nickname-preview','btn-save-nickname','btn-export','btn-clear-all','modal','modal-title','modal-body','modal-close','modal-delete','page-home','page-today','page-wall','page-random','page-settings'];
+ const ids=['home-date','home-greeting','stat-streak','stat-happy','recent-list','recent-empty','input-text','tag-suggest','mood-group','btn-save','today-list','today-empty','btn-clear-today','wall-search','wall-list','wall-empty','btn-wall-clear','btn-wall-clear-input','random-text','random-time','random-mood','btn-random-next','btn-install','install-tip','nickname-input','nickname-preview','energy-input','energy-preview','btn-export','btn-clear-all','modal','modal-title','modal-body','modal-close','modal-delete','page-home','page-today','page-wall','page-random','page-settings'];
  for(const id of ids){const el=document.createElement(id.startsWith('btn-')||id.startsWith('modal-')&&['modal-close','modal-delete'].includes(id)?'button':id==='input-text'?'textarea':'div');el.id=id;elements.set(id,el);document.body.appendChild(el);}
  elements.get('recent-list').appendChild(elements.get('recent-empty'));
  for(const id of ['modal-title','modal-body','modal-close','modal-delete']){elements.get(id).remove();elements.get(id).isConnected=true;elements.get('modal').appendChild(elements.get(id));}
@@ -159,14 +160,24 @@ test('legacy startup tolerates inaccessible nickname and record storage', () => 
   assert.equal(a.el('input-text').value, '保留草稿');
 });
 
-test('legacy failed nickname save keeps stored nickname and entered value', () => {
+test('legacy failed nickname blur save keeps stored nickname and entered value', () => {
   const a = app();
   a.failWrite(true);
   a.el('nickname-input').value = '未保存昵称';
-  assert.doesNotThrow(() => a.click('btn-save-nickname'));
+  assert.doesNotThrow(() => a.el('nickname-input').dispatch('blur'));
   assert.equal(a.store.get(NICK), '原昵称');
   assert.equal(a.el('nickname-input').value, '未保存昵称');
   assert.match(a.document.querySelector('#__toast').textContent, /失败/);
+});
+
+test('settings fields save on blur without action buttons', () => {
+  const a = app();
+  a.el('nickname-input').value = '森林昵称';
+  a.el('nickname-input').dispatch('blur');
+  assert.equal(a.store.get(NICK), '森林昵称');
+  a.el('energy-input').value = '今天也有值得记下的一刻。';
+  a.el('energy-input').dispatch('blur');
+  assert.equal(a.store.get(ENERGY), '今天也有值得记下的一刻。');
 });
 
 test('legacy lifecycle nickname sync preserves an unsubmitted nickname edit', () => {
@@ -178,7 +189,7 @@ test('legacy lifecycle nickname sync preserves an unsubmitted nickname edit', ()
   assert.equal(a.el('nickname-input').value, '正在编辑');
 });
 
-test('legacy composition Enter is ignored and normal Enter remains save', () => {
+test('composition Enter is ignored and normal Enter stays in the draft', () => {
   const a = app();
   a.el('input-text').value = '输入法候选';
   a.el('input-text').dispatch('keydown', {key:'Enter',isComposing:true});
@@ -190,7 +201,8 @@ test('legacy composition Enter is ignored and normal Enter remains save', () => 
   a.el('input-text').dispatch('keydown', {key:'Enter',shiftKey:true});
   assert.equal(a.read().length, 0);
   a.el('input-text').dispatch('keydown', {key:'Enter'});
-  assert.equal(a.read().length, 1);
+  assert.equal(a.read().length, 0);
+  assert.equal(a.el('input-text').value, '输入法候选');
 });
 
 test('legacy export with no clipboard shows selectable latest records', () => {
