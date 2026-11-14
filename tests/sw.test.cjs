@@ -96,7 +96,7 @@ test('apple UI precaches the app files under its actual registration scope', asy
   const w = worker({scope:'http://localhost:4173/xiaochengji-pwa/'});
   await w.event('install');
   assert.ok(w.requested.every(url => url.startsWith('http://localhost:4173/xiaochengji-pwa/')));
-  for (const file of ['index.html','style.css?v=apple-ui-20261113d','media-core.js?v=apple-ui-20261113d','main.js?v=apple-ui-20261113d','manifest.json','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png','assets/calico-mascot.svg']) {
+  for (const file of ['index.html','style.css?v=apple-ui-20261114a','media-core.js?v=apple-ui-20261114a','main.js?v=apple-ui-20261114a','manifest.json','icons/icon-180.png','icons/icon-192.png','icons/icon-512.png','assets/calico-mascot.svg']) {
     assert.ok(w.requested.some(url => url.endsWith(file)), file);
   }
   assert.ok(w.requested.every(url => !url.includes('/legacy/')));
@@ -104,7 +104,7 @@ test('apple UI precaches the app files under its actual registration scope', asy
 
 test('offline root restores the Apple UI index and retired nested routes redirect to the correct asset root', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-13d');
+  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-14a');
   await cache.put('index.html', new Response('apple shell'));
   await cache.put('offline.html', new Response('obsolete DOM'));
   assert.equal(await (await w.request('./', {navigation:true})).text(), 'apple shell');
@@ -124,10 +124,10 @@ test('a different app cache cannot become this app’s offline response', async 
 
 test('unknown script versions never silently receive the current cached script', async () => {
   const w = worker({offline:true});
-  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-13d');
-  await cache.put('main.js?v=apple-ui-20261113d', new Response('current script'));
+  const cache = await w.caches.open('smallwins-cache-apple-ui-2026-11-14a');
+  await cache.put('main.js?v=apple-ui-20261114a', new Response('current script'));
   assert.equal((await w.request('main.js?v=future')).status, 503);
-  assert.equal(await (await w.request('main.js?v=apple-ui-20261113d')).text(), 'current script');
+  assert.equal(await (await w.request('main.js?v=apple-ui-20261114a')).text(), 'current script');
 });
 
 test('requests outside this registration are left to the browser', async () => {
@@ -155,5 +155,5 @@ test('activation removes the previous release cache after the complete media ins
   assert.equal(w.skips, 1);
   await w.event('activate');
   assert.ok(w.deleted.includes('smallwins-cache-forest-2026-11-02d'));
-  assert.ok(w.buckets.has('smallwins-cache-apple-ui-2026-11-13d'));
+  assert.ok(w.buckets.has('smallwins-cache-apple-ui-2026-11-14a'));
 });

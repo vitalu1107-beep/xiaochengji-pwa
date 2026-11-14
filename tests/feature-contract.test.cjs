@@ -144,6 +144,14 @@ test('review page uses a real 3D page-turn with a back face', () => {
   assert.match(main, /reviewPendingDirection[\s\S]*is-flipping-(left|right)/);
 });
 
+test('review media cards tighten the image-to-text rhythm and use a soft green page palette', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(main, /randomCardEl\?\.classList\.toggle\("has-media"[\s\S]*mediaIds/);
+  assert.match(css, /\.review-card\.has-media \.review-text\s*\{[^}]*margin-top:\s*22px/);
+  assert.match(css, /#page-random\s*\{[^}]*--review-bg:\s*#a8d6aa/);
+  assert.match(css, /#page-random[^}]*background:\s*linear-gradient/);
+});
+
 test('achievement detail keeps one close affordance and enters edit from the content', () => {
   assert.match(html, /id="modal"[\s\S]*aria-label="关闭详情"/);
   assert.doesNotMatch(html, /id="modal-edit"/);

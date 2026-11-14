@@ -161,6 +161,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .wall-item .item-chevron { position: absolute; right: 14px; bottom: 12px; width: 18px; height: 18px; }
 
 .review-content { padding-top: 20px; overflow: hidden; }
+#page-random { --review-bg: #a8d6aa; --review-surface: #f7f8ed; --review-line: rgba(23, 58, 50, .17); background: linear-gradient(180deg, var(--review-bg) 0%, #b9dfb7 100%); }
+#page-random .review-card-face, #page-random .review-layer { background: var(--review-surface); border-color: var(--review-line); }
+#page-random .review-card-face { box-shadow: 0 18px 36px rgba(32, 73, 51, .12); }
+#page-random .review-layer { box-shadow: 0 12px 26px rgba(32, 73, 51, .08); }
+#page-random .review-hint, #page-random .review-position { color: rgba(23, 58, 50, .74); }
+#page-random .review-shuffle { color: #2f7e59; }
 .review-stack { position: relative; min-height: 392px; margin: 0 -18px; padding: 0 18px; overflow: visible; touch-action: pan-y; }
 .review-layer { position: absolute; top: 14px; bottom: 14px; width: calc(100% - 56px); border: 1px solid var(--line); border-radius: 26px; background: var(--surface); box-shadow: 0 10px 24px rgba(23, 58, 50, .035); pointer-events: none; }
 .review-layer-prev { left: 0; transform: rotate(-4deg) scale(.96); transform-origin: center right; opacity: .76; }
@@ -176,8 +182,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-card.is-flipping-right { --page-rotation: 180deg; --swipe-x: 4%; --swipe-rotate: 2deg; --swipe-scale: .985; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
 .review-text { margin: 80px 0 0; font-family: var(--display-font); font-size: clamp(30px, 8vw, 42px); line-height: 1.35; letter-spacing: -.045em; font-weight: 600; }
+.review-card.has-media .review-text { margin-top: 22px; }
 .review-mood { margin: 26px 0 0; font-size: 16px; }
-.review-media { display: flex; gap: 8px; margin-top: 18px; }
+.review-media { display: flex; gap: 8px; margin-top: 14px; }
 .review-media .media-item { width: 88px; height: 88px; }
 .review-arrow { position: absolute; top: 50%; z-index: 1; width: 32px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; transform: translateY(-50%); }
 .review-arrow img { width: 22px; height: 22px; opacity: .62; filter: brightness(0) saturate(100%) invert(28%) sepia(10%) saturate(1077%) hue-rotate(113deg) brightness(91%) contrast(89%); }
