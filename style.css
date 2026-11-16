@@ -40,9 +40,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .brand-lockup h1, .brand-lockup p { margin: 0; }
 .brand-lockup h1 { font-size: 25px; letter-spacing: -.04em; line-height: 1.05; }
 .brand-lockup p { margin-top: 4px; color: var(--muted); font-size: 13px; letter-spacing: .08em; }
-.home-greeting-block { margin-top: 0; padding-top: 12px; }
-.home-greeting { margin: 0; font-family: var(--ui-font); font-size: 28px; line-height: 1.2; font-weight: 680; letter-spacing: -.045em; }
-.home-date { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.home-greeting-block { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-top: 0; padding: 14px 2px 16px; border-bottom: 1px solid rgba(116, 174, 146, .16); }
+.home-greeting { margin: 0; font-family: var(--ui-font); font-size: clamp(25px, 7vw, 30px); line-height: 1.2; font-weight: 680; letter-spacing: -.045em; }
+.home-date { margin: 0 0 2px; padding: 6px 10px; border: 1px solid rgba(116, 174, 146, .24); border-radius: 999px; background: rgba(230, 243, 231, .62); color: var(--muted); font-size: 12px; line-height: 1; white-space: nowrap; }
 .page-title { margin: 0; font-family: var(--display-font); font-size: 40px; line-height: 1; letter-spacing: -.055em; font-weight: 600; }
 .mascot { display: block; object-fit: contain; mix-blend-mode: multiply; }
 .mascot-page { width: 76px; height: 76px; margin-top: -8px; }
@@ -187,11 +187,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-card-face { position: absolute; inset: 0; min-height: 392px; padding: 34px 36px 38px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 26px; background: var(--surface); box-shadow: 0 12px 30px rgba(23, 58, 50, .045); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .review-card-front { position: absolute; }
 .review-card-back { display: flex; flex-direction: column; justify-content: center; transform: rotateY(180deg); background: linear-gradient(145deg, rgba(196, 225, 192, .92), rgba(220, 241, 218, .82)); backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; visibility: hidden; }
-.review-card-back::before { content: "这件小成就"; display: inline-flex; align-items: center; width: fit-content; padding: 6px 10px; border: 1px solid rgba(116, 174, 146, .32); border-radius: 999px; color: #5f8c75; font-size: 13px; letter-spacing: .08em; }
-.review-card-back .review-text { margin-top: 20px; }
 .review-card.is-card-flipped .review-card-front { visibility: hidden; }
 .review-card.is-card-flipped .review-card-back { visibility: visible; }
-.review-card-back .review-text { margin-top: 24px; font-size: clamp(22px, 5.8vw, 27px); }
+.review-card-back .review-text { margin-top: 0; font-size: clamp(22px, 5.8vw, 27px); }
 .review-card-back .review-media { margin-top: 18px; }
 .review-card.is-flipping-left { --page-rotation: -180deg; --swipe-x: -4%; --swipe-rotate: -2deg; --swipe-scale: .985; }
 .review-card.is-flipping-right { --page-rotation: 180deg; --swipe-x: 4%; --swipe-rotate: 2deg; --swipe-scale: .985; }
@@ -235,7 +233,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
   .mascot-interactive[class*="mascot-state-"] { transform: none; animation: none; }
 }
 @media (min-width: 700px) { .page { min-height: auto; padding-bottom: 30px; }.tabbar { position: sticky; top: 0; bottom: auto; max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 0 0 18px 18px; }.home-header, .page-header { padding-top: 34px; } }
-@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { min-height: 118px; }.home-greeting { font-size: 27px; }.energy-hero { min-height: 258px; padding: 22px 18px 28px; border-radius: 24px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 22px; max-width: 250px; font-size: 24px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 18px 0 0; padding-top: 16px; padding-bottom: 16px; }.recent-section { padding-top: 18px; }.recent-list { padding-left: 14px; padding-right: 14px; border-radius: 20px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 25px; } }
+@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { min-height: 118px; }.home-greeting-block { padding-top: 10px; padding-bottom: 14px; }.home-greeting { font-size: 25px; }.home-date { padding: 6px 8px; font-size: 11px; }.energy-hero { min-height: 258px; padding: 22px 18px 28px; border-radius: 24px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 22px; max-width: 250px; font-size: 24px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 18px 0 0; padding-top: 16px; padding-bottom: 16px; }.recent-section { padding-top: 18px; }.recent-list { padding-left: 14px; padding-right: 14px; border-radius: 20px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 25px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .energy-mark::before, .energy-mark::after, .review-card { transition-duration: 100ms !important; }

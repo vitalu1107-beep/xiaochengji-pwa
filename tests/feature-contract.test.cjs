@@ -194,6 +194,8 @@ test('review flip keeps reset state overridable and preserves the back details',
   assert.match(html, /<section id="random-card"[\s\S]*?<div class="review-card-inner"/);
   assert.match(html, /<div class="review-card-inner"[\s\S]*review-card-front/);
   assert.match(html, /id="random-back-media"/);
+  assert.doesNotMatch(css, /\.review-card-back::before/);
+  assert.doesNotMatch(css, /这件小成就/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-prev"/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-next"/);
   assert.match(css, /\.review-card\.is-card-flipped \.review-card-back\s*\{[^}]*visibility:\s*visible/);
@@ -249,7 +251,7 @@ test('home removes the redundant brand block and restores breathing room', () =>
   assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*12px/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding:\s*14px 2px 16px/);
   assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 0 0/);
 });
 
@@ -284,6 +286,8 @@ test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /--ui-font:\s*-apple-system/);
   assert.match(css, /\.home-greeting\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*flex/);
+  assert.match(css, /\.home-date\s*\{[^}]*border-radius:\s*999px/);
   assert.match(css, /\.energy-quote\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-content \.section-title\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
