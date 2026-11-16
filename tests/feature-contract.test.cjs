@@ -16,8 +16,9 @@ test('record composer exposes local image attachment controls', () => {
 test('wall and review expose the confirmed interaction controls', () => {
   assert.match(html, /data-view="time"/);
   assert.match(html, /data-view="tag"/);
-  assert.match(html, /id="btn-random-prev"/);
-  assert.match(html, /id="btn-random-next"/);
+  assert.doesNotMatch(html, /id="btn-random-prev"/);
+  assert.doesNotMatch(html, /id="btn-random-next"/);
+  assert.doesNotMatch(html, /class="review-arrow/);
   assert.match(html, /id="random-position"/);
   assert.match(main, /createReviewDeck/);
 });
@@ -187,7 +188,7 @@ test('review flip keeps reset state overridable and preserves the back details',
   assert.match(main, /function resetReviewMotion\(\)[\s\S]*removeProperty\("--card-flip"\)/);
   assert.match(main, /function showRandomRecord\(record\)[\s\S]*if \(!record\)[\s\S]*resetReviewMotion\(\)/);
   assert.match(main, /randomBackTextEl\.textContent = current\.text/);
-  assert.match(html, /<section id="random-card"[\s\S]*?<button id="btn-random-prev"[\s\S]*?<div class="review-card-inner"/);
+  assert.match(html, /<section id="random-card"[\s\S]*?<div class="review-card-inner"/);
   assert.match(html, /<div class="review-card-inner"[\s\S]*review-card-front/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-prev"/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-next"/);
@@ -243,9 +244,9 @@ test('home removes the redundant brand block and restores breathing room', () =>
   assert.doesNotMatch(html, /class="brand-lockup"/);
   assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*136px/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*22px/);
-  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 4px 0/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*12px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 0 0/);
 });
 
 test('home recent achievements get a distinct card hierarchy and balanced spacing', () => {
@@ -264,8 +265,11 @@ test('review typography stays compact and metadata is rendered as light chips', 
   assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*27px\)/);
   assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
+  assert.match(css, /\.review-chip\s*\{[^}]*font-size:\s*0/);
+  assert.match(css, /\.review-chip::before/);
   assert.match(main, /function renderReviewMeta\(container, record\)/);
   assert.match(main, /className = `review-chip review-chip-\$\{kind\}`/);
+  assert.match(main, /chip\.setAttribute\("aria-label"/);
 });
 
 test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
@@ -274,7 +278,19 @@ test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
   assert.match(css, /\.home-greeting\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.energy-quote\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-content \.section-title\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*136px/);
-  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 4px 0/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 0 0/);
   assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*18px/);
+});
+
+test('review navigation relies on swipe and card flip without overlay arrows', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.doesNotMatch(css, /\.review-arrow\s*\{/);
+  assert.match(main, /randomCardEl\.addEventListener\("touchstart"/);
+  assert.match(main, /function toggleReviewFlip\(\)/);
+});
+
+test('modal close handles clicks on the nested close icon', () => {
+  assert.match(main, /modalEl\?\.addEventListener\("click", \(event\) => \{[^}]*closest/);
+  assert.match(main, /\[data-close=\\"1\\"\]/);
 });
