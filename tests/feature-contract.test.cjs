@@ -144,12 +144,55 @@ test('review page uses a real 3D page-turn with a back face', () => {
   assert.match(main, /reviewPendingDirection[\s\S]*is-flipping-(left|right)/);
 });
 
-test('review media cards tighten the image-to-text rhythm and use a soft green page palette', () => {
+test('review media cards tighten the image-to-text rhythm and use the swapped page palette', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(main, /randomCardEl\?\.classList\.toggle\("has-media"[\s\S]*mediaIds/);
   assert.match(css, /\.review-card\.has-media \.review-text\s*\{[^}]*margin-top:\s*22px/);
-  assert.match(css, /#page-random\s*\{[^}]*--review-bg:\s*#a8d6aa/);
+  assert.match(css, /#page-random\s*\{[^}]*--review-bg:\s*#f7faf7/);
   assert.match(css, /#page-random[^}]*background:\s*linear-gradient/);
+});
+
+test('review swaps the page and card color surfaces', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /#page-random\s*\{[^}]*--review-bg:\s*#f7faf7/);
+  assert.match(css, /#page-random\s*\{[^}]*--review-surface:\s*#d9edd8/);
+  assert.match(css, /#page-random\s*\{[^}]*--review-glass:\s*rgba\(217,\s*237,\s*216,\s*\.82\)/);
+  assert.match(css, /#page-random[^}]*background:\s*linear-gradient\(180deg, #f8fbf8 0%, #eef7ef 100%\)/);
+  assert.match(css, /#page-random \.review-position[^}]*background:\s*rgba\(210,\s*237,\s*211,\s*\.64\)/);
+});
+
+test('review card supports tap-to-flip current record details without stealing swipes', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(main, /function toggleReviewFlip\(\)/);
+  assert.match(main, /randomCardEl\?\.classList\.toggle\("is-card-flipped"/);
+  assert.match(main, /randomCardEl\.addEventListener\("click"/);
+  assert.match(main, /reviewTapSuppressed/);
+  assert.match(main, /const current = records\.find\(\(record\) => record\.id === currentRandomId\)/);
+  assert.match(css, /--card-flip:\s*0deg/);
+  assert.match(css, /\.review-card\.is-card-flipped[^}]*--card-flip:\s*180deg/);
+  assert.match(css, /backdrop-filter:\s*blur\(18px\)/);
+  assert.match(css, /prefers-reduced-motion:[\s\S]*--card-flip:\s*0deg/);
+});
+
+test('review flip keeps the inner card plane separate from swipe page rotation', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(html, /class="review-card-inner"/);
+  assert.match(css, /\.review-card-inner\s*\{[^}]*transform-style:\s*preserve-3d/);
+  assert.match(css, /\.review-card-inner\s*\{[^}]*transform:\s*rotateY\(var\(--card-flip\)\)/);
+  assert.match(css, /\.review-card\s*\{[^}]*rotateY\(var\(--page-rotation\)\)/);
+});
+
+test('review flip keeps reset state overridable and preserves the back details', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(main, /function resetReviewMotion\(\)[\s\S]*removeProperty\("--card-flip"\)/);
+  assert.match(main, /function showRandomRecord\(record\)[\s\S]*if \(!record\)[\s\S]*resetReviewMotion\(\)/);
+  assert.match(main, /randomBackTextEl\.textContent = current\.text/);
+  assert.match(html, /<section id="random-card"[\s\S]*?<button id="btn-random-prev"[\s\S]*?<div class="review-card-inner"/);
+  assert.match(html, /<div class="review-card-inner"[\s\S]*review-card-front/);
+  assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-prev"/);
+  assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-next"/);
+  assert.match(css, /\.review-card\.is-card-flipped \.review-card-back\s*\{[^}]*visibility:\s*visible/);
+  assert.match(css, /@supports not \(backdrop-filter:\s*blur\(18px\)\)/);
 });
 
 test('achievement detail keeps one close affordance and enters edit from the content', () => {
@@ -173,6 +216,18 @@ test('settings fields save inline without redundant check buttons', () => {
   assert.match(main, /bindSettingField\(energyInput, commitEnergySetting\)/);
 });
 
+test('pages avoid redundant explanatory copy and let layout carry the hierarchy', () => {
+  assert.doesNotMatch(html, /class="page-subtitle"/);
+  assert.doesNotMatch(html, /class="energy-caption"/);
+  assert.doesNotMatch(html, /class="review-hint"/);
+  assert.doesNotMatch(html, /class="review-shuffle"/);
+  assert.doesNotMatch(html, /class="privacy-note"/);
+  assert.doesNotMatch(html, /class="settings-preview"/);
+  assert.doesNotMatch(html, /id="install-tip"/);
+  assert.doesNotMatch(html, /class="modal-edit-hint"/);
+  assert.match(html, /id="random-position"/);
+});
+
 test('home uses a layered warm hero instead of a flat text sheet', () => {
   assert.match(html, /class="energy-scene"/);
   assert.match(html, /class="energy-leaf"/);
@@ -180,4 +235,26 @@ test('home uses a layered warm hero instead of a flat text sheet', () => {
   assert.match(css, /\.energy-hero\s*\{[^}]*border-radius:\s*28px/);
   assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*96px/);
   assert.match(css, /\.stats-line\s*\{[^}]*background:\s*var\(--surface\)/);
+});
+
+test('home removes the redundant brand block and restores breathing room', () => {
+  assert.match(html, /<main id="page-home"[^>]*aria-labelledby="home-heading"/);
+  assert.match(html, /<h1 id="home-heading" class="sr-only">小成就<\/h1>/);
+  assert.doesNotMatch(html, /class="brand-lockup"/);
+  assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*160px/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*30px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*24px 10px 0/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*20px 4px 0/);
+});
+
+test('home recent achievements get a distinct card hierarchy and balanced spacing', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /#recent-heading\s*\{[^}]*font-family:\s*-apple-system/);
+  assert.match(css, /#recent-heading\s*\{[^}]*font-weight:\s*720/);
+  assert.match(css, /\.recent-list\s*\{[^}]*padding:\s*4px 18px/);
+  assert.match(css, /\.recent-list\s*\{[^}]*background:\s*var\(--surface\)/);
+  assert.match(css, /\.recent-list\s*\{[^}]*border-radius:\s*24px/);
+  assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*26px/);
 });
