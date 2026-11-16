@@ -154,6 +154,24 @@
   function closeModal() { if (modalEl) { modalEl.style.display = "none"; modalEl.setAttribute("aria-hidden", "true"); } }
   function appendRecordMedia(row, record, className = "record-media") { if (!record.mediaIds?.length) return; const media = document.createElement("div"); media.className = className; row.appendChild(media); void hydrateMedia(media, record); }
 
+  function renderReviewMeta(container, record) {
+    if (!container) return;
+    container.innerHTML = "";
+    const addChip = (kind, label) => {
+      if (!label) return;
+      const chip = document.createElement("span");
+      chip.className = `review-chip review-chip-${kind}`;
+      chip.textContent = label;
+      container.appendChild(chip);
+    };
+    const tags = (record?.tags || MEDIA.extractTags(record?.text)).slice(0, 2);
+    tags.forEach((tag) => addChip("tag", `#${tag}`));
+    const mood = MOODS[record?.mood];
+    if (mood) addChip("mood", mood.label);
+    if (record?.mediaIds?.length) addChip("media", `${record.mediaIds.length} 张图片`);
+    container.hidden = !container.childElementCount;
+  }
+
   function bindLongPressDelete(element, record) {
     if (!element || !record) return; let timer = null; let moved = false;
     const start = () => { moved = false; clearTimeout(timer); timer = setTimeout(() => { timer = null; if (!confirm("长按删除：确定删除这条记录吗？")) return; if (!changeRecords((latest) => latest.filter((item) => item.id !== record.id))) return; cleanupMedia(record.mediaIds); renderHome(); renderToday(); renderWall(); renderRandom(); toast("已删除"); }, 520); };
@@ -229,11 +247,11 @@
   function setReviewFlipState(flipped) { if (!randomCardEl) return; const isFlipped = Boolean(flipped); randomCardEl?.classList.toggle("is-card-flipped", isFlipped); randomCardEl.setAttribute("aria-expanded", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-front")?.setAttribute("aria-hidden", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-back")?.setAttribute("aria-hidden", isFlipped ? "false" : "true"); }
   function toggleReviewFlip() { if (!randomCardEl || !records.length || reviewPendingDirection != null || reviewTapSuppressed) return false; setReviewFlipState(!randomCardEl.classList.contains("is-card-flipped")); return true; }
   function resetReviewMotion() { if (reviewExitTimer) { clearTimeout(reviewExitTimer); reviewExitTimer = null; } reviewPendingDirection = null; if (!randomCardEl) return; setReviewFlipState(false); randomCardEl.classList.remove("is-dragging", "is-flipping-left", "is-flipping-right", "is-exiting-left", "is-exiting-right"); randomCardEl.style.setProperty("--swipe-x", "0px"); randomCardEl.style.setProperty("--swipe-rotate", "0deg"); randomCardEl.style.setProperty("--page-rotation", "0deg"); randomCardEl.style.removeProperty("--card-flip"); randomCardEl.style.setProperty("--swipe-scale", "1"); randomCardEl.style.setProperty("--swipe-opacity", "1"); randomCardEl.style.setProperty("--swipe-progress", "0"); }
-  function showReviewBack() { if (!randomBackTextEl || !randomBackTimeEl || !randomBackMoodEl) return; const current = records.find((record) => record.id === currentRandomId); if (!current) { randomBackTimeEl.textContent = "还没有记录"; randomBackTextEl.textContent = "准备记录第一件小成就"; randomBackMoodEl.textContent = ""; return; } const mood = MOODS[current.mood]; const tags = (current.tags || []).slice(0, 2).map((tag) => `#${tag}`); const mediaCount = current.mediaIds?.length ? `图片 ${current.mediaIds.length} 张` : "暂无图片"; randomBackTimeEl.textContent = current.timeText; randomBackTextEl.textContent = current.text; randomBackMoodEl.textContent = [...tags, mood?.label, mediaCount].filter(Boolean).join(" · "); }
+  function showReviewBack() { if (!randomBackTextEl || !randomBackTimeEl || !randomBackMoodEl) return; const current = records.find((record) => record.id === currentRandomId); if (!current) { randomBackTimeEl.textContent = "还没有记录"; randomBackTextEl.textContent = "准备记录第一件小成就"; renderReviewMeta(randomBackMoodEl, null); return; } randomBackTimeEl.textContent = current.timeText; randomBackTextEl.textContent = current.text; renderReviewMeta(randomBackMoodEl, current); }
   function beginRandomStep(direction) { if (!randomCardEl || reviewPendingDirection != null) return; setReviewFlipState(false); reviewPendingDirection = direction; showReviewBack(); triggerMascot("review", direction > 0 ? "swipe-left" : "swipe-right"); randomCardEl.classList.remove("is-dragging", "is-exiting-left", "is-exiting-right"); randomCardEl.classList.add(direction > 0 ? "is-flipping-left" : "is-flipping-right"); reviewExitTimer = setTimeout(completeRandomStep, 560); }
   function completeRandomStep() { if (reviewPendingDirection == null) return; const direction = reviewPendingDirection; resetReviewMotion(); stepRandom(direction); }
   function animateRandomStep(direction) { resetReviewMotion(); beginRandomStep(direction); }
-  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); if (randomTextEl) randomTextEl.textContent = "—"; if (randomTimeEl) randomTimeEl.textContent = "还没有记录"; if (randomMoodEl) randomMoodEl.textContent = ""; if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; if (randomMediaEl) randomMediaEl.innerHTML = ""; showReviewBack(); return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); const mood = MOODS[record.mood]; if (randomTextEl) randomTextEl.textContent = record.text; if (randomMoodEl) randomMoodEl.textContent = `${(record.tags || []).slice(0, 1).map((tag) => `#${tag}`).join(" · ")}${mood ? `${(record.tags || []).length ? " · " : ""}${mood.label}` : ""}`; if (randomTimeEl) randomTimeEl.textContent = record.timeText; if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; if (randomMediaEl) { randomMediaEl.innerHTML = ""; void hydrateMedia(randomMediaEl, record); } showReviewBack(); }
+  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); if (randomTextEl) randomTextEl.textContent = "—"; if (randomTimeEl) randomTimeEl.textContent = "还没有记录"; renderReviewMeta(randomMoodEl, null); if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; if (randomMediaEl) randomMediaEl.innerHTML = ""; showReviewBack(); return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); if (randomTextEl) randomTextEl.textContent = record.text; renderReviewMeta(randomMoodEl, record); if (randomTimeEl) randomTimeEl.textContent = record.timeText; if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; if (randomMediaEl) { randomMediaEl.innerHTML = ""; void hydrateMedia(randomMediaEl, record); } showReviewBack(); }
   function stepRandom(direction) { ensureReviewDeck(); if (!records.length) return showRandomRecord(null); let id; if (direction < 0) id = reviewDeck.previous() || reviewDeck.current() || reviewDeck.next(); else { if (reviewDeck.position() === reviewDeck.size()) completedReviewCycle = true; id = reviewDeck.next(); } currentRandomId = id; showRandomRecord(records.find((record) => record.id === id)); if (randomReshuffleBtn) randomReshuffleBtn.style.display = completedReviewCycle ? "" : "none"; }
   function renderRandom() { ensureReviewDeck(); if (!currentRandomId || !records.some((record) => record.id === currentRandomId)) stepRandom(1); else showRandomRecord(records.find((record) => record.id === currentRandomId)); }
 

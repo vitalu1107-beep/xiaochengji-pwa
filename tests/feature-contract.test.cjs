@@ -122,7 +122,7 @@ test('home energy mark keeps the mascot beside the leaf and stays compact on mob
   assert.match(css, /\.mascot-inline\s*\{[^}]*left:\s*10px/);
   assert.match(css, /\.energy-mark::before\s*\{[^}]*left:\s*-8px/);
   assert.match(css, /\.energy-hero\s*\{[^}]*min-height:\s*282px/);
-  assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(25px,\s*6\.5vw,\s*34px\)/);
+  assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(24px,\s*6\.1vw,\s*31px\)/);
 });
 
 test('home energy mark has an obvious native tap interaction', () => {
@@ -243,18 +243,38 @@ test('home removes the redundant brand block and restores breathing room', () =>
   assert.doesNotMatch(html, /class="brand-lockup"/);
   assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*160px/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*30px/);
-  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*24px 10px 0/);
-  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*20px 4px 0/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*136px/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*padding-top:\s*22px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 4px 0/);
 });
 
 test('home recent achievements get a distinct card hierarchy and balanced spacing', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /#recent-heading\s*\{[^}]*font-family:\s*-apple-system/);
+  assert.match(css, /#recent-heading\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /#recent-heading\s*\{[^}]*font-weight:\s*720/);
   assert.match(css, /\.recent-list\s*\{[^}]*padding:\s*4px 18px/);
   assert.match(css, /\.recent-list\s*\{[^}]*background:\s*var\(--surface\)/);
   assert.match(css, /\.recent-list\s*\{[^}]*border-radius:\s*24px/);
-  assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*26px/);
+  assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*18px/);
+});
+
+test('review typography stays compact and metadata is rendered as light chips', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /\.review-text\s*\{[^}]*font-size:\s*clamp\(24px,\s*6\.4vw,\s*31px\)/);
+  assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(24px,\s*6\.2vw,\s*30px\)/);
+  assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
+  assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
+  assert.match(main, /function renderReviewMeta\(container, record\)/);
+  assert.match(main, /className = `review-chip review-chip-\$\{kind\}`/);
+});
+
+test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
+  const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+  assert.match(css, /--ui-font:\s*-apple-system/);
+  assert.match(css, /\.home-greeting\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
+  assert.match(css, /\.energy-quote\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
+  assert.match(css, /\.home-content \.section-title\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*136px/);
+  assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*18px 4px 0/);
+  assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*18px/);
 });
