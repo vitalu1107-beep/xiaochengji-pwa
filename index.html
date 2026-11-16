@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="preload" href="./assets/calico-mascot.png" as="image" />
-  <link rel="stylesheet" href="./style.css?v=apple-ui-20261116e" />
+  <link rel="stylesheet" href="./style.css?v=apple-ui-20261117f" />
 </head>
 <body>
   <div class="app">
@@ -20,9 +20,11 @@
         <div class="home-greeting-block"><p id="home-greeting" class="home-greeting">晚上好，夏央</p><p id="home-date" class="home-date">2026年11月12日</p></div>
       </header>
       <div class="page-content home-content">
-        <section class="energy-hero" aria-labelledby="energy-heading"><span class="energy-scene" aria-hidden="true"></span><span class="energy-spark spark-one" aria-hidden="true"></span><span class="energy-spark spark-two" aria-hidden="true"></span><span class="energy-spark spark-three" aria-hidden="true"></span><div class="energy-label-row"><span class="energy-leaf" aria-hidden="true"></span><p id="energy-heading" class="eyebrow">今日能量</p></div><p id="home-quote" class="energy-quote">把一件小事，做得刚刚好。</p><button id="energy-mark" class="energy-mark" type="button" aria-label="让小猫打个招呼"><img id="mascot-home" class="mascot mascot-interactive mascot-inline" data-mascot-page="home" src="./assets/calico-mascot.png" alt="" /></button><div class="energy-ground" aria-hidden="true"></div></section>
-        <section class="stats-line" aria-label="我的小成就"><div class="stat-inline"><span class="stat-label">连续记录</span><strong id="stat-streak">0</strong><span class="stat-unit">天</span></div><span class="stat-divider" aria-hidden="true"></span><div class="stat-inline"><span class="stat-label">累计</span><strong id="stat-happy">0</strong><span class="stat-unit">件</span></div><span id="stat-streak-sub" class="sr-only">已坚持 0 天</span><span id="stat-happy-sub" class="sr-only">记录 0 个瞬间</span></section>
-        <section class="recent-section" aria-labelledby="recent-heading"><div class="section-head section-head-simple"><h2 id="recent-heading" class="section-title">最近的小成就</h2></div><div id="recent-list" class="list recent-list"><p class="empty-state" id="recent-empty">还没有记录，先写下第一件小成就。</p></div></section>
+        <div class="home-bento">
+          <section class="energy-hero" aria-labelledby="energy-heading"><span class="energy-scene" aria-hidden="true"></span><span class="energy-spark spark-one" aria-hidden="true"></span><span class="energy-spark spark-two" aria-hidden="true"></span><span class="energy-spark spark-three" aria-hidden="true"></span><div class="energy-label-row"><span class="energy-leaf" aria-hidden="true"></span><p id="energy-heading" class="eyebrow">今日能量</p></div><p id="home-quote" class="energy-quote">把一件小事，做得刚刚好。</p><button id="energy-mark" class="energy-mark" type="button" aria-label="让小猫打个招呼"><img id="mascot-home" class="mascot mascot-interactive mascot-inline" data-mascot-page="home" src="./assets/calico-mascot.png" alt="" /></button><div class="energy-ground" aria-hidden="true"></div></section>
+          <section class="stats-line" aria-label="我的小成就"><div class="stat-inline"><span class="stat-label">连续记录</span><strong id="stat-streak">0</strong><span class="stat-unit">天</span></div><span class="stat-divider" aria-hidden="true"></span><div class="stat-inline"><span class="stat-label">累计</span><strong id="stat-happy">0</strong><span class="stat-unit">件</span></div><span id="stat-streak-sub" class="sr-only">已坚持 0 天</span><span id="stat-happy-sub" class="sr-only">记录 0 个瞬间</span></section>
+          <section class="recent-section" aria-labelledby="recent-heading"><div class="section-head section-head-simple"><h2 id="recent-heading" class="section-title">最近的小成就</h2></div><div id="recent-list" class="list recent-list"><p class="empty-state" id="recent-empty">还没有记录，先写下第一件小成就。</p></div></section>
+        </div>
       </div>
     </main>
 
@@ -60,7 +62,7 @@
   <nav class="tabbar" id="tabbar" aria-label="主导航"><button class="tabbar-btn active" type="button" data-target="page-home"><img class="tab-icon-img" src="./assets/icons/house.svg" alt="" /><span>首页</span></button><button class="tabbar-btn" type="button" data-target="page-today"><img class="tab-icon-img" src="./assets/icons/pencil-simple.svg" alt="" /><span>记录</span></button><button class="tabbar-btn" type="button" data-target="page-wall"><img class="tab-icon-img" src="./assets/icons/trophy.svg" alt="" /><span>成就墙</span></button><button class="tabbar-btn" type="button" data-target="page-random"><img class="tab-icon-img" src="./assets/icons/book-open.svg" alt="" /><span>回顾</span></button><button class="tabbar-btn" type="button" data-target="page-settings"><img class="tab-icon-img" src="./assets/icons/gear.svg" alt="" /><span>设置</span></button></nav>
 
   <div id="modal" class="modal" style="display:none;" aria-hidden="true"><div class="modal-backdrop" data-close="1"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img src="./assets/icons/x.svg" alt="" /></button></div><div class="modal-body modal-body-editable" id="modal-body" role="button" tabindex="0" aria-label="点击内容编辑"></div><div id="modal-media" class="modal-media"></div></div></div>
-  <script src="./media-core.js?v=apple-ui-20261116e" defer></script><script src="./main.js?v=apple-ui-20261116e" defer></script>
+  <script src="./media-core.js?v=apple-ui-20261117f" defer></script><script src="./main.js?v=apple-ui-20261117f" defer></script>
   <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((registration) => registration.update().catch(() => {})).catch(() => {})); }</script>
 </body>
 </html>
