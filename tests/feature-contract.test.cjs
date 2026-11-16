@@ -168,7 +168,8 @@ test('review card supports tap-to-flip current record details without stealing s
   assert.match(main, /randomCardEl\?\.classList\.toggle\("is-card-flipped"/);
   assert.match(main, /randomCardEl\.addEventListener\("click"/);
   assert.match(main, /reviewTapSuppressed/);
-  assert.match(main, /const current = records\.find\(\(record\) => record\.id === currentRandomId\)/);
+  assert.match(main, /const id = reviewDeck\.next\(\)/);
+  assert.match(main, /renderReviewFace\(isFlipped \? "front" : "back", next\)/);
   assert.match(css, /--card-flip:\s*0deg/);
   assert.match(css, /\.review-card\.is-card-flipped[^}]*--card-flip:\s*180deg/);
   assert.match(css, /backdrop-filter:\s*blur\(18px\)/);
@@ -187,9 +188,12 @@ test('review flip keeps reset state overridable and preserves the back details',
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(main, /function resetReviewMotion\(\)[\s\S]*removeProperty\("--card-flip"\)/);
   assert.match(main, /function showRandomRecord\(record\)[\s\S]*if \(!record\)[\s\S]*resetReviewMotion\(\)/);
-  assert.match(main, /randomBackTextEl\.textContent = current\.text/);
+  assert.match(main, /function renderReviewFace\(face, record\)/);
+  assert.match(main, /const id = reviewDeck\.next\(\)/);
+  assert.match(main, /renderReviewFace\(isFlipped \? "front" : "back", next\)/);
   assert.match(html, /<section id="random-card"[\s\S]*?<div class="review-card-inner"/);
   assert.match(html, /<div class="review-card-inner"[\s\S]*review-card-front/);
+  assert.match(html, /id="random-back-media"/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-prev"/);
   assert.doesNotMatch(html, /class="review-card-front"[\s\S]*?id="btn-random-next"/);
   assert.match(css, /\.review-card\.is-card-flipped \.review-card-back\s*\{[^}]*visibility:\s*visible/);
@@ -265,11 +269,15 @@ test('review typography stays compact and metadata is rendered as light chips', 
   assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*27px\)/);
   assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
-  assert.match(css, /\.review-chip\s*\{[^}]*font-size:\s*0/);
-  assert.match(css, /\.review-chip::before/);
+  assert.doesNotMatch(css, /\.review-chip\s*\{[^}]*font-size:\s*0/);
+  assert.match(css, /\.review-chip\s*\{[^}]*font-size:\s*13px/);
+  assert.doesNotMatch(css, /\.review-chip::before/);
   assert.match(main, /function renderReviewMeta\(container, record\)/);
   assert.match(main, /className = `review-chip review-chip-\$\{kind\}`/);
+  assert.match(main, /chip\.textContent = value/);
   assert.match(main, /chip\.setAttribute\("aria-label"/);
+  assert.match(main, /const seen = new Set\(\)/);
+  assert.match(main, /seen\.has\(normalized\)/);
 });
 
 test('home uses one compact sans hierarchy and an even vertical rhythm', () => {

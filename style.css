@@ -192,17 +192,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-card.is-card-flipped .review-card-front { visibility: hidden; }
 .review-card.is-card-flipped .review-card-back { visibility: visible; }
 .review-card-back .review-text { margin-top: 24px; font-size: clamp(22px, 5.8vw, 27px); }
+.review-card-back .review-media { margin-top: 18px; }
 .review-card.is-flipping-left { --page-rotation: -180deg; --swipe-x: -4%; --swipe-rotate: -2deg; --swipe-scale: .985; }
 .review-card.is-flipping-right { --page-rotation: 180deg; --swipe-x: 4%; --swipe-rotate: 2deg; --swipe-scale: .985; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
 .review-text { margin: 58px 0 0; font-family: var(--ui-font); font-size: clamp(22px, 5.8vw, 28px); line-height: 1.42; letter-spacing: -.03em; font-weight: 600; }
 .review-card.has-media .review-text { margin-top: 22px; }
 .review-mood { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 24px 0 0; min-height: 24px; font-size: 13px; }
-.review-chip { display: inline-grid; place-items: center; width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; border: 1px solid rgba(116, 174, 146, .25); border-radius: 999px; background: rgba(255, 255, 255, .28); color: #607a6e; font-family: var(--ui-font); font-size: 0; line-height: 1; letter-spacing: 0; }
-.review-chip::before { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(116, 174, 146, .16); color: #6a9b7e; font-size: 11px; }
-.review-chip-tag::before { content: "✦"; }
-.review-chip-mood::before { content: "♡"; }
-.review-chip-media::before { content: "▧"; }
+.review-chip { display: inline-flex; align-items: center; width: auto; min-width: 0; height: 28px; min-height: 28px; padding: 0 10px; border: 1px solid rgba(116, 174, 146, .25); border-radius: 999px; background: rgba(255, 255, 255, .28); color: #607a6e; font-family: var(--ui-font); font-size: 13px; line-height: 1; letter-spacing: .01em; white-space: nowrap; }
 .review-media { display: flex; gap: 8px; margin-top: 14px; }
 .review-media .media-item { width: 88px; height: 88px; }
 .review-footer { display: grid; justify-items: center; gap: 6px; padding-top: 16px; }

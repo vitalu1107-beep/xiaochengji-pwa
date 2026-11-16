@@ -54,7 +54,7 @@
   const homeDateEl = $("#home-date"); const homeGreetingEl = $("#home-greeting"); const homeQuoteEl = $("#home-quote"); const energyMarkEl = $("#energy-mark"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
   const inputTextEl = $("#input-text"); const tagSuggestEl = $("#tag-suggest"); const composeToolsBtn = $("#btn-compose-tools"); const composeMenuEl = $("#compose-menu"); const addTagBtn = $("#btn-add-tag"); const moodGroupEl = $("#mood-group"); const saveBtnEl = $("#btn-save"); const cancelEditBtn = $("#btn-cancel-edit"); const imageInputEl = $("#image-input"); const addImageBtn = $("#btn-add-image"); const imagePreviewEl = $("#image-preview"); const todayListEl = $("#today-list"); const todayEmptyEl = $("#today-empty"); const clearTodayBtn = $("#btn-clear-today");
   const wallSearchEl = $("#wall-search"); const wallListEl = $("#wall-list"); const wallEmptyEl = $("#wall-empty"); const wallClearBtn = $("#btn-wall-clear"); const wallClearInputBtn = $("#btn-wall-clear-input"); const wallTagFiltersEl = $("#wall-tag-filters");
-  const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMoodEl = $("#random-mood"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomBackTextEl = $("#random-back-text"); const randomBackTimeEl = $("#random-back-time"); const randomBackMoodEl = $("#random-back-mood"); const randomReshuffleBtn = $("#btn-random-reshuffle");
+  const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMoodEl = $("#random-mood"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomBackTextEl = $("#random-back-text"); const randomBackTimeEl = $("#random-back-time"); const randomBackMoodEl = $("#random-back-mood"); const randomBackMediaEl = $("#random-back-media"); const randomReshuffleBtn = $("#btn-random-reshuffle");
   const installBtn = $("#btn-install"); const installTip = $("#install-tip"); const nicknameInput = $("#nickname-input"); const nicknamePreview = $("#nickname-preview"); const energyInput = $("#energy-input"); const energyPreview = $("#energy-preview"); const exportBtn = $("#btn-export"); const backupBtn = $("#btn-backup"); const clearAllBtn = $("#btn-clear-all"); const storageUsageEl = $("#storage-usage");
   const modalEl = $("#modal"); const modalTitleEl = $("#modal-title"); const modalBodyEl = $("#modal-body"); const modalMediaEl = $("#modal-media");
   const mediaStore = MEDIA.createIndexedDbMediaStore(typeof indexedDB !== "undefined" ? indexedDB : null);
@@ -157,12 +157,17 @@
   function renderReviewMeta(container, record) {
     if (!container) return;
     container.innerHTML = "";
+    const seen = new Set();
     const addChip = (kind, label, icon) => {
-      if (!label) return;
+      const value = String(label || "").trim();
+      const normalized = value.replace(/^#/, "").trim().toLocaleLowerCase();
+      if (!normalized || seen.has(normalized)) return;
+      seen.add(normalized);
       const chip = document.createElement("span");
       chip.className = `review-chip review-chip-${kind}`;
-      chip.setAttribute("aria-label", label);
-      chip.title = label;
+      chip.textContent = value;
+      chip.setAttribute("aria-label", value);
+      chip.title = value;
       chip.dataset.icon = icon || kind;
       container.appendChild(chip);
     };
@@ -247,13 +252,46 @@
 
   function ensureReviewDeck() { const signature = records.map((record) => record.id).sort().join("|"); if (signature !== reviewSignature) { reviewSignature = signature; reviewDeck = MEDIA.createReviewDeck(records.map((record) => record.id)); currentRandomId = null; completedReviewCycle = false; } }
   function setReviewFlipState(flipped) { if (!randomCardEl) return; const isFlipped = Boolean(flipped); randomCardEl?.classList.toggle("is-card-flipped", isFlipped); randomCardEl.setAttribute("aria-expanded", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-front")?.setAttribute("aria-hidden", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-back")?.setAttribute("aria-hidden", isFlipped ? "false" : "true"); }
-  function toggleReviewFlip() { if (!randomCardEl || !records.length || reviewPendingDirection != null || reviewTapSuppressed) return false; setReviewFlipState(!randomCardEl.classList.contains("is-card-flipped")); return true; }
+  function renderReviewFace(face, record) {
+    const isBack = face === "back";
+    const timeEl = isBack ? randomBackTimeEl : randomTimeEl;
+    const textEl = isBack ? randomBackTextEl : randomTextEl;
+    const moodEl = isBack ? randomBackMoodEl : randomMoodEl;
+    const mediaEl = isBack ? randomBackMediaEl : randomMediaEl;
+    if (!record) {
+      if (timeEl) timeEl.textContent = "还没有记录";
+      if (textEl) textEl.textContent = isBack ? "准备记录第一件小成就" : "—";
+      renderReviewMeta(moodEl, null);
+      if (mediaEl) mediaEl.innerHTML = "";
+      return;
+    }
+    if (timeEl) timeEl.textContent = record.timeText;
+    if (textEl) textEl.textContent = record.text;
+    renderReviewMeta(moodEl, record);
+    if (mediaEl) { mediaEl.innerHTML = ""; void hydrateMedia(mediaEl, record); }
+  }
+  function nextReviewRecord(direction = 1) { ensureReviewDeck(); const id = direction < 0 ? (reviewDeck.peek(-1) || reviewDeck.peek(1)) : reviewDeck.peek(1); return records.find((record) => record.id === id) || null; }
+  function toggleReviewFlip() {
+    if (!randomCardEl || !records.length || reviewPendingDirection != null || reviewTapSuppressed) return false;
+    ensureReviewDeck();
+    const isFlipped = randomCardEl.classList.contains("is-card-flipped");
+    const id = reviewDeck.next();
+    const next = records.find((record) => record.id === id);
+    if (!next) return false;
+    currentRandomId = next.id;
+    renderReviewFace(isFlipped ? "front" : "back", next);
+    if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`;
+    if (randomReshuffleBtn) randomReshuffleBtn.style.display = reviewDeck.position() === reviewDeck.size() ? "" : "none";
+    setReviewFlipState(!isFlipped);
+    triggerMascot("review", "peek");
+    return true;
+  }
   function resetReviewMotion() { if (reviewExitTimer) { clearTimeout(reviewExitTimer); reviewExitTimer = null; } reviewPendingDirection = null; if (!randomCardEl) return; setReviewFlipState(false); randomCardEl.classList.remove("is-dragging", "is-flipping-left", "is-flipping-right", "is-exiting-left", "is-exiting-right"); randomCardEl.style.setProperty("--swipe-x", "0px"); randomCardEl.style.setProperty("--swipe-rotate", "0deg"); randomCardEl.style.setProperty("--page-rotation", "0deg"); randomCardEl.style.removeProperty("--card-flip"); randomCardEl.style.setProperty("--swipe-scale", "1"); randomCardEl.style.setProperty("--swipe-opacity", "1"); randomCardEl.style.setProperty("--swipe-progress", "0"); }
-  function showReviewBack() { if (!randomBackTextEl || !randomBackTimeEl || !randomBackMoodEl) return; const current = records.find((record) => record.id === currentRandomId); if (!current) { randomBackTimeEl.textContent = "还没有记录"; randomBackTextEl.textContent = "准备记录第一件小成就"; renderReviewMeta(randomBackMoodEl, null); return; } randomBackTimeEl.textContent = current.timeText; randomBackTextEl.textContent = current.text; renderReviewMeta(randomBackMoodEl, current); }
-  function beginRandomStep(direction) { if (!randomCardEl || reviewPendingDirection != null) return; setReviewFlipState(false); reviewPendingDirection = direction; showReviewBack(); triggerMascot("review", direction > 0 ? "swipe-left" : "swipe-right"); randomCardEl.classList.remove("is-dragging", "is-exiting-left", "is-exiting-right"); randomCardEl.classList.add(direction > 0 ? "is-flipping-left" : "is-flipping-right"); reviewExitTimer = setTimeout(completeRandomStep, 560); }
+  function showReviewBack(record = nextReviewRecord(1)) { renderReviewFace("back", record); }
+  function beginRandomStep(direction) { if (!randomCardEl || reviewPendingDirection != null) return; setReviewFlipState(false); reviewPendingDirection = direction; showReviewBack(nextReviewRecord(direction)); triggerMascot("review", direction > 0 ? "swipe-left" : "swipe-right"); randomCardEl.classList.remove("is-dragging", "is-exiting-left", "is-exiting-right"); randomCardEl.classList.add(direction > 0 ? "is-flipping-left" : "is-flipping-right"); reviewExitTimer = setTimeout(completeRandomStep, 560); }
   function completeRandomStep() { if (reviewPendingDirection == null) return; const direction = reviewPendingDirection; resetReviewMotion(); stepRandom(direction); }
   function animateRandomStep(direction) { resetReviewMotion(); beginRandomStep(direction); }
-  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); if (randomTextEl) randomTextEl.textContent = "—"; if (randomTimeEl) randomTimeEl.textContent = "还没有记录"; renderReviewMeta(randomMoodEl, null); if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; if (randomMediaEl) randomMediaEl.innerHTML = ""; showReviewBack(); return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); if (randomTextEl) randomTextEl.textContent = record.text; renderReviewMeta(randomMoodEl, record); if (randomTimeEl) randomTimeEl.textContent = record.timeText; if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; if (randomMediaEl) { randomMediaEl.innerHTML = ""; void hydrateMedia(randomMediaEl, record); } showReviewBack(); }
+  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); renderReviewFace("front", null); renderReviewFace("back", null); if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); renderReviewFace("front", record); showReviewBack(nextReviewRecord(1)); if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; }
   function stepRandom(direction) { ensureReviewDeck(); if (!records.length) return showRandomRecord(null); let id; if (direction < 0) id = reviewDeck.previous() || reviewDeck.current() || reviewDeck.next(); else { if (reviewDeck.position() === reviewDeck.size()) completedReviewCycle = true; id = reviewDeck.next(); } currentRandomId = id; showRandomRecord(records.find((record) => record.id === id)); if (randomReshuffleBtn) randomReshuffleBtn.style.display = completedReviewCycle ? "" : "none"; }
   function renderRandom() { ensureReviewDeck(); if (!currentRandomId || !records.some((record) => record.id === currentRandomId)) stepRandom(1); else showRandomRecord(records.find((record) => record.id === currentRandomId)); }
 
