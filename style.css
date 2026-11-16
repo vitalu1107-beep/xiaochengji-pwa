@@ -191,11 +191,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-card-back .review-text { margin-top: 20px; }
 .review-card.is-card-flipped .review-card-front { visibility: hidden; }
 .review-card.is-card-flipped .review-card-back { visibility: visible; }
-.review-card-back .review-text { margin-top: 24px; font-size: clamp(24px, 6.2vw, 30px); }
+.review-card-back .review-text { margin-top: 24px; font-size: clamp(22px, 5.8vw, 27px); }
 .review-card.is-flipping-left { --page-rotation: -180deg; --swipe-x: -4%; --swipe-rotate: -2deg; --swipe-scale: .985; }
 .review-card.is-flipping-right { --page-rotation: 180deg; --swipe-x: 4%; --swipe-rotate: 2deg; --swipe-scale: .985; }
 .review-date { margin: 0; color: var(--muted); font-size: 15px; }
-.review-text { margin: 58px 0 0; font-family: var(--display-font); font-size: clamp(24px, 6.4vw, 31px); line-height: 1.34; letter-spacing: -.04em; font-weight: 560; }
+.review-text { margin: 58px 0 0; font-family: var(--ui-font); font-size: clamp(22px, 5.8vw, 28px); line-height: 1.42; letter-spacing: -.03em; font-weight: 600; }
 .review-card.has-media .review-text { margin-top: 22px; }
 .review-mood { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 24px 0 0; min-height: 24px; font-size: 13px; }
 .review-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 24px; padding: 4px 9px; border: 1px solid rgba(116, 174, 146, .25); border-radius: 999px; background: rgba(255, 255, 255, .28); color: #607a6e; font-family: var(--ui-font); font-size: 12px; line-height: 1; letter-spacing: 0; }
@@ -241,7 +241,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
   .mascot-interactive[class*="mascot-state-"] { transform: none; animation: none; }
 }
 @media (min-width: 700px) { .page { min-height: auto; padding-bottom: 30px; }.tabbar { position: sticky; top: 0; bottom: auto; max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 0 0 18px 18px; }.home-header, .page-header { padding-top: 34px; } }
-@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { min-height: 136px; }.home-greeting { font-size: 27px; }.energy-hero { min-height: 258px; padding: 22px 18px 28px; border-radius: 24px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 22px; max-width: 250px; font-size: 24px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 18px 4px 0; padding-top: 16px; padding-bottom: 16px; }.recent-section { padding-top: 18px; }.recent-list { padding-left: 14px; padding-right: 14px; border-radius: 20px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 27px; } }
+@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { min-height: 136px; }.home-greeting { font-size: 27px; }.energy-hero { min-height: 258px; padding: 22px 18px 28px; border-radius: 24px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 22px; max-width: 250px; font-size: 24px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 18px 4px 0; padding-top: 16px; padding-bottom: 16px; }.recent-section { padding-top: 18px; }.recent-list { padding-left: 14px; padding-right: 14px; border-radius: 20px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 25px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .energy-mark::before, .energy-mark::after, .review-card { transition-duration: 100ms !important; }

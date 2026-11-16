@@ -260,8 +260,8 @@ test('home recent achievements get a distinct card hierarchy and balanced spacin
 
 test('review typography stays compact and metadata is rendered as light chips', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.review-text\s*\{[^}]*font-size:\s*clamp\(24px,\s*6\.4vw,\s*31px\)/);
-  assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(24px,\s*6\.2vw,\s*30px\)/);
+  assert.match(css, /\.review-text\s*\{[^}]*font-family:\s*var\(--ui-font\)[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*28px\)/);
+  assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*27px\)/);
   assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
   assert.match(main, /function renderReviewMeta\(container, record\)/);
