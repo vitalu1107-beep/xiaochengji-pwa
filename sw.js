@@ -1,8 +1,8 @@
 /* Apple-like UI release: cache app files only; records and preferences stay local. */
-const VERSION = 'apple-ui-2026-11-17f';
+const VERSION = 'apple-ui-2026-11-17h';
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const BASE = self.registration.scope;
-const UI_VERSION = 'apple-ui-20261117f';
+const UI_VERSION = 'apple-ui-20261117h';
 const absolute = path => new URL(path, BASE).href;
 const APP_SHELL = [
   'index.html', `style.css?v=${UI_VERSION}`, `media-core.js?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
