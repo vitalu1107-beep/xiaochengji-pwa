@@ -250,8 +250,8 @@ test('home removes the redundant brand block and restores breathing room', () =>
   assert.doesNotMatch(html, /class="brand-lockup"/);
   assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*126px/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.home-greeting-block\s*\{[^}]*border-bottom:\s*1px solid/);
   assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*0/);
 });
@@ -260,8 +260,9 @@ test('home recent achievements get a distinct card hierarchy and balanced spacin
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /#recent-heading\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /#recent-heading\s*\{[^}]*font-weight:\s*720/);
-  assert.match(css, /\.recent-list\s*\{[^}]*display:\s*flex/);
-  assert.match(css, /\.recent-list\s*\{[^}]*overflow-x:\s*auto/);
+  assert.match(css, /\.recent-list\s*\{[^}]*display:\s*grid/);
+  assert.match(css, /\.recent-list\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+  assert.match(css, /\.recent-list\s*\{[^}]*overflow:\s*visible/);
   assert.match(css, /\.recent-list \.item\s*\{[^}]*background:\s*var\(--surface\)/);
   assert.match(css, /\.recent-list \.item\s*\{[^}]*border-radius:\s*22px/);
   assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*8px/);
@@ -288,11 +289,11 @@ test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /--ui-font:\s*-apple-system/);
   assert.match(css, /\.home-greeting\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*grid/);
+  assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.home-date\s*\{[^}]*border-radius:\s*999px/);
   assert.match(css, /\.energy-quote\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-content \.section-title\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*118px/);
+  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*126px/);
   assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*0/);
   assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*8px/);
 });
@@ -303,9 +304,9 @@ test('home uses a unified bento grid for primary, metric, and recent cards', () 
   assert.match(css, /\.home-bento\s*\{[^}]*display:\s*grid/);
   assert.match(css, /\.stats-line\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
   assert.match(css, /\.stat-inline\s*\{[^}]*border-radius:\s*22px/);
-  assert.match(css, /\.recent-list\s*\{[^}]*display:\s*flex/);
-  assert.match(css, /\.recent-list\s*\{[^}]*scroll-snap-type:\s*x mandatory/);
-  assert.match(css, /\.recent-list \.item\s*\{[^}]*flex:\s*0 0 min\(78%,\s*290px\)/);
+  assert.match(css, /\.recent-list\s*\{[^}]*display:\s*grid/);
+  assert.match(css, /\.recent-list\s*\{[^}]*grid-template-columns:\s*repeat\(2/);
+  assert.match(css, /\.recent-list \.item\s*\{[^}]*min-width:\s*0/);
   assert.match(css, /\.recent-list \.item\s*\{[^}]*border-radius:\s*22px/);
 });
 
