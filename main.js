@@ -50,6 +50,16 @@
   let reviewTapSuppressed = false;
 
   const MOODS = { calm: { label: "平静" }, happy: { label: "愉悦" }, relaxed: { label: "释然" }, lazy: { label: "慵懒" } };
+  const REVIEW_TONES = [
+    { name: "sage", fill: "#dce5d8eb" },
+    { name: "rose", fill: "#eadbd8eb" },
+    { name: "blue", fill: "#dbe3e9eb" },
+    { name: "lavender", fill: "#e2dfebeb" },
+    { name: "oat", fill: "#e9e2d4eb" },
+    { name: "clay", fill: "#e9dcd1eb" },
+    { name: "mint", fill: "#d7e6e1eb" },
+  ];
+  let reviewTone = null;
 
   const homeWeekEl = $("#home-week"); const homeGreetingEl = $("#home-greeting"); const homeQuoteEl = $("#home-quote"); const energyMarkEl = $("#energy-mark"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
   const inputTextEl = $("#input-text"); const tagSuggestEl = $("#tag-suggest"); const composeToolsBtn = $("#btn-compose-tools"); const composeMenuEl = $("#compose-menu"); const addTagBtn = $("#btn-add-tag"); const moodGroupEl = $("#mood-group"); const saveBtnEl = $("#btn-save"); const cancelEditBtn = $("#btn-cancel-edit"); const imageInputEl = $("#image-input"); const addImageBtn = $("#btn-add-image"); const imagePreviewEl = $("#image-preview"); const todayListEl = $("#today-list"); const todayEmptyEl = $("#today-empty"); const clearTodayBtn = $("#btn-clear-today");
@@ -298,6 +308,17 @@
   function clearWallAll() { if (!refreshRecords()) return toast("暂时无法读取本地记录，原数据未改动。请检查浏览器存储。"); if (!records.length) return toast("没有数据可清空"); if (!confirm("确定清空全部记录吗？")) return; const ids = records.flatMap((record) => record.mediaIds || []); if (!changeRecords(() => [])) return; cleanupMedia(ids); renderHome(); renderToday(); renderWall(); renderRandom(); toast("已清空"); }
 
   function ensureReviewDeck() { const signature = records.map((record) => record.id).sort().join("|"); if (signature !== reviewSignature) { reviewSignature = signature; reviewDeck = MEDIA.createReviewDeck(records.map((record) => record.id)); currentRandomId = null; completedReviewCycle = false; } }
+  function nextReviewTone() {
+    const choices = REVIEW_TONES.filter((tone) => tone !== reviewTone);
+    return choices[Math.floor(Math.random() * choices.length)];
+  }
+  function applyReviewTone(face, tone = reviewTone) {
+    if (!tone) return;
+    const faceEl = randomCardEl?.querySelector(face === "back" ? ".review-card-back" : ".review-card-front");
+    faceEl?.style.setProperty("--review-card-tone", tone.fill);
+    if (faceEl) faceEl.dataset.tone = tone.name;
+    if (tone === reviewTone) randomCardEl?.parentElement?.style.setProperty("--review-layer-tone", tone.fill);
+  }
   function setReviewFlipState(flipped) { if (!randomCardEl) return; const isFlipped = Boolean(flipped); randomCardEl?.classList.toggle("is-card-flipped", isFlipped); randomCardEl.setAttribute("aria-expanded", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-front")?.setAttribute("aria-hidden", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-back")?.setAttribute("aria-hidden", isFlipped ? "false" : "true"); }
   function renderReviewFace(face, record) {
     const isBack = face === "back";
@@ -328,6 +349,8 @@
     const next = records.find((record) => record.id === id);
     if (!next) return false;
     currentRandomId = next.id;
+    reviewTone = nextReviewTone();
+    applyReviewTone(isFlipped ? "front" : "back");
     renderReviewFace(isFlipped ? "front" : "back", next);
     if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`;
     if (randomReshuffleBtn) randomReshuffleBtn.style.display = reviewDeck.position() === reviewDeck.size() ? "" : "none";
@@ -345,13 +368,24 @@
     randomCardEl.style.setProperty("--swipe-opacity", "1");
     randomCardEl.style.setProperty("--swipe-progress", "0");
   }
-  function showReviewBack(record = nextReviewRecord(1)) { renderReviewFace("back", record); }
+  function showReviewBack(record = nextReviewRecord(1)) {
+    renderReviewFace("back", record);
+    const previewTone = REVIEW_TONES[(REVIEW_TONES.indexOf(reviewTone) + 1) % REVIEW_TONES.length];
+    applyReviewTone("back", previewTone);
+  }
   function beginRandomStep(direction) { if (!randomCardEl || reviewPendingDirection != null) return; setReviewFlipState(false); reviewPendingDirection = direction; showReviewBack(nextReviewRecord(direction)); triggerMascot("review", direction > 0 ? "swipe-left" : "swipe-right"); randomCardEl.classList.remove("is-dragging", "is-exiting-left", "is-exiting-right"); randomCardEl.classList.add(direction > 0 ? "is-flipping-left" : "is-flipping-right"); reviewExitTimer = setTimeout(completeRandomStep, 560); }
   function completeRandomStep() { if (reviewPendingDirection == null) return; const direction = reviewPendingDirection; resetReviewMotion(); stepRandom(direction); }
   function animateRandomStep(direction) { resetReviewMotion(); beginRandomStep(direction); }
-  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); renderReviewFace("front", null); renderReviewFace("back", null); if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); renderReviewFace("front", record); showReviewBack(nextReviewRecord(1)); if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; }
-  function stepRandom(direction) { ensureReviewDeck(); if (!records.length) return showRandomRecord(null); let id; if (direction < 0) id = reviewDeck.previous() || reviewDeck.current() || reviewDeck.next(); else { if (reviewDeck.position() === reviewDeck.size()) completedReviewCycle = true; id = reviewDeck.next(); } currentRandomId = id; showRandomRecord(records.find((record) => record.id === id)); if (randomReshuffleBtn) randomReshuffleBtn.style.display = completedReviewCycle ? "" : "none"; }
-  function renderRandom() { ensureReviewDeck(); if (!currentRandomId || !records.some((record) => record.id === currentRandomId)) stepRandom(1); else showRandomRecord(records.find((record) => record.id === currentRandomId)); }
+  function showRandomRecord(record) { if (!record) { resetReviewMotion(); randomCardEl?.classList.remove("has-media"); renderReviewFace("front", null); renderReviewFace("back", null); if (randomPositionEl) randomPositionEl.textContent = "0 / 0"; return; } randomCardEl?.classList.toggle("has-media", Boolean(record.mediaIds?.length)); applyReviewTone("front"); renderReviewFace("front", record); showReviewBack(nextReviewRecord(1)); if (randomPositionEl) randomPositionEl.textContent = `${reviewDeck.position()} / ${reviewDeck.size()}`; }
+  function stepRandom(direction) { ensureReviewDeck(); if (!records.length) return showRandomRecord(null); let id; if (direction < 0) id = reviewDeck.previous() || reviewDeck.current() || reviewDeck.next(); else { if (reviewDeck.position() === reviewDeck.size()) completedReviewCycle = true; id = reviewDeck.next(); } currentRandomId = id; reviewTone = nextReviewTone(); showRandomRecord(records.find((record) => record.id === id)); if (randomReshuffleBtn) randomReshuffleBtn.style.display = completedReviewCycle ? "" : "none"; }
+  function renderRandom() {
+    ensureReviewDeck();
+    const record = records.find((item) => item.id === currentRandomId);
+    if (!record) return stepRandom(1);
+    const face = randomCardEl?.classList.contains("is-card-flipped") ? "back" : "front";
+    renderReviewFace(face, record);
+    applyReviewTone(face);
+  }
 
   function renderSettings() { const nickname = getNickname(); lastNickname = nickname; if (nicknameInput && nicknameInput.value !== nickname) nicknameInput.value = nickname; if (energyInput && energyInput.value !== getEnergy()) energyInput.value = getEnergy(); if (nicknamePreview) nicknamePreview.textContent = `${greetingByHour(new Date().getHours())}，${nickname}`; if (energyPreview) energyPreview.textContent = getEnergy(); refreshStorageUsage(); }
   async function refreshStorageUsage() { if (!storageUsageEl) return; try { const estimate = await mediaStore.estimate(); storageUsageEl.textContent = `图片占用空间：${estimate.usage ? `${(estimate.usage / 1024 / 1024).toFixed(1)} MB` : "0 MB"}`; } catch { storageUsageEl.textContent = "图片占用空间：暂不可用"; } }

@@ -8,7 +8,7 @@ const LS = 'smallwins_records_v1';
 const NICK = 'smallwins_nickname_v1';
 const ENERGY = 'smallwins_energy_v1';
 class Element {
-  constructor(tag='div', doc) { this.tagName=tag.toUpperCase(); this.ownerDocument=doc; this.children=[]; this.listeners={}; this.style={}; this.dataset={}; this.attributes={}; this.value=''; this._text=''; this._html=''; this.className=''; this.isConnected=true; this.disabled=false;
+  constructor(tag='div', doc) { this.tagName=tag.toUpperCase(); this.ownerDocument=doc; this.children=[]; this.listeners={}; this.style={setProperty(k,v){this[k]=v;},removeProperty(k){delete this[k];},getPropertyValue(k){return this[k]||'';}}; this.dataset={}; this.attributes={}; this.value=''; this._text=''; this._html=''; this.className=''; this.isConnected=true; this.disabled=false;
     this.classList={ contains:x=>this.className.split(' ').includes(x), add:x=>{if(!this.classList.contains(x))this.className += ' '+x;}, remove:x=>{this.className=this.className.split(' ').filter(v=>v!==x).join(' ');}, toggle:(x,v)=>{v=v??!this.classList.contains(x); this.classList[v?'add':'remove'](x); return v;} };
   }
   set textContent(v){this._text=String(v);this.children=[];} get textContent(){return this._text+this.children.map(x=>x.textContent).join('');}
@@ -30,6 +30,14 @@ function app(initial=[],extra={}){
  document.createElement=tag=>new Element(tag,document); document.getElementById=id=>elements.get(id)||null;
  const ids=['home-date','home-week','home-greeting','stat-streak','stat-happy','recent-list','recent-empty','input-text','tag-suggest','mood-group','btn-save','today-list','today-empty','btn-clear-today','wall-search','wall-list','wall-empty','btn-wall-clear','btn-wall-clear-input','random-text','random-time','random-mood','btn-random-next','btn-install','install-tip','nickname-input','nickname-preview','energy-input','energy-preview','btn-export','btn-clear-all','modal','modal-title','modal-body','modal-close','modal-delete','page-home','page-today','page-wall','page-random','page-settings'];
  for(const id of ids){const el=document.createElement(id.startsWith('btn-')||id.startsWith('modal-')&&['modal-close','modal-delete'].includes(id)?'button':id==='input-text'?'textarea':'div');el.id=id;elements.set(id,el);document.body.appendChild(el);}
+ const card=document.createElement('div');card.id='random-card';elements.set(card.id,card);document.body.appendChild(card);
+ for(const side of ['front','back']){
+   const face=document.createElement('div');face.className='review-card-face review-card-'+side;card.appendChild(face);
+   for(const suffix of ['time','text','mood','media']){
+     const id=side==='back'?'random-back-'+suffix:'random-'+suffix;
+     let el=elements.get(id);if(el)el.remove();else{el=document.createElement('div');el.id=id;elements.set(id,el);}el.isConnected=true;face.appendChild(el);
+   }
+ }
  elements.get('recent-list').appendChild(elements.get('recent-empty'));
  for(const id of ['modal-title','modal-body','modal-close','modal-delete']){elements.get(id).remove();elements.get(id).isConnected=true;elements.get('modal').appendChild(elements.get(id));}
  const moodButtons=['calm','happy','relaxed','lazy'].map(m=>{const el=document.createElement('button');el.dataset.mood=m;el.className='mood-btn';elements.get('mood-group').appendChild(el);return el;});
@@ -45,6 +53,22 @@ function app(initial=[],extra={}){
  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../main.js'),'utf8'),context,{filename:'main.js'});
  return{el:id=>elements.get(id),tabs,moodButtons,store,confirms,prompts,copied,document,context,timers,click:id=>elements.get(id).dispatch('click'),event:(k,e={})=>(listeners[k]||[]).forEach(f=>f(e)),failWrite:v=>failWrite=v,failRead:v=>failRead=v,read:()=>JSON.parse(store.get(LS))};
 }
+
+function visibleReview(a){return a.el('random-card').querySelector(a.el('random-card').classList.contains('is-card-flipped')?'.review-card-back':'.review-card-front');}
+
+test('review flips change the visible color without adjacent repeats, even with one record',()=>{
+ const a=app([record('1')]);let previous=visibleReview(a).dataset.tone;assert.ok(previous);
+ for(let i=0;i<30;i++){
+   a.click('random-card');const face=visibleReview(a);assert.ok(face.dataset.tone);assert.notEqual(face.dataset.tone,previous);assert.ok(face.style.getPropertyValue('--review-card-tone'));previous=face.dataset.tone;
+ }
+});
+
+test('review lifecycle refresh preserves the visible record and color after a flip',()=>{
+ const a=app([record('1','第一条'),record('2','第二条')]);a.click('random-card');const face=visibleReview(a);const tone=face.dataset.tone;const text=face.textContent;
+ for(const event of ['focus','pageshow','storage']){
+   a.event(event,event==='storage'?{key:LS}:{});assert.equal(visibleReview(a),face);assert.equal(face.dataset.tone,tone);assert.equal(face.textContent,text);
+ }
+});
 
 
 test('home week uses local dates across a year boundary and marks today once', () => {
