@@ -42,8 +42,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .brand-lockup p { margin-top: 4px; color: var(--muted); font-size: 13px; letter-spacing: .08em; }
 .home-greeting-block { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .home-greeting-copy { min-width: 0; }
-.home-greeting { margin: 5px 0 0; font-family: var(--ui-font); font-size: 25px; line-height: 1.3; font-weight: 600; letter-spacing: -.035em; overflow-wrap: anywhere; }
-.home-date { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; letter-spacing: .025em; }
+.home-greeting { margin: 0; font-family: var(--ui-font); font-size: 25px; line-height: 1.3; font-weight: 600; letter-spacing: -.035em; overflow-wrap: anywhere; }
 .home-profile { position: relative; flex: 0 0 44px; width: 44px; height: 44px; overflow: hidden; padding: 0; border: 0; border-radius: 50%; background: #e6eddf; cursor: pointer; }
 .home-profile img { position: absolute; left: 50%; top: 0; width: 70px; height: 70px; max-width: none; transform: translateX(-50%); object-fit: contain; }
 .home-profile:active { transform: scale(.96); }
@@ -201,22 +200,20 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .review-card.is-dragging { transition: none; }
 .review-card.is-card-flipped { --card-flip: 180deg; }
 .review-card-inner { position: absolute; inset: 0; transform: rotateY(var(--card-flip)); transform-style: preserve-3d; transition: transform 560ms cubic-bezier(.22,.8,.28,1); will-change: transform; }
-.review-card-face { position: absolute; inset: 0; min-height: 392px; padding: 34px 36px 38px; overflow: hidden; border: 1px solid var(--line-strong); border-radius: 26px; background: var(--surface); box-shadow: 0 12px 30px rgba(23, 58, 50, .045); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.review-card-face { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: 18px; min-height: 392px; padding: 28px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line-strong); border-radius: 26px; background: var(--surface); box-shadow: 0 12px 30px rgba(23, 58, 50, .045); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .review-card-front { position: absolute; }
-.review-card-back { display: flex; flex-direction: column; justify-content: center; transform: rotateY(180deg); background: linear-gradient(145deg, rgba(196, 225, 192, .92), rgba(220, 241, 218, .82)); backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; visibility: hidden; }
-.review-card.is-card-flipped .review-card-front { visibility: hidden; }
-.review-card.is-card-flipped .review-card-back { visibility: visible; }
-.review-card-back .review-text { margin-top: 0; font-size: clamp(22px, 5.8vw, 27px); }
-.review-card-back .review-media { margin-top: 18px; }
+.review-card-back { transform: rotateY(180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden; pointer-events: none; visibility: hidden; }
+.review-card.is-card-flipped .review-card-front { visibility: hidden; pointer-events: none; }
+.review-card.is-card-flipped .review-card-back { visibility: visible; pointer-events: auto; }
 .review-card.is-flipping-left { --page-rotation: -180deg; --swipe-x: -4%; --swipe-rotate: -2deg; --swipe-scale: .985; }
 .review-card.is-flipping-right { --page-rotation: 180deg; --swipe-x: 4%; --swipe-rotate: 2deg; --swipe-scale: .985; }
-.review-date { margin: 0; color: var(--muted); font-size: 15px; }
-.review-text { margin: 58px 0 0; font-family: var(--ui-font); font-size: clamp(22px, 5.8vw, 28px); line-height: 1.42; letter-spacing: -.03em; font-weight: 600; }
-.review-card.has-media .review-text { margin-top: 22px; }
-.review-mood { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 24px 0 0; min-height: 24px; font-size: 13px; }
+.review-date { flex: 0 0 auto; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.review-text { flex: 0 0 auto; margin: 0; font-family: var(--ui-font); font-size: clamp(22px, 5.8vw, 28px); line-height: 1.42; letter-spacing: -.03em; font-weight: 600; overflow-wrap: anywhere; }
+.review-mood { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0; min-height: 24px; font-size: 13px; }
 .review-chip { display: inline-flex; align-items: center; width: auto; min-width: 0; height: 28px; min-height: 28px; padding: 0 10px; border: 1px solid rgba(116, 174, 146, .25); border-radius: 999px; background: rgba(255, 255, 255, .28); color: #607a6e; font-family: var(--ui-font); font-size: 13px; line-height: 1; letter-spacing: .01em; white-space: nowrap; }
-.review-media { display: flex; gap: 8px; margin-top: 14px; }
-.review-media .media-item { width: 88px; height: 88px; }
+.review-media { display: grid; flex: 0 0 auto; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.review-media:empty, .review-mood:empty, .review-mood[hidden] { display: none; }
+.review-media .media-item { width: 100%; height: auto; aspect-ratio: 1; }
 .review-footer { display: grid; justify-items: center; gap: 6px; padding-top: 16px; }
 .review-position { padding: 5px 12px; border: 1px solid rgba(255, 255, 255, .38); border-radius: 999px; background: rgba(255, 255, 255, .18); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13px; }
 
@@ -250,7 +247,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
   .mascot-interactive[class*="mascot-state-"] { transform: none; animation: none; }
 }
 @media (min-width: 700px) { .page { min-height: auto; padding-bottom: 30px; }.tabbar { position: sticky; top: 0; bottom: auto; max-width: 520px; margin: 0 auto; border: 1px solid var(--line); border-radius: 0 0 18px 18px; }.home-header, .page-header { padding-top: 34px; } }
-@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { padding-top: 22px; padding-bottom: 20px; }.home-greeting { font-size: 23px; }.home-week { gap: 3px; margin-top: 18px; }.home-week-date { width: 34px; height: 34px; }.energy-hero { min-height: 250px; padding: 22px 18px 28px; border-radius: 22px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 21px; max-width: 250px; font-size: 23px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 0; gap: 10px; }.stat-inline { min-height: 86px; padding: 13px 12px; border-radius: 18px; }.stat-inline strong { font-size: 31px; }.recent-section { padding-top: 8px; }.recent-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-bottom: 6px; }.recent-list .item { min-height: 160px; padding: 12px 10px; border-radius: 18px; }.recent-list .item-thumb { height: 54px; border-radius: 12px; }.recent-list .item-thumb .media-item { border-radius: 12px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 30px; padding-right: 30px; }.review-text { font-size: 25px; } }
+@media (max-width: 380px) { .page-content, .home-header, .page-header { padding-left: 16px; padding-right: 16px; }.home-header { padding-top: 22px; padding-bottom: 20px; }.home-greeting { font-size: 23px; }.home-week { gap: 3px; margin-top: 18px; }.home-week-date { width: 34px; height: 34px; }.energy-hero { min-height: 250px; padding: 22px 18px 28px; border-radius: 22px; }.energy-mark { right: 12px; bottom: 10px; width: 88px; height: 88px; }.mascot-inline { left: 8px; top: 7px; width: 72px; height: 72px; }.energy-quote { margin-top: 21px; max-width: 250px; font-size: 23px; }.energy-ground { width: 210px; height: 100px; }.stats-line { margin: 0; gap: 10px; }.stat-inline { min-height: 86px; padding: 13px 12px; border-radius: 18px; }.stat-inline strong { font-size: 31px; }.recent-section { padding-top: 8px; }.recent-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-bottom: 6px; }.recent-list .item { min-height: 160px; padding: 12px 10px; border-radius: 18px; }.recent-list .item-thumb { height: 54px; border-radius: 12px; }.recent-list .item-thumb .media-item { border-radius: 12px; }.wall-grid { grid-template-columns: 1fr; }.review-stack { margin-left: -10px; margin-right: -10px; padding-left: 10px; padding-right: 10px; }.review-card-face { padding-left: 24px; padding-right: 24px; }}
 
 @media (prefers-reduced-motion: reduce) {
   .energy-mark::before, .energy-mark::after, .review-card { transition-duration: 100ms !important; }

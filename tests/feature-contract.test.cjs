@@ -147,7 +147,6 @@ test('review page uses a real 3D page-turn with a back face', () => {
 test('review media cards tighten the image-to-text rhythm and use the swapped page palette', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(main, /randomCardEl\?\.classList\.toggle\("has-media"[\s\S]*mediaIds/);
-  assert.match(css, /\.review-card\.has-media \.review-text\s*\{[^}]*margin-top:\s*22px/);
   assert.match(css, /#page-random\s*\{[^}]*--review-bg:\s*#f7faf7/);
   assert.match(css, /#page-random[^}]*background:\s*linear-gradient/);
 });
@@ -269,7 +268,6 @@ test('home recent achievements get a distinct card hierarchy and balanced spacin
 test('review typography stays compact and metadata is rendered as light chips', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(css, /\.review-text\s*\{[^}]*font-family:\s*var\(--ui-font\)[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*28px\)/);
-  assert.match(css, /\.review-card-back \.review-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*27px\)/);
   assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
   assert.doesNotMatch(css, /\.review-chip\s*\{[^}]*font-size:\s*0/);

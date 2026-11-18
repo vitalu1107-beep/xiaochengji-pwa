@@ -54,7 +54,6 @@ test('home week uses local dates across a year boundary and marks today once', (
   const dates = a.el('home-week').children.map(day => day.children[1]);
   assert.deepEqual(dates.map(day => day.getAttribute('datetime')), ['2026-12-28','2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03']);
   assert.deepEqual(dates.filter(day => day.getAttribute('aria-current') === 'date').map(day => day.textContent), ['1']);
-  assert.equal(a.el('home-date').textContent, '2027年1月');
 });
 
 test('home week starts on Monday when opened on Sunday', () => {
