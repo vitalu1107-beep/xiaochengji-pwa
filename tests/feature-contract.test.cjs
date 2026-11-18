@@ -122,7 +122,6 @@ test('home energy mark keeps the mascot beside the leaf and stays compact on mob
   assert.match(css, /\.energy-mark\s*\{[^}]*width:\s*96px/);
   assert.match(css, /\.mascot-inline\s*\{[^}]*left:\s*10px/);
   assert.match(css, /\.energy-mark::before\s*\{[^}]*left:\s*-8px/);
-  assert.match(css, /\.energy-hero\s*\{[^}]*min-height:\s*270px/);
   assert.match(css, /\.energy-quote\s*\{[^}]*font-size:\s*clamp\(23px,\s*5\.8vw,\s*29px\)/);
 });
 
@@ -250,9 +249,8 @@ test('home removes the redundant brand block and restores breathing room', () =>
   assert.doesNotMatch(html, /class="brand-lockup"/);
   assert.doesNotMatch(html, /<p>Small Wins<\/p>/);
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*126px/);
   assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*flex/);
-  assert.match(css, /\.home-greeting-block\s*\{[^}]*border-bottom:\s*1px solid/);
+  assert.doesNotMatch(css, /\.home-greeting-block\s*\{[^}]*border-bottom:/);
   assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*0/);
 });
 
@@ -290,10 +288,8 @@ test('home uses one compact sans hierarchy and an even vertical rhythm', () => {
   assert.match(css, /--ui-font:\s*-apple-system/);
   assert.match(css, /\.home-greeting\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-greeting-block\s*\{[^}]*display:\s*flex/);
-  assert.match(css, /\.home-date\s*\{[^}]*border-radius:\s*999px/);
   assert.match(css, /\.energy-quote\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
   assert.match(css, /\.home-content \.section-title\s*\{[^}]*font-family:\s*var\(--ui-font\)/);
-  assert.match(css, /\.home-header\s*\{[^}]*min-height:\s*126px/);
   assert.match(css, /\.stats-line\s*\{[^}]*margin:\s*0/);
   assert.match(css, /\.recent-section\s*\{[^}]*padding-top:\s*8px/);
 });

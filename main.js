@@ -51,7 +51,7 @@
 
   const MOODS = { calm: { label: "平静" }, happy: { label: "愉悦" }, relaxed: { label: "释然" }, lazy: { label: "慵懒" } };
 
-  const homeDateEl = $("#home-date"); const homeGreetingEl = $("#home-greeting"); const homeQuoteEl = $("#home-quote"); const energyMarkEl = $("#energy-mark"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
+  const homeDateEl = $("#home-date"); const homeWeekEl = $("#home-week"); const homeGreetingEl = $("#home-greeting"); const homeQuoteEl = $("#home-quote"); const energyMarkEl = $("#energy-mark"); const statStreakEl = $("#stat-streak"); const statStreakSubEl = $("#stat-streak-sub"); const statHappyEl = $("#stat-happy"); const statHappySubEl = $("#stat-happy-sub"); const recentListEl = $("#recent-list"); const recentEmptyEl = $("#recent-empty");
   const inputTextEl = $("#input-text"); const tagSuggestEl = $("#tag-suggest"); const composeToolsBtn = $("#btn-compose-tools"); const composeMenuEl = $("#compose-menu"); const addTagBtn = $("#btn-add-tag"); const moodGroupEl = $("#mood-group"); const saveBtnEl = $("#btn-save"); const cancelEditBtn = $("#btn-cancel-edit"); const imageInputEl = $("#image-input"); const addImageBtn = $("#btn-add-image"); const imagePreviewEl = $("#image-preview"); const todayListEl = $("#today-list"); const todayEmptyEl = $("#today-empty"); const clearTodayBtn = $("#btn-clear-today");
   const wallSearchEl = $("#wall-search"); const wallListEl = $("#wall-list"); const wallEmptyEl = $("#wall-empty"); const wallClearBtn = $("#btn-wall-clear"); const wallClearInputBtn = $("#btn-wall-clear-input"); const wallTagFiltersEl = $("#wall-tag-filters");
   const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMoodEl = $("#random-mood"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomBackTextEl = $("#random-back-text"); const randomBackTimeEl = $("#random-back-time"); const randomBackMoodEl = $("#random-back-mood"); const randomBackMediaEl = $("#random-back-media"); const randomReshuffleBtn = $("#btn-random-reshuffle");
@@ -224,7 +224,55 @@
     return row;
   }
 
-  function renderHome() { const now = new Date(); const nickname = getNickname(); if (homeDateEl) homeDateEl.textContent = formatDateCN(now); const greeting = `${greetingByHour(now.getHours())}，${nickname}`; if (homeGreetingEl) homeGreetingEl.textContent = greeting; if (homeQuoteEl) homeQuoteEl.textContent = getEnergy(); if (nicknamePreview) nicknamePreview.textContent = greeting; if (energyPreview) energyPreview.textContent = getEnergy(); const streak = calcStreak(records); if (statStreakEl) statStreakEl.textContent = String(streak); if (statStreakSubEl) statStreakSubEl.textContent = `已坚持 ${streak} 天`; if (statHappyEl) statHappyEl.textContent = String(records.length); if (statHappySubEl) statHappySubEl.textContent = `记录 ${records.length} 个瞬间`; if (!recentListEl) return; recentListEl.querySelectorAll(".item").forEach((node) => node.remove()); const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2); if (recentEmptyEl) recentEmptyEl.style.display = latest.length ? "none" : ""; latest.forEach((record) => recentListEl.appendChild(createRecordRow(record, "home"))); }
+  function renderHomeWeek(now) {
+    if (!homeWeekEl) return;
+    const monday = new Date(now);
+    monday.setHours(12, 0, 0, 0);
+    monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
+    const todayKey = toDateKey(now);
+    const weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+    homeWeekEl.replaceChildren();
+    weekdays.forEach((weekday, index) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      const isToday = toDateKey(date) === todayKey;
+      const day = document.createElement("li");
+      day.className = `home-week-day${isToday ? " is-today" : ""}`;
+      const label = document.createElement("span");
+      label.className = "home-week-label";
+      label.textContent = weekday;
+      const number = document.createElement("time");
+      number.className = "home-week-date";
+      number.setAttribute("datetime", toDateKey(date));
+      number.setAttribute("aria-label", `${formatDateCN(date)}，${weekday}${isToday ? "，今天" : ""}`);
+      if (isToday) number.setAttribute("aria-current", "date");
+      number.textContent = String(date.getDate());
+      day.append(label, number);
+      homeWeekEl.appendChild(day);
+    });
+  }
+
+  function renderHome() {
+    const now = new Date();
+    const nickname = getNickname();
+    if (homeDateEl) homeDateEl.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月`;
+    renderHomeWeek(now);
+    const greeting = `${greetingByHour(now.getHours())}，${nickname}`;
+    if (homeGreetingEl) homeGreetingEl.textContent = greeting;
+    if (homeQuoteEl) homeQuoteEl.textContent = getEnergy();
+    if (nicknamePreview) nicknamePreview.textContent = greeting;
+    if (energyPreview) energyPreview.textContent = getEnergy();
+    const streak = calcStreak(records);
+    if (statStreakEl) statStreakEl.textContent = String(streak);
+    if (statStreakSubEl) statStreakSubEl.textContent = `已坚持 ${streak} 天`;
+    if (statHappyEl) statHappyEl.textContent = String(records.length);
+    if (statHappySubEl) statHappySubEl.textContent = `记录 ${records.length} 个瞬间`;
+    if (!recentListEl) return;
+    recentListEl.querySelectorAll(".item").forEach((node) => node.remove());
+    const latest = [...records].sort((a, b) => b.ts - a.ts).slice(0, 2);
+    if (recentEmptyEl) recentEmptyEl.style.display = latest.length ? "none" : "";
+    latest.forEach((record) => recentListEl.appendChild(createRecordRow(record, "home")));
+  }
   function renderToday() { if (!todayListEl) return; todayListEl.innerHTML = ""; const key = toDateKey(new Date()); const today = records.filter((record) => record.dateKey === key).sort((a, b) => b.ts - a.ts); if (todayEmptyEl) todayEmptyEl.style.display = today.length ? "none" : ""; today.forEach((record) => todayListEl.appendChild(createRecordRow(record, "today"))); }
 
   async function prepareImage(source) { if (!source || typeof createImageBitmap !== "function") return source; try { const bitmap = await createImageBitmap(source); const max = 1600; const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height)); if (scale === 1) { bitmap.close?.(); return source; } const canvas = document.createElement("canvas"); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale); canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close?.(); return await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", .86)); } catch { return source; } }

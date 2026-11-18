@@ -28,7 +28,7 @@ function app(initial=[],extra={}){
  const elements=new Map(); const document={listeners:{},activeElement:null};
  document.body=new Element('body',document);
  document.createElement=tag=>new Element(tag,document); document.getElementById=id=>elements.get(id)||null;
- const ids=['home-date','home-greeting','stat-streak','stat-happy','recent-list','recent-empty','input-text','tag-suggest','mood-group','btn-save','today-list','today-empty','btn-clear-today','wall-search','wall-list','wall-empty','btn-wall-clear','btn-wall-clear-input','random-text','random-time','random-mood','btn-random-next','btn-install','install-tip','nickname-input','nickname-preview','energy-input','energy-preview','btn-export','btn-clear-all','modal','modal-title','modal-body','modal-close','modal-delete','page-home','page-today','page-wall','page-random','page-settings'];
+ const ids=['home-date','home-week','home-greeting','stat-streak','stat-happy','recent-list','recent-empty','input-text','tag-suggest','mood-group','btn-save','today-list','today-empty','btn-clear-today','wall-search','wall-list','wall-empty','btn-wall-clear','btn-wall-clear-input','random-text','random-time','random-mood','btn-random-next','btn-install','install-tip','nickname-input','nickname-preview','energy-input','energy-preview','btn-export','btn-clear-all','modal','modal-title','modal-body','modal-close','modal-delete','page-home','page-today','page-wall','page-random','page-settings'];
  for(const id of ids){const el=document.createElement(id.startsWith('btn-')||id.startsWith('modal-')&&['modal-close','modal-delete'].includes(id)?'button':id==='input-text'?'textarea':'div');el.id=id;elements.set(id,el);document.body.appendChild(el);}
  elements.get('recent-list').appendChild(elements.get('recent-empty'));
  for(const id of ['modal-title','modal-body','modal-close','modal-delete']){elements.get(id).remove();elements.get(id).isConnected=true;elements.get('modal').appendChild(elements.get(id));}
@@ -46,6 +46,25 @@ function app(initial=[],extra={}){
  return{el:id=>elements.get(id),tabs,moodButtons,store,confirms,prompts,copied,document,context,timers,click:id=>elements.get(id).dispatch('click'),event:(k,e={})=>(listeners[k]||[]).forEach(f=>f(e)),failWrite:v=>failWrite=v,failRead:v=>failRead=v,read:()=>JSON.parse(store.get(LS))};
 }
 
+
+test('home week uses local dates across a year boundary and marks today once', () => {
+  const fixed = new Date(2027, 0, 1, 9, 0, 0);
+  class Clock extends Date { constructor(...args) { super(...(args.length ? args : [fixed.getTime()])); } }
+  const a = app([], {context:{Date:Clock}});
+  const dates = a.el('home-week').children.map(day => day.children[1]);
+  assert.deepEqual(dates.map(day => day.getAttribute('datetime')), ['2026-12-28','2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03']);
+  assert.deepEqual(dates.filter(day => day.getAttribute('aria-current') === 'date').map(day => day.textContent), ['1']);
+  assert.equal(a.el('home-date').textContent, '2027年1月');
+});
+
+test('home week starts on Monday when opened on Sunday', () => {
+  const fixed = new Date(2026, 10, 22, 23, 30, 0);
+  class Clock extends Date { constructor(...args) { super(...(args.length ? args : [fixed.getTime()])); } }
+  const a = app([], {context:{Date:Clock}});
+  const days = a.el('home-week').children;
+  assert.equal(days[0].children[1].getAttribute('datetime'), '2026-11-16');
+  assert.equal(days[6].children[1].getAttribute('aria-current'), 'date');
+});
 
 // Exercise the retained legacy runtime with the same DOM/storage boundary used by runtime.test.cjs.
 function holdRecord(a, index = 0) {
