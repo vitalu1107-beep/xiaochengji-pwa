@@ -1,11 +1,11 @@
 /* Apple-like UI release: cache app files only; records and preferences stay local. */
-const VERSION = 'apple-ui-2026-11-19b';
+const VERSION = 'apple-ui-2026-11-19c';
 const CACHE_NAME = `smallwins-cache-${VERSION}`;
 const BASE = self.registration.scope;
-const UI_VERSION = 'apple-ui-20261119b';
+const UI_VERSION = 'apple-ui-20261119c';
 const absolute = path => new URL(path, BASE).href;
 const APP_SHELL = [
-  'index.html', `style.css?v=${UI_VERSION}`, `media-core.js?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
+  'index.html', `style.css?v=${UI_VERSION}`, `media-core.js?v=${UI_VERSION}`, `image-viewer.js?v=${UI_VERSION}`, `main.js?v=${UI_VERSION}`,
   'manifest.json', 'offline.html',
   'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'assets/calico-mascot.png',
 ].map(absolute);

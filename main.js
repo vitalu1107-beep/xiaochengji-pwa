@@ -71,6 +71,7 @@
   let modalReturnFocus = null;
   const mediaStore = MEDIA.createIndexedDbMediaStore(typeof indexedDB !== "undefined" ? indexedDB : null);
   const mediaRequests = new WeakMap();
+  const imageViewer = globalThis.SmallWinsImageViewer?.create({ load: (id) => mediaStore.get(id) });
 
   const mascotElements = {
     home: $("#mascot-home"),
@@ -158,17 +159,32 @@
   function calcStreak(list) { const dates = new Set(list.map((record) => record.dateKey)); const today = new Date(); let day = new Date(today.getFullYear(), today.getMonth(), today.getDate()); let streak = 0; while (dates.has(toDateKey(day))) { streak += 1; day.setDate(day.getDate() - 1); } return streak; }
   function cleanupMedia(ids) { if (ids?.length) void mediaStore.deleteMany(ids).catch(() => {}); }
 
-  function makeMediaItem(blob, name = "图片") { const wrapper = document.createElement("div"); wrapper.className = "media-item"; const image = document.createElement("img"); image.alt = name; image.loading = "lazy"; if (blob) { if (typeof URL !== "undefined" && URL.createObjectURL) image.src = URL.createObjectURL(blob); else if (typeof blob === "string") image.src = blob; } wrapper.appendChild(image); return wrapper; }
+  function makeMediaItem(blob, record, index) {
+    const wrapper = document.createElement("button");
+    wrapper.type = "button"; wrapper.className = "media-item media-open";
+    wrapper.setAttribute("aria-label", `查看第 ${index + 1} 张图片`);
+    const image = document.createElement("img"); image.alt = "图片"; image.loading = "lazy";
+    if (blob) {
+      if (typeof URL !== "undefined" && URL.createObjectURL) image.src = URL.createObjectURL(blob);
+      else if (typeof blob === "string") image.src = blob;
+    }
+    wrapper.appendChild(image);
+    ["pointerdown", "touchstart"].forEach((type) => wrapper.addEventListener(type, (event) => event.stopPropagation(), { passive: true }));
+    wrapper.addEventListener("click", (event) => { event.stopPropagation(); void imageViewer?.open(record.mediaIds, index, wrapper); });
+    return wrapper;
+  }
   async function hydrateMedia(container, record) {
     if (!container) return;
     const request = {};
     mediaRequests.set(container, request);
     container.innerHTML = "";
-    for (const id of (record?.mediaIds || []).slice(0, MEDIA.MAX_IMAGES_PER_RECORD || 3)) {
+    const ids = (record?.mediaIds || []).slice(0, MEDIA.MAX_IMAGES_PER_RECORD || 3);
+    const coverOnly = container.classList.contains("item-thumb") || container.classList.contains("wall-thumb");
+    for (let index = 0; index < (coverOnly ? Math.min(ids.length, 1) : ids.length); index += 1) {
       try {
-        const blob = await mediaStore.get(id);
+        const blob = await mediaStore.get(ids[index]);
         if (mediaRequests.get(container) !== request) return;
-        if (blob) container.appendChild(makeMediaItem(blob));
+        if (blob) container.appendChild(makeMediaItem(blob, record, index));
       } catch {}
     }
   }
@@ -491,11 +507,14 @@
   $$("#wall-view-toggle [data-view]").forEach((button) => button.addEventListener("click", () => { wallView = button.dataset.view; $$("#wall-view-toggle [data-view]").forEach((item) => item.classList.toggle("active", item === button)); renderWall(); }));
   randomReshuffleBtn?.addEventListener("click", () => { resetReviewMotion(); reviewDeck.reset(); currentRandomId = null; completedReviewCycle = false; renderRandom(); });
   document.addEventListener("keydown", (event) => {
+    if (imageViewer?.isOpen()) return;
     if (modalEl?.getAttribute("aria-hidden") === "false") {
       if (event.key === "Escape") closeModal();
       if (event.key === "Tab" && modalEl.classList.contains("is-review-reader")) {
         event.preventDefault();
-        (document.activeElement === modalCloseEl ? modalBodyEl : modalCloseEl)?.focus();
+        const stops = [modalCloseEl, modalBodyEl, ...(modalMediaEl?.querySelectorAll(".media-open") || [])].filter((item) => item && !item.hidden && !item.disabled);
+        const index = stops.indexOf(document.activeElement);
+        stops[(index + (event.shiftKey ? -1 : 1) + stops.length) % stops.length]?.focus();
       }
       return;
     }

@@ -14,7 +14,7 @@ class Element {
   set textContent(v){this._text=String(v);this.children=[];} get textContent(){return this._text+this.children.map(x=>x.textContent).join('');}
   set innerHTML(v){this._html=String(v);this.children=[];this._text='';} get innerHTML(){return this._html;}
   setAttribute(k,v){this.attributes[k]=String(v);} getAttribute(k){return this.attributes[k]??null;} removeAttribute(k){delete this.attributes[k];}
-  addEventListener(k,fn){(this.listeners[k]??=[]).push(fn);} dispatch(k,opts={}){const e={target:this,preventDefault(){this.defaultPrevented=true;},...opts}; for(const fn of this.listeners[k]||[])fn(e);return e;}
+  addEventListener(k,fn){(this.listeners[k]??=[]).push(fn);} dispatch(k,opts={}){const e={target:this,preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.propagationStopped=true;},...opts}; for(const fn of this.listeners[k]||[])fn(e);return e;}
   appendChild(x){x.parentElement=this;this.children.push(x);return x;} append(...xs){xs.forEach(x=>this.appendChild(x));} replaceChildren(...xs){this.children=[];this._text='';this._html='';this.append(...xs);}
   remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(x=>x!==this); this.isConnected=false;}
   contains(x){return x===this || this.children.some(c=>c.contains(x));} focus(){this.ownerDocument.activeElement=this;}
@@ -95,6 +95,21 @@ test('late images cannot append to a review face that now shows another record',
  a.click('random-card');a.click('random-card');const expected=visibleReview(a).dataset.recordId;
  release();await new Promise(resolve=>setImmediate(resolve));
  const media=a.el('random-media');assert.equal(media.children.length,1);assert.equal(media.children[0].children[0].src,'media-'+expected);
+});
+
+test('saved thumbnails open the selected full gallery and stop parent record gestures',async()=>{
+ const opened=[];const core=require('../media-core.js');const items=[{...record('1'),mediaIds:['original-1','original-2']}];
+ const a=app(items,{context:{SmallWinsMedia:{...core,createIndexedDbMediaStore:()=>({get:async id=>id})},SmallWinsImageViewer:{create:()=>({open:(...args)=>opened.push(args),isOpen:()=>false})}}});
+ await new Promise(resolve=>setImmediate(resolve));const thumb=a.el('random-media').children[1];assert.equal(thumb.tagName,'BUTTON');
+ assert.equal(thumb.dispatch('pointerdown').propagationStopped,true);assert.equal(thumb.dispatch('touchstart').propagationStopped,true);assert.equal(thumb.dispatch('click').propagationStopped,true);
+ assert.deepEqual(Array.from(opened[0][0]),['original-1','original-2']);assert.equal(opened[0][1],1);assert.equal(opened[0][2]===thumb,true);
+ assert.equal(a.el('wall-list').children[0].querySelectorAll('.media-item').length,1);
+});
+
+test('the full image viewer owns Escape without closing the reader underneath',()=>{
+ let showing=false;const a=app([record('1')],{context:{SmallWinsImageViewer:{create:()=>({isOpen:()=>showing})}}});openReviewReader(a);showing=true;
+ for(const listener of a.document.listeners.keydown||[])listener({key:'Escape',preventDefault(){}});
+ assert.equal(a.el('modal').getAttribute('aria-hidden'),'false');
 });
 
 test('review flips change the visible color without adjacent repeats, even with one record',()=>{

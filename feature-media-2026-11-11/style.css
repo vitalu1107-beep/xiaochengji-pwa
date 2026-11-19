@@ -145,6 +145,21 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .attachment-preview-row .image-preview:not(:empty) { padding-top: 12px; }
 .image-preview-item, .media-item { position: relative; width: 76px; height: 76px; overflow: hidden; border-radius: 13px; background: #edf3ef; border: 1px solid var(--line); }
 .image-preview-item img, .media-item img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.media-open { display: block; appearance: none; padding: 0; cursor: zoom-in; }
+.image-viewer { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #111714; color: #fff; overflow: hidden; }
+.image-viewer[open] { display: block; }
+.image-viewer::backdrop { background: #111714; }
+.image-stage { position: absolute; top: calc(64px + env(safe-area-inset-top)); right: 12px; bottom: calc(78px + env(safe-area-inset-bottom)); left: 12px; display: grid; place-items: center; overflow: hidden; touch-action: none; user-select: none; }
+.image-full { display: block; max-width: none; max-height: none; object-fit: contain; transform-origin: center; transition: transform 160ms ease-out; -webkit-user-drag: none; }
+.image-stage.is-interacting .image-full { transition: none; }
+.image-control { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; background: rgba(255,255,255,.09); color: #fff; font: inherit; font-size: 27px; line-height: 1; cursor: pointer; }
+.image-control:disabled { opacity: .3; cursor: default; }
+.image-close { position: absolute; z-index: 2; top: calc(12px + env(safe-area-inset-top)); right: 16px; }
+.image-toolbar { position: absolute; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; gap: 14px; }
+.image-count { min-width: 46px; text-align: center; font-size: 14px; color: rgba(255,255,255,.8); }
+.image-status { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.75); font-size: 14px; pointer-events: none; }
+.image-viewer [hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .image-full { transition: none; } }
 .image-remove { position: absolute; top: 5px; right: 5px; display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: rgba(23, 58, 50, .75); color: #fff; cursor: pointer; font-size: 15px; line-height: 1; }
 .mood-title { margin: 24px 0 10px; font-size: 18px; font-weight: 700; }
 .mood-title span { color: var(--muted); font-weight: 500; }

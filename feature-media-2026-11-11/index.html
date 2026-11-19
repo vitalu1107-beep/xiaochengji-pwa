@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="preload" href="./assets/calico-mascot.png" as="image" />
-  <link rel="stylesheet" href="./style.css?v=apple-ui-20261119b" />
+  <link rel="stylesheet" href="./style.css?v=apple-ui-20261119c" />
 </head>
 <body>
   <div class="app">
@@ -85,7 +85,12 @@
   <nav class="tabbar" id="tabbar" aria-label="主导航"><button class="tabbar-btn active" type="button" data-target="page-home"><img class="tab-icon-img" src="./assets/icons/house.svg" alt="" /><span>首页</span></button><button class="tabbar-btn" type="button" data-target="page-today"><img class="tab-icon-img" src="./assets/icons/pencil-simple.svg" alt="" /><span>记录</span></button><button class="tabbar-btn" type="button" data-target="page-wall"><img class="tab-icon-img" src="./assets/icons/trophy.svg" alt="" /><span>成就墙</span></button><button class="tabbar-btn" type="button" data-target="page-random"><img class="tab-icon-img" src="./assets/icons/book-open.svg" alt="" /><span>回顾</span></button><button class="tabbar-btn" type="button" data-target="page-settings"><img class="tab-icon-img" src="./assets/icons/gear.svg" alt="" /><span>设置</span></button></nav>
 
   <div id="modal" class="modal" style="display:none;" aria-hidden="true"><div class="modal-backdrop" data-close="1"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button id="modal-close" class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img src="./assets/icons/x.svg" alt="" /></button></div><div class="modal-body modal-body-editable" id="modal-body" role="button" tabindex="0" aria-label="点击内容编辑"></div><div id="modal-media" class="modal-media"></div></div></div>
-  <script src="./media-core.js?v=apple-ui-20261119b" defer></script><script src="./main.js?v=apple-ui-20261119b" defer></script>
+  <dialog id="image-viewer" class="image-viewer" aria-label="图片查看器">
+    <button id="image-close" class="image-control image-close" type="button" aria-label="关闭图片">×</button>
+    <div id="image-stage" class="image-stage"><img id="image-full" class="image-full" alt="记录图片" draggable="false" hidden /><span id="image-status" class="image-status" role="status" hidden></span></div>
+    <div class="image-toolbar"><button id="image-prev" class="image-control" type="button" aria-label="上一张图片">‹</button><span id="image-count" class="image-count" aria-live="polite"></span><button id="image-next" class="image-control" type="button" aria-label="下一张图片">›</button><button id="image-zoom" class="image-control" type="button" aria-label="放大图片">+</button></div>
+  </dialog>
+  <script src="./media-core.js?v=apple-ui-20261119c" defer></script><script src="./image-viewer.js?v=apple-ui-20261119c" defer></script><script src="./main.js?v=apple-ui-20261119c" defer></script>
   <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((registration) => registration.update().catch(() => {})).catch(() => {})); }</script>
 </body>
 </html>
