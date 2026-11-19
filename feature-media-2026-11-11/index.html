@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="preload" href="./assets/calico-mascot.png" as="image" />
-  <link rel="stylesheet" href="./style.css?v=apple-ui-20261118f" />
+  <link rel="stylesheet" href="./style.css?v=apple-ui-20261119b" />
 </head>
 <body>
   <div class="app">
@@ -62,10 +62,12 @@
               <div class="review-card-face review-card-front" aria-hidden="false"><div class="review-card-content">
                 <p class="review-date" id="random-time">还没有记录</p><div id="random-media" class="review-media"></div>
                 <p id="random-text" class="review-text">—</p><p id="random-mood" class="review-mood muted"></p>
+                <button id="random-read-more" class="review-read-more" type="button" hidden>展开阅读</button>
               </div></div>
               <div class="review-card-face review-card-back" aria-hidden="true"><div class="review-card-content">
                 <p class="review-date" id="random-back-time">还没有记录</p><div id="random-back-media" class="review-media"></div>
                 <p class="review-text" id="random-back-text">—</p><p class="review-mood muted" id="random-back-mood"></p>
+                <button id="random-back-read-more" class="review-read-more" type="button" hidden>展开阅读</button>
               </div></div>
             </div>
           </section>
@@ -82,8 +84,8 @@
 
   <nav class="tabbar" id="tabbar" aria-label="主导航"><button class="tabbar-btn active" type="button" data-target="page-home"><img class="tab-icon-img" src="./assets/icons/house.svg" alt="" /><span>首页</span></button><button class="tabbar-btn" type="button" data-target="page-today"><img class="tab-icon-img" src="./assets/icons/pencil-simple.svg" alt="" /><span>记录</span></button><button class="tabbar-btn" type="button" data-target="page-wall"><img class="tab-icon-img" src="./assets/icons/trophy.svg" alt="" /><span>成就墙</span></button><button class="tabbar-btn" type="button" data-target="page-random"><img class="tab-icon-img" src="./assets/icons/book-open.svg" alt="" /><span>回顾</span></button><button class="tabbar-btn" type="button" data-target="page-settings"><img class="tab-icon-img" src="./assets/icons/gear.svg" alt="" /><span>设置</span></button></nav>
 
-  <div id="modal" class="modal" style="display:none;" aria-hidden="true"><div class="modal-backdrop" data-close="1"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img src="./assets/icons/x.svg" alt="" /></button></div><div class="modal-body modal-body-editable" id="modal-body" role="button" tabindex="0" aria-label="点击内容编辑"></div><div id="modal-media" class="modal-media"></div></div></div>
-  <script src="./media-core.js?v=apple-ui-20261118f" defer></script><script src="./main.js?v=apple-ui-20261118f" defer></script>
+  <div id="modal" class="modal" style="display:none;" aria-hidden="true"><div class="modal-backdrop" data-close="1"></div><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><h2 class="modal-title" id="modal-title"></h2><button id="modal-close" class="icon-btn" type="button" data-close="1" aria-label="关闭详情"><img src="./assets/icons/x.svg" alt="" /></button></div><div class="modal-body modal-body-editable" id="modal-body" role="button" tabindex="0" aria-label="点击内容编辑"></div><div id="modal-media" class="modal-media"></div></div></div>
+  <script src="./media-core.js?v=apple-ui-20261119b" defer></script><script src="./main.js?v=apple-ui-20261119b" defer></script>
   <script>if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((registration) => registration.update().catch(() => {})).catch(() => {})); }</script>
 </body>
 </html>

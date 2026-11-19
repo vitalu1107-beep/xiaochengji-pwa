@@ -18,7 +18,7 @@ class Element {
   appendChild(x){x.parentElement=this;this.children.push(x);return x;} append(...xs){xs.forEach(x=>this.appendChild(x));} replaceChildren(...xs){this.children=[];this._text='';this._html='';this.append(...xs);}
   remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(x=>x!==this); this.isConnected=false;}
   contains(x){return x===this || this.children.some(c=>c.contains(x));} focus(){this.ownerDocument.activeElement=this;}
-  matches(s){return s==='button' ? this.tagName==='BUTTON' : s.startsWith('.') ? this.classList.contains(s.slice(1)) : s.startsWith('#') ? this.id===s.slice(1) : false;}
+  matches(s){return s==='button' ? this.tagName==='BUTTON' : s==='[data-close="1"]' ? this.getAttribute('data-close')==='1' : s.startsWith('.') ? this.classList.contains(s.slice(1)) : s.startsWith('#') ? this.id===s.slice(1) : false;}
   querySelectorAll(s){return this.children.flatMap(x=>[...(x.matches(s)?[x]:[]),...x.querySelectorAll(s)]);}
   querySelector(s){return this.querySelectorAll(s)[0]||null;} closest(s){return this.matches(s)?this:this.parentElement?.closest(s)||null;}
   setSelectionRange(start,end){this.selectionStart=start;this.selectionEnd=end;} getBoundingClientRect(){return{left:0,bottom:300,width:340};}
@@ -33,13 +33,15 @@ function app(initial=[],extra={}){
  const card=document.createElement('div');card.id='random-card';elements.set(card.id,card);document.body.appendChild(card);
  for(const side of ['front','back']){
    const face=document.createElement('div');face.className='review-card-face review-card-'+side;card.appendChild(face);
-   for(const suffix of ['time','text','mood','media']){
+   for(const suffix of ['time','text','mood','media','read-more']){
      const id=side==='back'?'random-back-'+suffix:'random-'+suffix;
      let el=elements.get(id);if(el)el.remove();else{el=document.createElement('div');el.id=id;elements.set(id,el);}el.isConnected=true;face.appendChild(el);
    }
  }
  elements.get('recent-list').appendChild(elements.get('recent-empty'));
  for(const id of ['modal-title','modal-body','modal-close','modal-delete']){elements.get(id).remove();elements.get(id).isConnected=true;elements.get('modal').appendChild(elements.get(id));}
+ elements.get('modal').setAttribute('aria-hidden','true');elements.get('modal-close').setAttribute('data-close','1');
+ elements.get('random-read-more').className='review-read-more';elements.get('random-back-read-more').className='review-read-more';
  const moodButtons=['calm','happy','relaxed','lazy'].map(m=>{const el=document.createElement('button');el.dataset.mood=m;el.className='mood-btn';elements.get('mood-group').appendChild(el);return el;});
  const tabs=['home','today','wall','random','settings'].map(p=>{const el=document.createElement('button');el.className='tabbar-btn';el.dataset.target='page-'+p;document.body.appendChild(el);return el;});
  document.querySelector=s=>s.startsWith('#')?(elements.get(s.slice(1))||document.body.querySelector(s)):document.body.querySelector(s);
@@ -55,6 +57,45 @@ function app(initial=[],extra={}){
 }
 
 function visibleReview(a){return a.el('random-card').querySelector(a.el('random-card').classList.contains('is-card-flipped')?'.review-card-back':'.review-card-front');}
+
+function openReviewReader(a){const back=a.el('random-card').classList.contains('is-card-flipped');const button=a.el(back?'random-back-read-more':'random-read-more');a.el('random-card').dispatch('click',{target:button});return button;}
+
+test('review full reader preserves the active card and returns focus without entering edit',()=>{
+ const text='第一段小成就。\n\n第二段值得记住的经历。'.repeat(12);const a=app([record('1',text)]);a.click('random-card');
+ const face=visibleReview(a),tone=face.dataset.tone;const button=openReviewReader(a);
+ assert.equal(a.el('modal').getAttribute('aria-hidden'),'false');assert.equal(a.el('modal-body').textContent,text);
+ assert.equal(a.el('modal-body').getAttribute('role'),null);assert.equal(a.el('modal-body').onclick,null);
+ assert.equal(visibleReview(a),face);assert.equal(face.dataset.tone,tone);assert.equal(a.document.activeElement,a.el('modal-close'));
+ a.el('modal').dispatch('click',{target:a.el('modal-close')});assert.equal(a.el('modal').getAttribute('aria-hidden'),'true');assert.equal(a.document.activeElement,button);
+});
+
+test('review keyboard shortcuts do not turn the card behind an open reader',()=>{
+ const a=app([record('1','第一条'),record('2','第二条')]);const button=openReviewReader(a);const face=visibleReview(a),text=face.textContent,tone=face.dataset.tone;
+ for(const key of ['ArrowRight','ArrowLeft','Enter',' '])for(const listener of a.document.listeners.keydown||[])listener({key,preventDefault(){}});
+ assert.equal(visibleReview(a),face);assert.equal(face.textContent,text);assert.equal(face.dataset.tone,tone);assert.equal(a.el('modal').getAttribute('aria-hidden'),'false');
+ for(const listener of a.document.listeners.keydown||[])listener({key:'Escape',preventDefault(){}});
+ assert.equal(a.document.activeElement,button);
+});
+
+test('achievement details remain editable after closing the review reader',()=>{
+ const a=app([record('1','可以编辑这条成就')]);openReviewReader(a);a.el('modal').dispatch('click',{target:a.el('modal-close')});
+ a.el('wall-list').children[0].dispatch('click');assert.equal(a.el('modal-body').getAttribute('role'),'button');assert.equal(typeof a.el('modal-body').onclick,'function');
+});
+
+test('closing the reader restores the card when resize hides the opening button',()=>{
+ const a=app([record('1')]);const button=openReviewReader(a);button.hidden=true;
+ a.el('modal').dispatch('click',{target:a.el('modal-close')});assert.equal(a.document.activeElement===a.el('random-card'),true);
+});
+
+test('late images cannot append to a review face that now shows another record',async()=>{
+ let release;const gate=new Promise(resolve=>{release=resolve;});const core=require('../media-core.js');
+ const store={get:async id=>{await gate;return id;},estimate:async()=>({usage:0})};
+ const items=['1','2','3'].map(id=>({...record(id,'图片记录'+id),mediaIds:['media-'+id]}));
+ const a=app(items,{context:{SmallWinsMedia:{...core,createIndexedDbMediaStore:()=>store}}});
+ a.click('random-card');a.click('random-card');const expected=visibleReview(a).dataset.recordId;
+ release();await new Promise(resolve=>setImmediate(resolve));
+ const media=a.el('random-media');assert.equal(media.children.length,1);assert.equal(media.children[0].children[0].src,'media-'+expected);
+});
 
 test('review flips change the visible color without adjacent repeats, even with one record',()=>{
  const a=app([record('1')]);let previous=visibleReview(a).dataset.tone;assert.ok(previous);

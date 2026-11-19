@@ -67,7 +67,10 @@
   const randomCardEl = $("#random-card"); const randomTextEl = $("#random-text"); const randomTimeEl = $("#random-time"); const randomMoodEl = $("#random-mood"); const randomMediaEl = $("#random-media"); const randomPositionEl = $("#random-position"); const randomBackTextEl = $("#random-back-text"); const randomBackTimeEl = $("#random-back-time"); const randomBackMoodEl = $("#random-back-mood"); const randomBackMediaEl = $("#random-back-media"); const randomReshuffleBtn = $("#btn-random-reshuffle");
   const installBtn = $("#btn-install"); const installTip = $("#install-tip"); const nicknameInput = $("#nickname-input"); const nicknamePreview = $("#nickname-preview"); const energyInput = $("#energy-input"); const energyPreview = $("#energy-preview"); const exportBtn = $("#btn-export"); const backupBtn = $("#btn-backup"); const clearAllBtn = $("#btn-clear-all"); const storageUsageEl = $("#storage-usage");
   const modalEl = $("#modal"); const modalTitleEl = $("#modal-title"); const modalBodyEl = $("#modal-body"); const modalMediaEl = $("#modal-media");
+  const modalCloseEl = $("#modal-close");
+  let modalReturnFocus = null;
   const mediaStore = MEDIA.createIndexedDbMediaStore(typeof indexedDB !== "undefined" ? indexedDB : null);
+  const mediaRequests = new WeakMap();
 
   const mascotElements = {
     home: $("#mascot-home"),
@@ -156,12 +159,55 @@
   function cleanupMedia(ids) { if (ids?.length) void mediaStore.deleteMany(ids).catch(() => {}); }
 
   function makeMediaItem(blob, name = "图片") { const wrapper = document.createElement("div"); wrapper.className = "media-item"; const image = document.createElement("img"); image.alt = name; image.loading = "lazy"; if (blob) { if (typeof URL !== "undefined" && URL.createObjectURL) image.src = URL.createObjectURL(blob); else if (typeof blob === "string") image.src = blob; } wrapper.appendChild(image); return wrapper; }
-  async function hydrateMedia(container, record) { if (!container || !record?.mediaIds?.length) return; container.innerHTML = ""; for (const id of record.mediaIds.slice(0, MEDIA.MAX_IMAGES_PER_RECORD || 3)) { try { const blob = await mediaStore.get(id); if (blob) container.appendChild(makeMediaItem(blob)); } catch {} } }
+  async function hydrateMedia(container, record) {
+    if (!container) return;
+    const request = {};
+    mediaRequests.set(container, request);
+    container.innerHTML = "";
+    for (const id of (record?.mediaIds || []).slice(0, MEDIA.MAX_IMAGES_PER_RECORD || 3)) {
+      try {
+        const blob = await mediaStore.get(id);
+        if (mediaRequests.get(container) !== request) return;
+        if (blob) container.appendChild(makeMediaItem(blob));
+      } catch {}
+    }
+  }
   function renderPendingImages() { if (!imagePreviewEl) return; imagePreviewEl.innerHTML = ""; pendingImages.forEach((item, index) => { const wrapper = document.createElement("div"); wrapper.className = "image-preview-item"; const image = document.createElement("img"); image.alt = item.name || "待上传图片"; if (!item.url && item.blob && typeof URL !== "undefined" && URL.createObjectURL) item.url = URL.createObjectURL(item.blob); if (item.url) image.src = item.url; wrapper.appendChild(image); const remove = document.createElement("button"); remove.type = "button"; remove.className = "image-remove"; remove.textContent = "×"; remove.setAttribute("aria-label", "移除图片"); remove.addEventListener("click", () => { if (item.url?.startsWith?.("blob:") && typeof URL !== "undefined" && URL.revokeObjectURL) URL.revokeObjectURL(item.url); pendingImages.splice(index, 1); renderPendingImages(); }); wrapper.appendChild(remove); imagePreviewEl.appendChild(wrapper); }); }
   function resetComposer() { pendingImages.forEach((item) => { if (item.url?.startsWith?.("blob:") && typeof URL !== "undefined" && URL.revokeObjectURL) URL.revokeObjectURL(item.url); }); editingRecordId = null; pendingImages = []; selectedMood = null; if (inputTextEl) inputTextEl.value = ""; if (saveBtnEl) saveBtnEl.textContent = "封存这一刻"; if (cancelEditBtn) cancelEditBtn.style.display = "none"; setComposeMenu(false); $$("#mood-group .mood-btn").forEach((button) => button.classList.remove("active")); renderPendingImages(); }
   async function beginEdit(record) { if (!record) return; editingRecordId = record.id; selectedMood = record.mood || null; pendingImages = []; if (inputTextEl) inputTextEl.value = record.text || ""; $$("#mood-group .mood-btn").forEach((button) => button.classList.toggle("active", button.dataset.mood === selectedMood)); for (const id of record.mediaIds || []) { const blob = await mediaStore.get(id).catch(() => null); if (blob) pendingImages.push({ id, blob, existing: true, name: "已添加图片" }); } if (saveBtnEl) saveBtnEl.textContent = "保存修改"; if (cancelEditBtn) cancelEditBtn.style.display = ""; renderPendingImages(); showPage("page-today"); closeModal(); }
-  function openModal(record) { if (!modalEl || !record) return; if (modalTitleEl) modalTitleEl.textContent = record.timeText || "记录详情"; if (modalBodyEl) { modalBodyEl.textContent = record.text || ""; const edit = () => beginEdit(record); modalBodyEl.onclick = edit; modalBodyEl.onkeydown = (event) => { if (event.key !== "Enter" && event.key !== " ") return; event.preventDefault(); edit(); }; } if (modalMediaEl) { modalMediaEl.innerHTML = ""; void hydrateMedia(modalMediaEl, record); } modalEl.style.display = ""; modalEl.setAttribute("aria-hidden", "false"); }
-  function closeModal() { if (modalEl) { modalEl.style.display = "none"; modalEl.setAttribute("aria-hidden", "true"); } }
+  function openModal(record, { readOnly = false, returnFocus = null } = {}) {
+    if (!modalEl || !record) return;
+    modalReturnFocus = returnFocus;
+    modalEl.classList.toggle("is-review-reader", readOnly);
+    if (modalTitleEl) modalTitleEl.textContent = record.timeText || "记录详情";
+    if (modalBodyEl) {
+      modalBodyEl.textContent = record.text || "";
+      modalBodyEl.scrollTop = 0;
+      modalBodyEl.classList.toggle("modal-body-editable", !readOnly);
+      modalBodyEl.setAttribute("tabindex", "0");
+      modalBodyEl.setAttribute("aria-label", readOnly ? "记录全文" : "点击内容编辑");
+      if (readOnly) {
+        modalBodyEl.removeAttribute("role");
+        modalBodyEl.onclick = null;
+        modalBodyEl.onkeydown = null;
+      } else {
+        modalBodyEl.setAttribute("role", "button");
+        const edit = () => beginEdit(record);
+        modalBodyEl.onclick = edit;
+        modalBodyEl.onkeydown = (event) => { if (event.key !== "Enter" && event.key !== " ") return; event.preventDefault(); edit(); };
+      }
+    }
+    if (modalMediaEl) { modalMediaEl.innerHTML = ""; void hydrateMedia(modalMediaEl, record); }
+    modalEl.style.display = "";
+    modalEl.setAttribute("aria-hidden", "false");
+    if (readOnly) modalCloseEl?.focus();
+  }
+  function closeModal() {
+    if (modalEl) { modalEl.style.display = "none"; modalEl.setAttribute("aria-hidden", "true"); }
+    if (modalReturnFocus?.isConnected && !modalReturnFocus.hidden && modalReturnFocus.closest(".review-card-face")?.getAttribute("aria-hidden") !== "true") modalReturnFocus.focus();
+    else if (modalReturnFocus && document.getElementById("page-random")?.style.display !== "none") randomCardEl?.focus();
+    modalReturnFocus = null;
+  }
   function appendRecordMedia(row, record, className = "record-media") { if (!record.mediaIds?.length) return; const media = document.createElement("div"); media.className = className; row.appendChild(media); void hydrateMedia(media, record); }
 
   function renderReviewMeta(container, record) {
@@ -319,11 +365,36 @@
     if (faceEl) faceEl.dataset.tone = tone.name;
     if (tone === reviewTone) randomCardEl?.parentElement?.style.setProperty("--review-layer-tone", tone.fill);
   }
-  function setReviewFlipState(flipped) { if (!randomCardEl) return; const isFlipped = Boolean(flipped); randomCardEl?.classList.toggle("is-card-flipped", isFlipped); randomCardEl.setAttribute("aria-expanded", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-front")?.setAttribute("aria-hidden", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-back")?.setAttribute("aria-hidden", isFlipped ? "false" : "true"); }
+  function setReviewFlipState(flipped) { if (!randomCardEl) return; const isFlipped = Boolean(flipped); randomCardEl?.classList.toggle("is-card-flipped", isFlipped); randomCardEl.setAttribute("aria-expanded", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-front")?.setAttribute("aria-hidden", isFlipped ? "true" : "false"); randomCardEl.querySelector(".review-card-back")?.setAttribute("aria-hidden", isFlipped ? "false" : "true"); randomCardEl.querySelectorAll(".review-card-face").forEach((face) => { const button = face.querySelector(".review-read-more"); if (button) button.tabIndex = face.getAttribute("aria-hidden") === "true" ? -1 : 0; }); }
+  function layoutReviewFace(faceEl) {
+    if (!faceEl?.clientWidth) return;
+    const content = faceEl.querySelector(".review-card-content");
+    const text = faceEl.querySelector(".review-text");
+    const button = faceEl.querySelector(".review-read-more");
+    if (!content || !text || !button) return;
+    button.hidden = true;
+    text.style.setProperty("--review-lines", "unset");
+    const faceStyle = getComputedStyle(faceEl);
+    const gap = parseFloat(getComputedStyle(content).rowGap) || 14;
+    const lineHeight = parseFloat(getComputedStyle(text).lineHeight) || 28.8;
+    const available = faceEl.clientHeight - parseFloat(faceStyle.paddingTop) - parseFloat(faceStyle.paddingBottom);
+    const siblings = [...content.children].filter((child) => child !== text && child !== button && getComputedStyle(child).display !== "none");
+    let occupied = siblings.reduce((height, child) => height + child.offsetHeight, 0) + gap * siblings.length;
+    let lines = Math.max(1, Math.floor((available - occupied) / lineHeight));
+    if (text.scrollHeight > lines * lineHeight + 1) {
+      button.hidden = false;
+      occupied += button.offsetHeight + gap;
+      lines = Math.max(1, Math.floor((available - occupied) / lineHeight));
+    }
+    text.style.setProperty("--review-lines", String(lines));
+  }
   function renderReviewFace(face, record) {
     const isBack = face === "back";
     const faceEl = randomCardEl?.querySelector(isBack ? ".review-card-back" : ".review-card-front");
-    if (faceEl) faceEl.scrollTop = 0;
+    if (faceEl) {
+      faceEl.dataset.recordId = record?.id || "";
+      faceEl.classList.toggle("is-long-copy", Boolean(record && (Array.from(record.text.replace(/\s/g, "")).length > 60 || record.text.includes("\n"))));
+    }
     const timeEl = isBack ? randomBackTimeEl : randomTimeEl;
     const textEl = isBack ? randomBackTextEl : randomTextEl;
     const moodEl = isBack ? randomBackMoodEl : randomMoodEl;
@@ -332,13 +403,17 @@
       if (timeEl) timeEl.textContent = "还没有记录";
       if (textEl) textEl.textContent = "—";
       renderReviewMeta(moodEl, null);
-      if (mediaEl) mediaEl.innerHTML = "";
+      if (mediaEl) void hydrateMedia(mediaEl, null);
+      const button = faceEl?.querySelector(".review-read-more");
+      if (button) button.hidden = true;
       return;
     }
     if (timeEl) timeEl.textContent = record.timeText;
     if (textEl) textEl.textContent = record.text;
     renderReviewMeta(moodEl, record);
-    if (mediaEl) { mediaEl.innerHTML = ""; void hydrateMedia(mediaEl, record); }
+    const updateLayout = () => requestAnimationFrame(() => { if (faceEl?.dataset.recordId === record.id) layoutReviewFace(faceEl); });
+    if (mediaEl) { mediaEl.innerHTML = ""; void hydrateMedia(mediaEl, record).then(updateLayout); }
+    updateLayout();
   }
   function nextReviewRecord(direction = 1) { ensureReviewDeck(); const id = direction < 0 ? (reviewDeck.peek(-1) || reviewDeck.peek(1)) : reviewDeck.peek(1); return records.find((record) => record.id === id) || null; }
   function toggleReviewFlip() {
@@ -415,8 +490,74 @@
   wallSearchEl?.addEventListener("input", () => { renderWall(); if ((wallSearchEl.value || "").trim() && wallListEl?.childElementCount) triggerMascot("wall", "listen"); }); wallClearInputBtn?.addEventListener("click", () => { wallSearchEl.value = ""; renderWall(); toast("已清空搜索"); }); wallClearBtn?.addEventListener("click", clearWallAll);
   $$("#wall-view-toggle [data-view]").forEach((button) => button.addEventListener("click", () => { wallView = button.dataset.view; $$("#wall-view-toggle [data-view]").forEach((item) => item.classList.toggle("active", item === button)); renderWall(); }));
   randomReshuffleBtn?.addEventListener("click", () => { resetReviewMotion(); reviewDeck.reset(); currentRandomId = null; completedReviewCycle = false; renderRandom(); });
-  document.addEventListener("keydown", (event) => { if (document.getElementById("page-random")?.style.display !== "none" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); animateRandomStep(event.key === "ArrowLeft" ? -1 : 1); } if (document.getElementById("page-random")?.style.display !== "none" && (event.key === "Enter" || event.key === " ") && document.activeElement === randomCardEl) { event.preventDefault(); toggleReviewFlip(); } if (event.key === "Escape") closeModal(); });
-  if (randomCardEl) { let startX = null; let pointerActive = false; const width = () => randomCardEl.getBoundingClientRect?.().width || 320; const setDrag = (x) => { const progress = Math.min(1, Math.abs(x) / Math.max(width() * .85, 1)); const rotate = Math.max(-10, Math.min(10, (x / width()) * 8)); const scale = 1 - progress * .04; const opacity = 1 - progress * .16; randomCardEl.style.setProperty("--swipe-x", `${x}px`); randomCardEl.style.setProperty("--swipe-rotate", `${rotate}deg`); randomCardEl.style.setProperty("--swipe-scale", scale.toFixed(3)); randomCardEl.style.setProperty("--swipe-opacity", opacity.toFixed(3)); randomCardEl.style.setProperty("--swipe-progress", progress.toFixed(3)); randomCardEl.classList.add("is-dragging"); }; const finishSwipe = (endX) => { if (startX == null || !Number.isFinite(endX)) return; const delta = endX - startX; startX = null; randomCardEl.classList.remove("is-dragging"); if (Math.abs(delta) <= 52) { randomCardEl.style.setProperty("--swipe-x", "0px"); randomCardEl.style.setProperty("--swipe-rotate", "0deg"); randomCardEl.style.setProperty("--swipe-scale", "1"); randomCardEl.style.setProperty("--swipe-opacity", "1"); randomCardEl.style.setProperty("--swipe-progress", "0"); return; } reviewTapSuppressed = true; setTimeout(() => { reviewTapSuppressed = false; }, 620); beginRandomStep(delta < 0 ? 1 : -1); }; randomCardEl.addEventListener("pointerdown", (event) => { if (reviewPendingDirection != null) return; pointerActive = true; startX = event.clientX; randomCardEl.setPointerCapture?.(event.pointerId); }); randomCardEl.addEventListener("pointermove", (event) => { if (pointerActive && startX != null) setDrag(event.clientX - startX); }); randomCardEl.addEventListener("pointerup", (event) => { if (!pointerActive) return; pointerActive = false; finishSwipe(event.clientX); }); randomCardEl.addEventListener("pointercancel", () => { pointerActive = false; startX = null; cancelReviewDrag(); }); randomCardEl.addEventListener("touchstart", (event) => { if (pointerActive || reviewPendingDirection != null) return; startX = event.changedTouches?.[0]?.clientX ?? null; }, { passive: true }); randomCardEl.addEventListener("touchmove", (event) => { if (!pointerActive && startX != null) setDrag((event.changedTouches?.[0]?.clientX ?? startX) - startX); }, { passive: true }); randomCardEl.addEventListener("touchend", (event) => { if (pointerActive) return; finishSwipe(event.changedTouches?.[0]?.clientX ?? startX); }, { passive: true }); randomCardEl.addEventListener("touchcancel", () => { if (!pointerActive) { startX = null; cancelReviewDrag(); } }, { passive: true }); randomCardEl.addEventListener("click", () => { if (reviewTapSuppressed) { reviewTapSuppressed = false; return; } toggleReviewFlip(); }); randomCardEl.addEventListener("transitionend", (event) => { if (event.propertyName === "transform") completeRandomStep(); }); }
+  document.addEventListener("keydown", (event) => {
+    if (modalEl?.getAttribute("aria-hidden") === "false") {
+      if (event.key === "Escape") closeModal();
+      if (event.key === "Tab" && modalEl.classList.contains("is-review-reader")) {
+        event.preventDefault();
+        (document.activeElement === modalCloseEl ? modalBodyEl : modalCloseEl)?.focus();
+      }
+      return;
+    }
+    if (document.getElementById("page-random")?.style.display !== "none" && (event.key === "ArrowLeft" || event.key === "ArrowRight")) { event.preventDefault(); animateRandomStep(event.key === "ArrowLeft" ? -1 : 1); }
+    if (document.getElementById("page-random")?.style.display !== "none" && (event.key === "Enter" || event.key === " ") && document.activeElement === randomCardEl) { event.preventDefault(); toggleReviewFlip(); }
+  });
+  if (randomCardEl) {
+    let startX = null, startY = null, axis = null, pointerActive = false;
+    const width = () => randomCardEl.getBoundingClientRect?.().width || 320;
+    const suppressTap = () => { reviewTapSuppressed = true; setTimeout(() => { reviewTapSuppressed = false; }, 620); };
+    const setDrag = (x) => {
+      const progress = Math.min(1, Math.abs(x) / Math.max(width() * .85, 1));
+      randomCardEl.style.setProperty("--swipe-x", `${x}px`);
+      randomCardEl.style.setProperty("--swipe-rotate", `${Math.max(-10, Math.min(10, (x / width()) * 8))}deg`);
+      randomCardEl.style.setProperty("--swipe-scale", (1 - progress * .04).toFixed(3));
+      randomCardEl.style.setProperty("--swipe-opacity", (1 - progress * .16).toFixed(3));
+      randomCardEl.style.setProperty("--swipe-progress", progress.toFixed(3));
+      randomCardEl.classList.add("is-dragging");
+    };
+    const beginGesture = (x, y, target) => {
+      if (reviewPendingDirection != null || modalEl?.getAttribute("aria-hidden") === "false" || target?.closest?.("button")) return false;
+      startX = x; startY = y ?? 0; axis = null;
+      return true;
+    };
+    const moveGesture = (x, y) => {
+      if (startX == null) return;
+      const dx = x - startX, dy = (y ?? startY) - startY;
+      if (!axis && Math.max(Math.abs(dx), Math.abs(dy)) >= 8) axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+      if (axis === "x") setDrag(dx);
+    };
+    const finishSwipe = (x, y) => {
+      if (startX == null || !Number.isFinite(x)) return;
+      const delta = x - startX, dy = (y ?? startY) - startY;
+      startX = null;
+      randomCardEl.classList.remove("is-dragging");
+      if (Math.max(Math.abs(delta), Math.abs(dy)) > 8) suppressTap();
+      if (axis === "y" || Math.abs(dy) > Math.abs(delta) || Math.abs(delta) <= 52) { cancelReviewDrag(); return; }
+      suppressTap();
+      beginRandomStep(delta < 0 ? 1 : -1);
+    };
+    randomCardEl.addEventListener("pointerdown", (event) => { pointerActive = beginGesture(event.clientX, event.clientY, event.target); });
+    randomCardEl.addEventListener("pointermove", (event) => { if (!pointerActive) return; moveGesture(event.clientX, event.clientY); if (axis === "x") randomCardEl.setPointerCapture?.(event.pointerId); });
+    randomCardEl.addEventListener("pointerup", (event) => { if (!pointerActive) return; pointerActive = false; finishSwipe(event.clientX, event.clientY); });
+    randomCardEl.addEventListener("pointercancel", () => { if (axis) suppressTap(); pointerActive = false; startX = null; cancelReviewDrag(); });
+    randomCardEl.addEventListener("touchstart", (event) => { if (pointerActive) return; const touch = event.changedTouches?.[0]; if (touch) beginGesture(touch.clientX, touch.clientY, event.target); }, { passive: true });
+    randomCardEl.addEventListener("touchmove", (event) => { if (!pointerActive && startX != null) { const touch = event.changedTouches?.[0]; if (touch) moveGesture(touch.clientX, touch.clientY); } }, { passive: true });
+    randomCardEl.addEventListener("touchend", (event) => { if (pointerActive) return; const touch = event.changedTouches?.[0]; finishSwipe(touch?.clientX ?? startX, touch?.clientY ?? startY); }, { passive: true });
+    randomCardEl.addEventListener("touchcancel", () => { if (!pointerActive) { if (axis) suppressTap(); startX = null; cancelReviewDrag(); } }, { passive: true });
+    randomCardEl.addEventListener("click", (event) => {
+      if (reviewTapSuppressed) { reviewTapSuppressed = false; return; }
+      if (reviewPendingDirection != null || modalEl?.getAttribute("aria-hidden") === "false") return;
+      const button = event.target?.closest?.(".review-read-more");
+      if (button) {
+        const record = records.find((item) => item.id === button.closest(".review-card-face")?.dataset.recordId);
+        if (record) openModal(record, { readOnly: true, returnFocus: button });
+        return;
+      }
+      toggleReviewFlip();
+    });
+    randomCardEl.addEventListener("transitionend", (event) => { if (event.propertyName === "transform") completeRandomStep(); });
+    window.addEventListener("resize", () => randomCardEl.querySelectorAll(".review-card-face").forEach(layoutReviewFace));
+  }
   bindSettingField(nicknameInput, commitNicknameSetting);
   bindSettingField(energyInput, commitEnergySetting);
   exportBtn?.addEventListener("click", exportText); backupBtn?.addEventListener("click", exportBackup); clearAllBtn?.addEventListener("click", clearAll);

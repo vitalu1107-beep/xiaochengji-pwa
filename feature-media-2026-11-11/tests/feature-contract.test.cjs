@@ -204,7 +204,7 @@ test('achievement detail keeps one close affordance and enters edit from the con
   assert.match(html, /id="modal"[\s\S]*aria-label="关闭详情"/);
   assert.doesNotMatch(html, /id="modal-edit"/);
   assert.doesNotMatch(html, /class="modal-actions"/);
-  assert.match(main, /function openModal\(record\)[\s\S]*modalBodyEl[\s\S]*beginEdit\(record\)/);
+  assert.match(main, /function openModal\(record[\s\S]*modalBodyEl[\s\S]*beginEdit\(record\)/);
 });
 
 test('record composer uses a more inviting small-win prompt', () => {
@@ -267,7 +267,7 @@ test('home recent achievements get a distinct card hierarchy and balanced spacin
 
 test('review typography stays compact and metadata is rendered as light chips', () => {
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-  assert.match(css, /\.review-text\s*\{[^}]*font-family:\s*var\(--ui-font\)[^}]*font-size:\s*clamp\(22px,\s*5\.8vw,\s*28px\)/);
+  assert.match(css, /\.review-text\s*\{[^}]*font-family:\s*var\(--ui-font\)[^}]*font-size:\s*18px[^}]*font-weight:\s*400/);
   assert.match(css, /\.review-mood\s*\{[^}]*display:\s*flex/);
   assert.match(css, /\.review-chip\s*\{[^}]*border-radius:\s*999px/);
   assert.doesNotMatch(css, /\.review-chip\s*\{[^}]*font-size:\s*0/);
